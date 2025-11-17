@@ -63,7 +63,7 @@ import java.util.UUID;
  *
  * @see <a href="https://www.domainlanguage.com/ddd/">Domain-Driven Design Reference</a>
  */
-@Stereotype(groups = "dca")
+@Stereotype(groups = "dca", value="Domain Event")
 public interface DomainEvent {
 
   /**

@@ -46,5 +46,5 @@ import org.jmolecules.stereotype.Stereotype;
  *
  * @see <a href="https://www.domainlanguage.com/ddd/">Domain-Driven Design Reference</a>
  */
-@Stereotype(groups = "dca")
+@Stereotype(groups = "dca", value = "Factory")
 public interface Factory {}

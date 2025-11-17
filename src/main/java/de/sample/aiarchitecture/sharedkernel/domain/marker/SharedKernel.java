@@ -2,6 +2,6 @@ package de.sample.aiarchitecture.sharedkernel.domain.marker;
 
 import org.jmolecules.stereotype.Stereotype;
 
-@Stereotype(groups = "dca")
+@Stereotype(groups = "dca", value = "Shared Kernel")
 public @interface SharedKernel {
 }

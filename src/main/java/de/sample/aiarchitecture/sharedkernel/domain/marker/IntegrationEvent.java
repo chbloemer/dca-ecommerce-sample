@@ -112,7 +112,7 @@ import org.jmolecules.stereotype.Stereotype;
  * @see DomainEvent
  * @see <a href="https://www.domainlanguage.com/ddd/">Domain-Driven Design Reference</a>
  */
-@Stereotype(groups = "dca")
+@Stereotype(groups = "dca", value = "Integration Event")
 public interface IntegrationEvent extends DomainEvent {
   // Marker interface - inherits all DomainEvent methods
   // No additional methods needed - the semantic distinction is the key

@@ -54,7 +54,7 @@ import org.jspecify.annotations.NonNull;
  *
  * @see <a href="https://www.domainlanguage.com/ddd/">Domain-Driven Design Reference</a>
  */
-@Stereotype(groups = "dca")
+@Stereotype(groups = "dca", value = "Specification")
 public interface Specification<T> {
     boolean isSatisfiedBy(@NonNull T candidate);
 }
