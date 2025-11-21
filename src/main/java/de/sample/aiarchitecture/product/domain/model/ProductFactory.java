@@ -13,6 +13,7 @@ import org.jspecify.annotations.NonNull;
  * <p>Encapsulates complex product creation logic and ensures all invariants
  * are satisfied from the moment of creation.
  */
+@org.jmolecules.ddd.annotation.Factory
 public final class ProductFactory implements Factory {
 
   /**

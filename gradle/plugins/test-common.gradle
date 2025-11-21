@@ -17,6 +17,9 @@ ext.addCommonTestDependencies = { configurationName ->
     "${configurationName}"("org.spockframework:spock-core:${spockVersion}") {
       exclude(module: 'groovy-all')
     }
+      // Make jMolecules types available to tests that compile against main API without adding them to runtime
+    "${configurationName}"("org.jmolecules:jmolecules-ddd")
+    "${configurationName}"("org.jmolecules:jstereotype")
   }
 }
 

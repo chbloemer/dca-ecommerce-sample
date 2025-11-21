@@ -3,6 +3,7 @@ package de.sample.aiarchitecture.infrastructure.config;
 import de.sample.aiarchitecture.sharedkernel.domain.marker.AggregateRoot;
 import de.sample.aiarchitecture.sharedkernel.domain.marker.DomainEvent;
 import de.sample.aiarchitecture.sharedkernel.application.port.DomainEventPublisher;
+import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
  * event buses.
  */
 @Component
+@SecondaryAdapter
 public class SpringDomainEventPublisher implements DomainEventPublisher {
 
   private static final Logger log = LoggerFactory.getLogger(SpringDomainEventPublisher.class);

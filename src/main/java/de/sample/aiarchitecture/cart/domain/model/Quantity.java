@@ -1,10 +1,12 @@
 package de.sample.aiarchitecture.cart.domain.model;
 
 import de.sample.aiarchitecture.sharedkernel.domain.marker.Value;
+import org.jmolecules.ddd.annotation.ValueObject;
 
 /**
  * Value Object representing a quantity of items.
  */
+@ValueObject
 public record Quantity(int value) implements Value {
 
   public Quantity {

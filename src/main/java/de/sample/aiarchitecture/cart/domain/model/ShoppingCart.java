@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import org.jmolecules.ddd.annotation.AggregateRoot;
+import org.jmolecules.ddd.annotation.Identity;
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -39,8 +42,9 @@ import org.jspecify.annotations.NonNull;
  *   <li>{@link CartCheckedOut} - when the cart is checked out
  * </ul>
  */
+@AggregateRoot
 public final class ShoppingCart extends BaseAggregateRoot<ShoppingCart, CartId> {
-
+  @Identity
   private final CartId id;
   private final CustomerId customerId;
   private final List<CartItem> items;

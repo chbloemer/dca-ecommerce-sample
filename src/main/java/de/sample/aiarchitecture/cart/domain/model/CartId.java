@@ -3,11 +3,16 @@ package de.sample.aiarchitecture.cart.domain.model;
 import de.sample.aiarchitecture.sharedkernel.domain.marker.Id;
 import de.sample.aiarchitecture.sharedkernel.domain.marker.Value;
 import java.util.UUID;
+
+import org.intellij.lang.annotations.Identifier;
+import org.jmolecules.ddd.annotation.Identity;
+import org.jmolecules.ddd.annotation.ValueObject;
 import org.jspecify.annotations.NonNull;
 
 /**
  * Value Object representing a Shopping Cart's unique identifier.
  */
+@ValueObject
 public record CartId(@NonNull String value) implements Id, Value {
 
   public CartId {

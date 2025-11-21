@@ -1,5 +1,6 @@
 package de.sample.aiarchitecture.sharedkernel.domain.marker;
 
+import org.jmolecules.ddd.annotation.Identity;
 import org.jmolecules.stereotype.Stereotype;
 
 import java.util.List;
@@ -36,10 +37,10 @@ import java.util.List;
  * @param <T> the aggregate root type
  * @param <ID> the aggregate root ID type
  */
-@Stereotype(groups = "dca", value = "Aggregate Root")
 public interface AggregateRoot<T extends AggregateRoot<T, ID>, ID extends Id>
     extends Entity<T, ID> {
 
+    ID id();
   /**
    * Returns the list of domain events that occurred during state changes.
    *

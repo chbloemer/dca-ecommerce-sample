@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.sql.DataSource;
+
+import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @org.springframework.context.annotation.Profile("jdbc")
 @Repository
+@org.jmolecules.ddd.annotation.Repository
+@SecondaryAdapter
 public class JdbcShoppingCartRepository implements ShoppingCartRepository {
 
   private final JdbcTemplate jdbcTemplate;

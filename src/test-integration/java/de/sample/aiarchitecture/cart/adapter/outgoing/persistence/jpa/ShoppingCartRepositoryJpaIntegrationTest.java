@@ -9,7 +9,7 @@ import de.sample.aiarchitecture.cart.domain.spec.HasMinTotal;
 import de.sample.aiarchitecture.sharedkernel.domain.common.ProductId;
 import de.sample.aiarchitecture.cart.domain.model.Quantity;
 import de.sample.aiarchitecture.cart.domain.model.ShoppingCart;
-import de.sample.aiarchitecture.infrastructure.AiArchitectureApplication;
+import de.sample.aiarchitecture.AiArchitectureApplication;
 import de.sample.aiarchitecture.sharedkernel.domain.common.Money;
 import de.sample.aiarchitecture.sharedkernel.domain.common.Price;
 import org.junit.jupiter.api.Test;

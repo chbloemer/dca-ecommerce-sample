@@ -1,5 +1,6 @@
 package de.sample.aiarchitecture.sharedkernel.application.port;
 
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.jmolecules.stereotype.Stereotype;
 
 /**
@@ -50,7 +51,7 @@ import org.jmolecules.stereotype.Stereotype;
  * @param <INPUT> the input model type (Command or Query)
  * @param <OUTPUT> the output model type (Response)
  */
-@Stereotype(groups = "dca")
+
 public interface UseCase<INPUT, OUTPUT> {
 
   /**

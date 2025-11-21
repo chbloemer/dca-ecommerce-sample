@@ -13,6 +13,7 @@ import de.sample.aiarchitecture.cart.application.getorcreateactivecart.GetOrCrea
 import de.sample.aiarchitecture.cart.application.getorcreateactivecart.GetOrCreateActiveCartResponse;
 import de.sample.aiarchitecture.cart.application.getorcreateactivecart.GetOrCreateActiveCartUseCase;
 import jakarta.servlet.http.HttpSession;
+import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  */
 @Controller
 @RequestMapping("/cart")
+@PrimaryAdapter
 public class CartPageController {
 
   private final GetCartByIdUseCase getCartByIdUseCase;

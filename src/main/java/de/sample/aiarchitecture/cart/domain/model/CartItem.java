@@ -3,6 +3,7 @@ package de.sample.aiarchitecture.cart.domain.model;
 import de.sample.aiarchitecture.sharedkernel.domain.marker.Entity;
 import de.sample.aiarchitecture.sharedkernel.domain.common.Price;
 import de.sample.aiarchitecture.sharedkernel.domain.common.ProductId;
+import org.jmolecules.ddd.annotation.Identity;
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -14,8 +15,9 @@ import org.jspecify.annotations.NonNull;
  * <p><b>Important:</b> CartItem is NOT an aggregate root. It cannot exist outside of a
  * ShoppingCart and has package-private constructors to enforce this boundary.
  */
+@org.jmolecules.ddd.annotation.Entity
 public final class CartItem implements Entity<CartItem, CartItemId> {
-
+  @Identity
   private final CartItemId id;
   private final ProductId productId; // Reference to Product by ID only
   private Quantity quantity;

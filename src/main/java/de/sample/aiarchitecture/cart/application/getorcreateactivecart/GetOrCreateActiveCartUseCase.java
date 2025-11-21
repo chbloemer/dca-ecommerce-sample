@@ -6,6 +6,8 @@ import de.sample.aiarchitecture.cart.domain.model.CartId;
 import de.sample.aiarchitecture.cart.domain.model.CustomerId;
 import de.sample.aiarchitecture.cart.domain.model.ShoppingCart;
 import java.util.Optional;
+
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@PrimaryPort
 public class GetOrCreateActiveCartUseCase implements GetOrCreateActiveCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;

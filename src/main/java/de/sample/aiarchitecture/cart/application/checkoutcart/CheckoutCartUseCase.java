@@ -8,6 +8,8 @@ import de.sample.aiarchitecture.sharedkernel.domain.common.Money;
 import de.sample.aiarchitecture.sharedkernel.application.port.DomainEventPublisher;
 import java.time.Instant;
 import java.util.List;
+
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@PrimaryPort
 public class CheckoutCartUseCase implements CheckoutCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;

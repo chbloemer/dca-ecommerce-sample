@@ -8,7 +8,7 @@ import de.sample.aiarchitecture.cart.domain.model.ShoppingCart;
 import de.sample.aiarchitecture.cart.domain.spec.ActiveCart;
 import de.sample.aiarchitecture.cart.domain.spec.ComposedCartSpecification;
 import de.sample.aiarchitecture.cart.domain.spec.HasMinTotal;
-import de.sample.aiarchitecture.infrastructure.AiArchitectureApplication;
+import de.sample.aiarchitecture.AiArchitectureApplication;
 import de.sample.aiarchitecture.sharedkernel.domain.common.Money;
 import de.sample.aiarchitecture.sharedkernel.domain.common.Price;
 import de.sample.aiarchitecture.sharedkernel.domain.common.ProductId;

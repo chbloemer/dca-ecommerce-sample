@@ -7,6 +7,8 @@ import de.sample.aiarchitecture.cart.application.shared.ShoppingCartRepository;
 import de.sample.aiarchitecture.sharedkernel.domain.common.Money;
 import java.util.List;
 import java.util.Optional;
+
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(readOnly = true)
+@PrimaryPort
 public class GetCartByIdUseCase implements GetCartByIdInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;

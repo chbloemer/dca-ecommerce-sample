@@ -10,6 +10,8 @@ import de.sample.aiarchitecture.sharedkernel.common.annotation.AsyncInitialize;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,8 @@ import org.springframework.stereotype.Repository;
 @org.springframework.context.annotation.Profile("inmemory")
 @Repository
 @AsyncInitialize(priority = 100, description = "Initialize shopping cart metrics")
+@org.jmolecules.ddd.annotation.Repository
+@SecondaryAdapter
 public class InMemoryShoppingCartRepository implements ShoppingCartRepository {
 
   private static final Logger logger =

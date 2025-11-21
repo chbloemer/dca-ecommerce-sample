@@ -11,6 +11,8 @@ import de.sample.aiarchitecture.sharedkernel.domain.common.Money;
 import de.sample.aiarchitecture.sharedkernel.domain.common.ProductId;
 import de.sample.aiarchitecture.sharedkernel.application.port.DomainEventPublisher;
 import java.util.List;
+
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@PrimaryPort
 public class AddItemToCartUseCase implements AddItemToCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
