@@ -1,6 +1,7 @@
 package de.sample.aiarchitecture.cart.events;
 
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent;
+import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEventType;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -12,8 +13,9 @@ import java.util.UUID;
  * The Checkout context consumes this event to sync checkout sessions instead of listening to
  * individual domain events.
  */
+@IntegrationEventType(name = "cart-contents-changed", version = 1)
 public record CartContentsChangedEvent(
-    UUID eventId, UUID cartId, ChangeType changeType, Instant occurredOn, int version)
+    UUID eventId, UUID cartId, ChangeType changeType, Instant occurredOn)
     implements IntegrationEvent {
 
   /** The type of change that occurred in the cart. */
@@ -26,6 +28,6 @@ public record CartContentsChangedEvent(
 
   /** Creates a new event with the given cart ID and change type. */
   public static CartContentsChangedEvent now(UUID cartId, ChangeType changeType) {
-    return new CartContentsChangedEvent(UUID.randomUUID(), cartId, changeType, Instant.now(), 1);
+    return new CartContentsChangedEvent(UUID.randomUUID(), cartId, changeType, Instant.now());
   }
 }

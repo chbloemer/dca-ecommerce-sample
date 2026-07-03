@@ -32,6 +32,8 @@ Architecture Decision Records capture important architectural decisions with con
 | [ADR-023](adr-023-optional-results-not-found.md) | Optional Results for Not-Found Cases | ✅ Accepted |
 | [ADR-024](adr-024-interface-inversion-spring-modulith.md) | Interface Inversion Pattern for Spring Modulith Event Listeners | ✅ Accepted |
 | [ADR-025](adr-025-pattern-selection-per-subdomain.md) | Pattern Selection per Subdomain Type | ✅ Accepted |
+| [ADR-026](adr-026-transactional-outbox-integration-events.md) | Transactional Outbox for Integration Events | ✅ Accepted |
+| [ADR-027](adr-027-integration-event-contract-identity.md) | Integration-Event Contract Identity via @IntegrationEventType | ✅ Accepted |
 
 ### Proposed 🟡
 

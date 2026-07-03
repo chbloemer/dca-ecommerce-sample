@@ -16,7 +16,9 @@ import java.util.UUID;
  * <ul>
  *   <li><b>Layer:</b> Adapter layer ({@code adapter.outgoing.event}), not domain layer
  *   <li><b>Purpose:</b> Cross bounded context communication (domain events are internal)
- *   <li><b>Versioning:</b> Strict backward compatibility required (domain events can change freely)
+ *   <li><b>Versioning:</b> Strict backward compatibility required (domain events can change
+ *       freely). The schema version is a <b>class property</b>, declared via {@link
+ *       IntegrationEventType}, never a data field on the event instance.
  *   <li><b>Naming:</b> Suffixed with {@code Event} (e.g., {@code CartCheckedOutEvent}), while
  *       domain events have no suffix (e.g., {@code CartCheckedOut})
  *   <li><b>Creation:</b> Created by outgoing event adapters via {@code from(DomainEvent)} factory
@@ -38,6 +40,7 @@ import java.util.UUID;
  *
  * <pre>
  * // In cart/adapter/outgoing/event/
+ * &#64;IntegrationEventType(name = "cart-checked-out", version = 1)
  * public record CartCheckedOutEvent(
  *     UUID eventId,
  *     CartId cartId,
@@ -45,8 +48,7 @@ import java.util.UUID;
  *     Money totalAmount,
  *     int itemCount,
  *     List&lt;ItemInfo&gt; items,
- *     Instant occurredOn,
- *     int version) implements IntegrationEvent {
+ *     Instant occurredOn) implements IntegrationEvent {
  *
  *   public record ItemInfo(ProductId productId, int quantity) {}
  *
@@ -55,7 +57,7 @@ import java.util.UUID;
  *         .map(i -&gt; new ItemInfo(i.productId(), i.quantity()))
  *         .toList();
  *     return new CartCheckedOutEvent(
- *         domainEvent.eventId(), domainEvent.cartId(), ...items, domainEvent.occurredOn(), 1);
+ *         domainEvent.eventId(), domainEvent.cartId(), ...items, domainEvent.occurredOn());
  *   }
  * }
  * </pre>
@@ -83,14 +85,4 @@ public interface IntegrationEvent {
 
   /** Timestamp when the event occurred. */
   Instant occurredOn();
-
-  /**
-   * Event schema version to support event evolution and backward compatibility.
-   *
-   * <p>Consumers may depend on the event schema, so changes require version increments to maintain
-   * backward compatibility.
-   *
-   * @return the event version
-   */
-  int version();
 }

@@ -44,13 +44,9 @@ public class CartCheckedOutEventPublisher {
             domainEvent.totalAmount(),
             domainEvent.itemCount(),
             items,
-            domainEvent.occurredOn(),
-            1);
+            domainEvent.occurredOn());
 
-    logger.info(
-        "Publishing CartCheckedOutEvent v{} for cart: {}",
-        integrationEvent.version(),
-        integrationEvent.cartId());
+    logger.info("Publishing CartCheckedOutEvent for cart: {}", integrationEvent.cartId());
 
     publisher.publishEvent(integrationEvent);
   }
