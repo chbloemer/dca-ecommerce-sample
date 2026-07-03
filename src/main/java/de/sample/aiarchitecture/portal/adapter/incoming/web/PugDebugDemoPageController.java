@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * <p><b>Learning/demo artifact — not production code:</b> This controller demonstrates the Pug4j
  * debug error page provided by spring-pug4j ({@code Boot4PugDebugErrorViewResolver}, enabled via
- * {@code spring.pug4j.debug-error-page=true}). The referenced template contains an expression
- * error that fails at render time, so the resulting {@code PugException} propagates to Spring
- * Boot's error handling and is rendered as a debug page showing the template source with the
- * failing line highlighted.
+ * {@code spring.pug4j.debug-error-page=true}). The referenced template contains an expression error
+ * that fails at render time, so the resulting {@code PugException} propagates to Spring Boot's
+ * error handling and is rendered as a debug page showing the template source with the failing line
+ * highlighted.
  *
  * <p><b>Template Location:</b> {@code src/main/resources/templates/debug/broken.pug}
  */

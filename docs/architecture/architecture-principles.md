@@ -584,6 +584,8 @@ public record CartCheckedOut(
 
 ```java
 // cart/adapter/outgoing/event/CartCheckedOutEvent.java — versioned public contract
+// The schema version is a class property (@IntegrationEventType), never a data field (ADR-027).
+@IntegrationEventType(name = "cart-checked-out", version = 1)
 public record CartCheckedOutEvent(
     UUID eventId,
     CartId cartId,
@@ -591,8 +593,7 @@ public record CartCheckedOutEvent(
     Money totalAmount,
     int itemCount,
     List<ItemInfo> items,
-    Instant occurredOn,
-    int version
+    Instant occurredOn
 ) implements IntegrationEvent {
 
     public record ItemInfo(ProductId productId, int quantity) {}
@@ -603,7 +604,7 @@ public record CartCheckedOutEvent(
             .toList();
         return new CartCheckedOutEvent(
             domainEvent.eventId(), domainEvent.cartId(), ...,
-            items, domainEvent.occurredOn(), 1);
+            items, domainEvent.occurredOn());
     }
 }
 ```

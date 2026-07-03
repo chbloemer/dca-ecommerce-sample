@@ -4,6 +4,7 @@ import de.sample.aiarchitecture.sharedkernel.marker.tactical.DomainEvent
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.DomainService
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Factory
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent
+import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEventType
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
@@ -84,30 +85,36 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
       .check(allClasses)
   }
 
-  def "Integration Events must have a version field"() {
+  def "Integration Events must be annotated with IntegrationEventType"() {
+    expect:
+    // The annotation carries the stable logical name + schema version as a class property —
+    // the single source of truth for an event's contract identity (see ADR-027).
+    classes()
+      .that().areAssignableTo(IntegrationEvent.class)
+      .and().areNotInterfaces()
+      .should().beAnnotatedWith(IntegrationEventType.class)
+      .because("@IntegrationEventType(name, version) is the contract identity of every " +
+               "integration event — the serializer keys (name, version) to the class and stamps " +
+               "both onto the wire envelope")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Integration Events must not have a version field"() {
     when:
-    def integrationEventClasses = allClasses.stream()
-      .filter { it.isAssignableTo(IntegrationEvent.class) }
-      .filter { !it.isInterface() }
-      .collect()
-
-    def violations = []
-
-    integrationEventClasses.each { eventClass ->
-      def hasVersionField = eventClass.getAllFields().stream()
-        .anyMatch { field ->
-          field.getName() == "version" && field.getRawType().isEquivalentTo(int.class)
-        }
-
-      if (!hasVersionField) {
-        violations.add("${eventClass.getName()} does not have an int version field")
+    // The schema version is a class property (@IntegrationEventType), never per-instance
+    // payload data — a version data field duplicates the annotation and can drift from it.
+    def violations = allClasses
+      .findAll { it.isAssignableTo(IntegrationEvent.class) && !it.isInterface() }
+      .findAll { eventClass ->
+        eventClass.getAllFields().stream().anyMatch { it.getName() == "version" }
       }
-    }
+      .collect { "${it.getName()} carries a version data field — declare the version in @IntegrationEventType instead" }
 
     then:
     if (!violations.isEmpty()) {
       throw new AssertionError(
-      "Integration Events must have an int version field for backward-compatible schema evolution:\n" +
+      "Integration Events must not have a version field — @IntegrationEventType is the single source of truth:\n" +
       violations.join("\n")
       )
     }

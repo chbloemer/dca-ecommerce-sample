@@ -5,6 +5,7 @@ import de.sample.aiarchitecture.inventory.events.StockReductionTrigger;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Money;
 import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent;
+import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEventType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import java.util.UUID;
  *   <li>{@link StockReductionTrigger} — triggers stock reduction in the Inventory module
  * </ul>
  */
+@IntegrationEventType(name = "checkout-confirmed", version = 1)
 public record CheckoutConfirmedEvent(
     UUID eventId,
     String sessionId,
@@ -31,8 +33,7 @@ public record CheckoutConfirmedEvent(
     String customerId,
     Money totalAmount,
     List<LineItemInfo> items,
-    Instant occurredOn,
-    int version)
+    Instant occurredOn)
     implements IntegrationEvent, CartCompletionTrigger, StockReductionTrigger {
 
   /**
