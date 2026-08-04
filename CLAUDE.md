@@ -237,7 +237,7 @@ If architecture tests fail:
 #### Domain Events
 - Implement `DomainEvent` interface
 - Named in past tense (e.g., `ProductPriceChanged`)
-- Include `eventId`, `occurredOn`, and `version`
+- Include `eventId` and `occurredOn` (no `version` field — integration events declare their version via `@IntegrationEventType`)
 - Immutable (use records)
 
 #### Domain Services
@@ -314,15 +314,29 @@ Location: `src/test-architecture/groovy/de/sample/aiarchitecture/`
 
 ### Code Documentation
 
-1. **All public classes** must have JavaDoc
-2. **All public methods** must have JavaDoc explaining:
-   - Purpose
-   - Parameters
-   - Return values
-   - Exceptions
-   - Domain events raised (if applicable)
-3. **Domain patterns** must reference DDD concepts in JavaDoc
-4. **Architecture decisions** should be documented in code comments
+**Default: don't write a comment — make the code say it.** `public` is not the same as "published":
+most `public` members exist only because Java has no narrower modifier and Spring needs access.
+JavaDoc that restates the signature is a comment smell and gets deleted on sight.
+
+**JavaDoc is required for:**
+
+1. **Published API** — types and methods other bounded contexts or external callers depend on:
+   `api/` (Open Host Services), `events/` (integration events), `sharedkernel/marker/**`, ports
+   (`*InputPort`, output ports in `application/shared/`). Document purpose, parameters, return
+   values, exceptions, and domain events raised.
+2. **Non-obvious rules** — an invariant, a constraint, a deliberate tradeoff, or a value whose
+   number needs justifying. Write the *why*, not the *what*:
+   `MAX_BYTE_LENGTH = 72 // bytes, not characters: BCrypt rejects input beyond 72 bytes`.
+3. **Domain patterns** — aggregates, entities, value objects, domain events, domain services and
+   specifications reference their DDD concept, so a reader knows which pattern applies.
+4. **Architecture decisions** in code comments, with a link to the ADR where one exists.
+
+**JavaDoc is not required for** self-evident accessors (`navigable()`, `found()`), records whose
+component names already say it, obvious factory methods (`notFound()`), or internal use-case and
+adapter plumbing. Adding it there costs a line to read and a line to keep true.
+
+**A comment that has gone stale is worse than no comment.** When editing a file, verify its existing
+comments still hold — especially claims about what is covered or handled elsewhere.
 
 ### Architecture Documentation
 
@@ -464,7 +478,7 @@ For significant architectural decisions, create an Architecture Decision Record 
 ### Adding a New Domain Event
 
 1. Create event record implementing `DomainEvent`
-2. Include eventId, occurredOn, version, and domain-specific data
+2. Include eventId, occurredOn, and domain-specific data (no version field)
 3. Add static factory method (e.g., `now()`)
 4. Raise event in aggregate when state changes
 5. Publish events in application service after save
