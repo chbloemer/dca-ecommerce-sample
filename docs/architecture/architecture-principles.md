@@ -1328,6 +1328,8 @@ Commands modify system state and publish domain events.
 - `UpdateProductPriceUseCase` - Changes product price
 - `AddItemToCartUseCase` - Adds item to cart
 - `CheckoutCartUseCase` - Completes cart checkout
+- `ChangePasswordUseCase` - Replaces an account's password; a wrong current password or a rejected
+  new one is reported as an outcome of `ChangePasswordResult`, not as an exception crossing the port
 
 **Characteristics:**
 - Transactional (`@Transactional`)

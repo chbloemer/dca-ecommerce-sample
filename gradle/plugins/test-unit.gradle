@@ -1,6 +1,11 @@
 // Apply common test dependencies
 addCommonTestDependencies('testImplementation')
 
+dependencies {
+  // HTML parsing for rendered-markup assertions on Pug templates
+  testImplementation 'org.jsoup:jsoup:1.18.3'
+}
+
 // Configure Groovy compilation
 configureGroovyCompilation()
 

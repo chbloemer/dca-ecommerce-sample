@@ -8,7 +8,7 @@ This project showcases best practices for structuring a Spring Boot application 
 - **Product Catalog** - Product management with enriched views (pricing + stock from other contexts)
 - **Shopping Cart** - Customer shopping cart management with article price resolution
 - **Checkout** - Multi-step checkout flow with session management
-- **Account** - User registration and authentication
+- **Account** - User registration, authentication and account self-service (overview, change password)
 - **Portal** - Application home page and navigation
 - **Inventory** - Stock level management (Open Host Service)
 - **Pricing** - Product pricing management (Open Host Service)
@@ -505,6 +505,16 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── AuthenticateAccountUseCase.java
 │   │   │   ├── AuthenticateAccountCommand.java
 │   │   │   └── AuthenticateAccountResult.java
+│   │   ├── getaccountoverview/           # Use case: Get Account Overview (read)
+│   │   │   ├── GetAccountOverviewInputPort.java
+│   │   │   ├── GetAccountOverviewUseCase.java
+│   │   │   ├── GetAccountOverviewQuery.java
+│   │   │   └── GetAccountOverviewResult.java
+│   │   ├── changepassword/               # Use case: Change Password
+│   │   │   ├── ChangePasswordInputPort.java
+│   │   │   ├── ChangePasswordUseCase.java
+│   │   │   ├── ChangePasswordCommand.java
+│   │   │   └── ChangePasswordResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── AccountRepository.java
 │   │       ├── RegisteredUserValidator.java
@@ -522,7 +532,13 @@ src/main/java/de/sample/aiarchitecture/
 │       │   │   └── RegisterResponse.java
 │       │   └── web/
 │       │       ├── LoginPageController.java
-│       │       └── RegisterPageController.java
+│       │       ├── LogoutPageController.java
+│       │       ├── RegisterPageController.java
+│       │       ├── MyAccountPageController.java
+│       │       ├── MyAccountPageViewModel.java
+│       │       ├── ChangePasswordPageController.java
+│       │       ├── ChangePasswordPageViewModel.java
+│       │       └── AccountNavigation.java
 │       └── outgoing/                     # Outgoing adapters
 │           ├── persistence/
 │           │   └── InMemoryAccountRepository.java
