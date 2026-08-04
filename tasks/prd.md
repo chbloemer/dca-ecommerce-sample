@@ -2960,3 +2960,210 @@ Before starting, check tasks/logs/ folder for US-94 and US-99 results to see the
   - Run `./gradlew test-architecture` to verify architectural compliance
 
 ---
+
+### US-140: My Account Area with Overview Page and Left Navigation
+**Epic:** account-context
+**Depends on:** US-43, US-137
+
+**As a** registered shop user
+**I want** a My Account area with an overview page and a navigation to my account pages
+**So that** I can see my account data and reach the account functions from one place
+
+**Acceptance Criteria:**
+- GET /account with a registered identity holding an accessible account renders the overview page
+- The page greets the user and shows the account email and the formatted last login ("Never" when the account has never logged in)
+- The left navigation renders four items in the order Overview, My Profile, Change Password, My Orders
+- Overview is an active link to /account; not-yet-implemented items render as non-navigable elements with aria-disabled="true"
+- An anonymous visitor is redirected to /login?returnUrl=%2Faccount instead of seeing the page
+- A registered identity whose account is missing or cannot log in (SUSPENDED, CLOSED) is redirected instead of throwing
+- The header shows a "My Account" link left of the quick basket, only for registered users
+- Every element the future E2E suite binds to carries a data-test attribute
+- Architecture tests pass without violations
+
+**Architectural Guidance:**
+- **Affected Layers:** Application, Adapter
+- **Locations:**
+  - `account.application.getaccountoverview/GetAccountOverviewInputPort, GetAccountOverviewUseCase, GetAccountOverviewQuery, GetAccountOverviewResult`
+  - `account.adapter.incoming.web/MyAccountPageController, MyAccountPageViewModel, AccountNavigation`
+  - `src/main/resources/templates/account/overview.pug`
+  - `src/main/resources/templates/layout.pug`
+- **Patterns:** Use Case with Input Port, Query/Result (read-only), Page Controller, ViewModel, Optional Result for not-found (ADR-023)
+- **Constraints:**
+  - No domain change needed — Account and AccountRepository already suffice
+  - The read use case is @Transactional(readOnly = true) and performs no write
+  - The use case applies the account-lifecycle rule: an account that cannot log in is reported as absent, the same rule the login path enforces
+  - The Result projects primitives only; no Account aggregate crosses the port boundary
+  - Formatting and navigation live in the adapter ViewModel, never in the application layer
+  - The redirect decision belongs to the adapter — the application layer reports state, not HTTP
+  - Run `./gradlew test-architecture` to verify architectural compliance
+
+---
+
+### US-141: Change Password from the My Account Area
+**Epic:** account-context
+**Depends on:** US-140
+
+**As a** registered shop user
+**I want** to change my password from the My Account area
+**So that** I can keep my account secure without contacting support
+
+**Acceptance Criteria:**
+- The change-password navigation item is a real link to /account/change-password; My Profile and My Orders stay placeholders
+- GET /account/change-password renders the form with current password, new password and confirmation fields in that order
+- An anonymous visitor is redirected to /login?returnUrl=%2Faccount%2Fchange-password on both GET and POST, without the use case being invoked
+- A wrong current password re-renders the page with an error and changes nothing
+- A confirmation mismatch re-renders the page with an error and never reaches the use case
+- The mismatch message wins over a wrong current password
+- A new password violating the password policy re-renders with the policy's message
+- A successful change redirects back to the page with a flash success message
+- After a successful change the new password authenticates and the old one no longer does
+- An error re-render never puts a submitted password back into the model or the markup
+- The use case saves the account, then publishes exactly one AccountPasswordChanged and clears the aggregate's events
+- No token is issued and no session is touched by the change — neither TokenService nor IdentitySession is a collaborator
+- Architecture tests pass without violations
+
+**Architectural Guidance:**
+- **Affected Layers:** Application, Adapter
+- **Locations:**
+  - `account.application.changepassword/ChangePasswordInputPort, ChangePasswordUseCase, ChangePasswordCommand, ChangePasswordResult`
+  - `account.adapter.incoming.web/ChangePasswordPageController, ChangePasswordPageViewModel, AccountLoginRedirect`
+  - `src/main/resources/templates/account/change-password.pug`
+  - `src/main/resources/templates/account/_nav.pug`
+- **Patterns:** Use Case with Input Port, Command/Result, Page Controller, Redirect-After-POST, Flash Message, Outcome enum instead of exceptions for expected business cases
+- **Constraints:**
+  - No domain change needed — Account.changePassword and Account.checkPassword already exist
+  - The current password is verified in the application layer via account.checkPassword, following AuthenticateAccountUseCase
+  - The use case gates on account.status().canLogin() — Account.changePassword only blocks the terminal status
+  - Publish domain events after the save, then clear them on the aggregate
+  - Only a password-policy violation may become NEW_PASSWORD_REJECTED; a hasher failure is a fault and must propagate, because the controller renders the message to the user verbatim
+  - The account navigation markup is shared between the account pages via a template partial, not copied
+  - Run `./gradlew test-architecture` to verify architectural compliance
+
+---
+
+### US-142: Password Policy with a Maximum Length
+**Epic:** account-context
+**Depends on:** US-141
+
+**As a** registered shop user
+**I want** an explicit maximum password length with an understandable message
+**So that** I am not shown a technical hashing error as if it were a password rule
+
+**Acceptance Criteria:**
+- A password exactly at the maximum is accepted; one byte over is rejected with a message naming the limit
+- The maximum is measured in UTF-8 bytes, so a password under the limit in characters but over it in bytes is rejected
+- The length rule is checked before the character-class rules, so an over-long password is not reported as a missing uppercase letter
+- Registration and change password both enforce the rule — it lives in one place
+- No password can reach the PasswordHasher and be rejected there; a hasher failure surfaces as a fault, not as user-facing password feedback
+- The password fields of the registration and change-password forms carry maxlength as a convenience hint
+- The policy is named in the account context's Ubiquitous Language glossary
+- Architecture tests pass without violations
+
+**Architectural Guidance:**
+- **Affected Layers:** Domain, Application, Adapter
+- **Locations:**
+  - `account.domain.model/HashedPassword (MAX_BYTE_LENGTH, validatePasswordStrength)`
+  - `account.application.changepassword/ChangePasswordUseCase`
+  - `src/main/java/de/sample/aiarchitecture/account/domain/glossary.md`
+  - `src/main/resources/templates/account/register.pug`
+  - `src/main/resources/templates/account/change-password.pug`
+- **Patterns:** Value Object invariant, Domain policy in one place
+- **Constraints:**
+  - The rule belongs to the domain, not to the hashing adapter or a controller
+  - Measure the maximum in bytes, not characters — a character limit still lets multi-byte passwords exceed the hasher's bound
+  - No Spring annotations in the domain layer
+  - Narrow the use case's catch to the policy decision, so only a policy violation becomes a user-facing rejection
+  - Promote the policy to a Specification once a second component needs to evaluate it without creating a password
+  - Run `./gradlew test-architecture` to verify architectural compliance
+
+---
+
+### US-143: Upgrade to spring-pug4j 3.7.1 — Fix Record Accessor Memoization
+**Epic:** platform-upgrade
+**Depends on:** US-130
+
+**As a** developer
+**I want** spring-pug4j 3.7.1 with the record accessor fix
+**So that** templates render the actual data instead of repeating the first element and leaking values across requests
+
+**Acceptance Criteria:**
+- spring-pug4j 3.7.1 resolves pug4j 3.1.1 transitively; no explicit pug4j pin is needed
+- The product catalog renders every product distinctly
+- The account navigation renders all four items distinctly, with only the current page active
+- A logged-in user sees the My Account link, the greeting and the logout button in the header
+- A value read per request is never reused across requests
+- Build, unit, architecture and integration tests pass
+
+**Architectural Guidance:**
+- **Affected Layers:** Infrastructure
+- **Locations:**
+  - `build.gradle`
+  - `src/main/java/de/sample/aiarchitecture/infrastructure/config/Pug4jConfiguration.java`
+- **Patterns:** Dependency upgrade
+- **Constraints:**
+  - Do not work around the bug in templates by replacing method calls with property access — fix the dependency
+  - A green build does not prove the fix: the defect was invisible to every unit and architecture test. Verify the rendered pages of a running application
+  - Verify a value is not reused across requests, not only across loop iterations
+  - Run `./gradlew test-architecture` to verify architectural compliance
+
+---
+
+### US-144: JavaDoc Convention: Document the Why, Not Every Signature
+**Epic:** code-quality
+
+**As a** developer reading this codebase
+**I want** comments that explain the why instead of restating the signature
+**So that** the comments I find are worth reading and stay true
+
+**Acceptance Criteria:**
+- The convention requires JavaDoc for published API, non-obvious rules, DDD pattern references and architecture decisions
+- The convention explicitly exempts self-evident accessors, records with speaking component names, obvious factory methods and internal plumbing
+- The convention states that comments in an edited file must be re-verified, in particular claims about coverage elsewhere
+- JavaDoc that only restates a signature is removed from the code the change touches
+- JavaDoc carrying a why — a justified constant, a lifecycle rule, a contract a caller can violate — is kept
+
+**Architectural Guidance:**
+- **Affected Layers:** None (convention/tooling)
+- **Locations:**
+  - `CLAUDE.md (Documentation Requirements / Code Documentation)`
+- **Patterns:** Clean Code: comments earn their keep
+- **Constraints:**
+  - Change the convention, not just its symptoms — every AI agent reads CLAUDE.md and will otherwise restore the comments
+  - Existing code still following the old rule is not swept in this story
+  - Review reports under docs/ are dated snapshots and stay untouched
+
+---
+
+### US-145: Harden the dca Workflow After Dogfooding Two Runs
+**Epic:** code-quality
+**Depends on:** US-131
+
+**As a** developer running the dca workflow
+**I want** the workflow to carry the plan through every stage and report its verdict
+**So that** a run cannot satisfy its gates while quietly missing what was asked for
+
+**Acceptance Criteria:**
+- Every stage receives the original request and the approved plan, not only its predecessor's output
+- The workflow returns a structured verdict with status, round count and the plan
+- A review lens that returns nothing is retried once and then escalates, instead of counting as a passing review
+- Reviews are scoped to the feature change and see the acceptance criteria, so they do not propose changes that break a pinned criterion
+- A later simplify round sees what earlier rounds deliberately left unchanged and does not reverse it
+- No stage delegates its work to a skill
+- Stages state which criterion each artifact covers and name explicitly what is left uncovered
+- Run-local identifiers such as criterion numbers never reach a committed artifact
+- Throwaway spikes are deleted before a stage finishes
+
+**Architectural Guidance:**
+- **Affected Layers:** None (convention/tooling)
+- **Locations:**
+  - `.claude/workflows/dca.js`
+  - `.claude/agents/dca-1-plan.md, dca-2-tests.md, dca-3-implement.md, dca-4-simplify.md`
+  - `.claude/skills/dca-*/SKILL.md`
+- **Patterns:** Staged workflow with gates, Adversarial review then converge
+- **Constraints:**
+  - A silent gate proves nothing — a gate must fail when the stage's real obligation is unmet
+  - The launcher skill must not override the stage agent's model or effort
+  - Lift every general lesson into the generator that scaffolds such workflows, so the next one does not repeat the defect
+  - New agent files do not register mid-session; edits to already registered agents take effect on the next spawn
+
+---
