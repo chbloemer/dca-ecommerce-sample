@@ -57,9 +57,26 @@ the actual cryptographic operation to the `PasswordHasher` domain gateway.
 
 **Operations:** `fromPlaintext`, `of`, `fromHash`, `matches`, `validatePasswordStrength`.
 
-**Notes:** `toString()` is deliberately masked. Password rules (minimum length, upper/lower-case,
-digit) are encoded here — when changing them, consider adding a "Password Policy" entry to the
-Ubiquitous Language.
+**Notes:** `toString()` is deliberately masked. The rules themselves are named below as **Password
+Policy**; change them there and here together.
+
+### Password Policy
+
+**Definition:** The rules a plaintext password must satisfy before it may become a `HashedPassword`:
+at least `MIN_LENGTH` (8) characters, at most `MAX_BYTE_LENGTH` (72) bytes when UTF-8 encoded, and at
+least one uppercase letter, one lowercase letter and one digit.
+
+**Type:** Domain rule, encoded in `HashedPassword.validatePasswordStrength`. Not yet a Specification —
+promote it to one if a second component needs to evaluate the policy without creating a password.
+
+**Related terms:** `HashedPassword`, `PasswordHasher`.
+
+**Notes:** The maximum is expressed in **bytes, not characters**, because that is the bound hashing
+algorithms impose — BCrypt rejects input beyond 72 bytes. Keeping the policy at that value means an
+over-long password is refused as a rule with a message meant for the user, and can never reach
+`PasswordHasher` and fail there as a technical fault. The `maxlength="72"` on the password inputs of
+`register.pug` and `account/change-password.pug` is a convenience hint only: the browser counts
+characters, so a multi-byte password within that hint can still be refused by the policy.
 
 ### AccountId
 

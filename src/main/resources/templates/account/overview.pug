@@ -1,0 +1,22 @@
+extends ../layout
+
+block content
+  .account(data-test="account-overview")
+    .account__header
+      h2.account__title(data-test="account-greeting") Welcome, #{myAccountPage.email()}
+
+    .account__layout
+      - var navItems = myAccountPage.navItems()
+      include _nav.pug
+
+      .account__content
+        .card
+          .card__header
+            h3.card__header-title Account Overview
+          .card__body
+            .account__detail-row
+              span.account__detail-label Email
+              span.account__detail-value(data-test="account-email")= myAccountPage.email()
+            .account__detail-row
+              span.account__detail-label Last Login
+              span.account__detail-value(data-test="account-last-login")= myAccountPage.lastLoginDisplay()

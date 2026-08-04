@@ -24,6 +24,8 @@ html(lang="en")
             li.nav__item
               a.nav__link(href="/products" data-test="nav-products-link") Products
         .site-header__actions
+          if identity != null && !identity.isAnonymous()
+            a.nav__link(href="/account" data-test="nav-my-account-link") My Account
           .mini-basket(data-test="mini-basket")
             a.mini-basket__trigger(href="/cart" data-test="mini-basket-trigger")
               span Cart

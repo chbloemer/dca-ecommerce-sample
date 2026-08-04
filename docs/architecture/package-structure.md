@@ -302,6 +302,12 @@ de.sample.aiarchitecture
 │   │   ├── authenticateaccount/
 │   │   │   ├── AuthenticateAccountInputPort, AuthenticateAccountUseCase
 │   │   │   ├── AuthenticateAccountCommand, AuthenticateAccountResult
+│   │   ├── getaccountoverview/
+│   │   │   ├── GetAccountOverviewInputPort, GetAccountOverviewUseCase
+│   │   │   ├── GetAccountOverviewQuery, GetAccountOverviewResult
+│   │   ├── changepassword/
+│   │   │   ├── ChangePasswordInputPort, ChangePasswordUseCase
+│   │   │   ├── ChangePasswordCommand, ChangePasswordResult
 │   │   └── shared/
 │   │       ├── AccountRepository
 │   │       ├── RegisteredUserValidator, TokenService
@@ -315,8 +321,11 @@ de.sample.aiarchitecture
 │       │   │   ├── LoginRequest, LoginResponse
 │       │   │   └── RegisterRequest, RegisterResponse
 │       │   └── web/
-│       │       ├── LoginPageController
-│       │       └── RegisterPageController
+│       │       ├── LoginPageController, LogoutPageController
+│       │       ├── RegisterPageController
+│       │       ├── MyAccountPageController, MyAccountPageViewModel
+│       │       ├── ChangePasswordPageController, ChangePasswordPageViewModel
+│       │       └── AccountNavigation
 │       └── outgoing/
 │           ├── persistence/
 │           │   └── InMemoryAccountRepository
