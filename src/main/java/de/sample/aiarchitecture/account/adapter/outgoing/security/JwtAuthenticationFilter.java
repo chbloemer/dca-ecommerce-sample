@@ -159,7 +159,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return JwtIdentity.anonymous(identityUserId);
     }
 
-    // In-memory storage loses accounts on restart; the session then refers to nobody.
+    // The token is self-contained, so it outlives the account it names: a deleted account leaves a
+    // session that still validates and still carries roles.
     if (!registeredUserValidator.existsForUserId(identity.userId())) {
       LOG.info("Session for {} has no account, continuing anonymously", identity.userId().value());
       return JwtIdentity.anonymous(identityUserId);

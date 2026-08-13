@@ -6,9 +6,10 @@ import de.sample.aiarchitecture.sharedkernel.marker.port.out.OutputPort;
 /**
  * Validator for checking if a registered user's account exists.
  *
- * <p>This is used by the security infrastructure to verify that registered users have valid
- * accounts. After an application restart with in-memory storage, JWT tokens may still be valid but
- * the accounts they reference no longer exist.
+ * <p>A session token is self-contained and outlives the account it names: an account that was
+ * deleted — or never survived the restart of a store that does not persist — leaves a token that
+ * still validates and still carries roles. The security infrastructure asks this validator whether
+ * the account behind a token is still there before honouring it.
  *
  * <p>This interface belongs to the account bounded context because only the account context knows
  * about account existence.
