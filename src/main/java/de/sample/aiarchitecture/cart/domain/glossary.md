@@ -33,13 +33,17 @@ to COMPLETED or ABANDONED.
 - `CartValidationResult` — result of checkout validation
 - `EnrichedCart` — enriched read model
 
-**Operations:** `addItem`, `removeItem`, `removeItemByProductId`,
+**Operations:** `reconstitute`, `addItem`, `removeItem`, `removeItemByProductId`,
 `updateItemQuantity`, `increaseItemQuantity`, `decreaseItemQuantity`, `clear`,
 `checkout`, `abandon`, `complete`, `merge`, `calculateTotal`,
 `validateForCheckout`
 
 **Notes:** A `ProductId` may only appear once — adding it again increases the
-quantity. Modifications are only allowed in state ACTIVE.
+quantity. Modifications are only allowed in state ACTIVE. `reconstitute` restores a
+stored cart — status and lines as they were — without re-evaluating a rule and
+without raising an event: a stored cart is a fact, not a decision. Repositories hand
+over the lines as `ShoppingCart.StoredItem`, so `CartItem`'s constructor can stay
+package-private and only the aggregate assembles its own lines.
 
 ## Entities
 
@@ -62,7 +66,8 @@ product, the desired quantity, and the price captured at the time it was added
 `increaseQuantity`, `decreaseQuantity`
 
 **Notes:** Exists only within a `ShoppingCart` aggregate; no dedicated
-repository.
+repository. A repository restoring a stored cart passes `ShoppingCart.StoredItem`
+values to `ShoppingCart.reconstitute` rather than constructing `CartItem` itself.
 
 ## Value Objects
 
