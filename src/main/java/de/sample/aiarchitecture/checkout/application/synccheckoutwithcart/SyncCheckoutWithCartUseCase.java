@@ -9,6 +9,7 @@ import de.sample.aiarchitecture.checkout.domain.model.CheckoutLineItem;
 import de.sample.aiarchitecture.checkout.domain.model.CheckoutLineItemId;
 import de.sample.aiarchitecture.checkout.domain.model.CheckoutSession;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Money;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,14 +49,17 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final CartDataPort cartDataPort;
   private final ProductInfoPort productInfoPort;
+  private final DomainEventPublisher eventPublisher;
 
   public SyncCheckoutWithCartUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final CartDataPort cartDataPort,
-      final ProductInfoPort productInfoPort) {
+      final ProductInfoPort productInfoPort,
+      final DomainEventPublisher eventPublisher) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.cartDataPort = cartDataPort;
     this.productInfoPort = productInfoPort;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -127,6 +131,8 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
 
     // Persist updated session
     checkoutSessionRepository.save(session);
+
+    eventPublisher.publishAndClearEvents(session);
 
     logger.info(
         "Synced checkout session {} with cart {} - {} items, subtotal: {}",

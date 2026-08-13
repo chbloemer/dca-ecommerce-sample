@@ -41,7 +41,8 @@ class ChangeEmailThenAuthenticateTest {
     accountRepository = new TestAccountRepository();
     changeProfile = new ChangeProfileUseCase(accountRepository, new TestDomainEventPublisher());
     authenticate =
-        new AuthenticateAccountUseCase(accountRepository, passwordHasher);
+        new AuthenticateAccountUseCase(
+            accountRepository, passwordHasher, new TestDomainEventPublisher());
 
     accountRepository.store(accountWith(AccountStatus.ACTIVE, passwordHasher));
   }

@@ -6,6 +6,7 @@ import de.sample.aiarchitecture.checkout.domain.model.CheckoutSessionId;
 import de.sample.aiarchitecture.checkout.domain.model.DeliveryAddress;
 import de.sample.aiarchitecture.checkout.domain.model.ShippingOption;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Money;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import java.util.Currency;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,9 +31,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubmitDeliveryUseCase implements SubmitDeliveryInputPort {
 
   private final CheckoutSessionRepository checkoutSessionRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public SubmitDeliveryUseCase(final CheckoutSessionRepository checkoutSessionRepository) {
+  public SubmitDeliveryUseCase(
+      final CheckoutSessionRepository checkoutSessionRepository,
+      final DomainEventPublisher eventPublisher) {
     this.checkoutSessionRepository = checkoutSessionRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -70,6 +75,8 @@ public class SubmitDeliveryUseCase implements SubmitDeliveryInputPort {
 
     // Save session
     checkoutSessionRepository.save(session);
+
+    eventPublisher.publishAndClearEvents(session);
 
     // Map to response
     return mapToResponse(session);
