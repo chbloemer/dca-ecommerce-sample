@@ -1,5 +1,6 @@
 package de.sample.aiarchitecture.account.adapter.outgoing.security;
 
+import de.sample.aiarchitecture.account.adapter.outgoing.security.JwtTokenService.TokenValidation;
 import de.sample.aiarchitecture.account.application.shared.RegisteredUserValidator;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
@@ -13,6 +14,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -79,75 +82,124 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    // Try to extract token from cookie or header
-    Optional<String> tokenOpt = extractTokenFromCookie(request);
-    if (tokenOpt.isEmpty()) {
-      tokenOpt = extractTokenFromHeader(request);
-    }
-
-    IdentityProvider.Identity identity;
-    boolean newTokenCreated = false;
-    String token;
-
-    if (tokenOpt.isPresent()) {
-      token = tokenOpt.get();
-      // Validate existing token
-      final Optional<IdentityProvider.Identity> identityOpt = tokenService.validateAndParse(token);
-
-      if (identityOpt.isPresent()) {
-        identity = identityOpt.get();
-
-        // For registered users, verify account still exists (handles app restart with in-memory
-        // storage)
-        if (identity.isRegistered()
-            && !registeredUserValidator.existsForUserId(identity.userId())) {
-          LOG.info(
-              "Registered user {} has no account - creating anonymous identity",
-              identity.userId().value());
-          identity = createAnonymousIdentity();
-          token = tokenService.generateAnonymousToken(identity.userId());
-          newTokenCreated = true;
-        } else {
-          LOG.debug(
-              "Valid JWT found for user: {} ({})", identity.userId().value(), identity.type());
-        }
-      } else {
-        // Token invalid or expired - create new anonymous identity
-        LOG.debug("Invalid/expired JWT, creating new anonymous identity");
-        identity = createAnonymousIdentity();
-        token = tokenService.generateAnonymousToken(identity.userId());
-        newTokenCreated = true;
-      }
-    } else {
-      // No token found - create new anonymous identity
-      LOG.debug("No JWT found, creating new anonymous identity");
-      identity = createAnonymousIdentity();
-      token = tokenService.generateAnonymousToken(identity.userId());
-      newTokenCreated = true;
-    }
-
-    // Set cookie if new token was created
-    if (newTokenCreated) {
-      setIdentityCookie(response, token, jwtProperties.anonymousExpirationDays() * 24 * 60 * 60);
-    }
-
-    // Set security context
-    setSecurityContext(identity);
+    // The visitor identity is resolved first and independently of authentication: it carries the
+    // cart, so an expired or missing session must never cost it (ADR-029).
+    final UserId visitorId = resolveVisitorIdentity(request, response);
+    setSecurityContext(resolveSession(request, visitorId));
 
     // Continue filter chain
     filterChain.doFilter(request, response);
   }
 
-  private Optional<String> extractTokenFromCookie(final HttpServletRequest request) {
+  /**
+   * Resolves the visitor identity from the identity cookie, minting one only when the browser
+   * presents none that can be read.
+   *
+   * <p>A token in this cookie is used for its {@code UserId} alone. Browsers from before the
+   * identity/session split still hold a token carrying registered claims here; honouring those
+   * claims would let a cookie named for the visitor identity grant authentication, which is the
+   * conflation ADR-030 removes.
+   */
+  private UserId resolveVisitorIdentity(
+      final HttpServletRequest request, final HttpServletResponse response) {
+
+    final Optional<String> stored = readCookie(request, jwtProperties.cookieName());
+    if (stored.isPresent()) {
+      final TokenValidation validation = tokenService.validate(stored.get());
+      if (validation instanceof TokenValidation.Valid valid) {
+        return valid.identity().userId();
+      }
+      LOG.debug(
+          "Visitor identity not usable ({}), issuing a new one",
+          validation.getClass().getSimpleName());
+    }
+
+    // A valid session without an identity cookie: adopt the session's UserId rather than inventing
+    // a second one that would contradict it.
+    final UserId userId =
+        sessionToken(request)
+            .map(tokenService::validate)
+            .flatMap(
+                validation ->
+                    validation instanceof TokenValidation.Valid valid
+                        ? Optional.of(valid.identity().userId())
+                        : Optional.<UserId>empty())
+            .orElseGet(UserId::generateAnonymous);
+
+    writeCookie(
+        response,
+        jwtProperties.cookieName(),
+        tokenService.generateAnonymousToken(userId),
+        jwtProperties.identityCookieMaxAgeSeconds());
+    return userId;
+  }
+
+  /**
+   * Resolves the authenticated session, falling back to an anonymous identity that keeps the
+   * visitor's {@code UserId}.
+   *
+   * <p>Every fallback below is deliberately silent and non-blocking: the filter enriches the
+   * request, it does not gate it (ADR-029). An expired session is the routine end of a session, not
+   * an error the visitor should see.
+   */
+  private IdentityProvider.Identity resolveSession(
+      final HttpServletRequest request, final UserId visitorId) {
+
+    final Optional<String> token = sessionToken(request);
+    if (token.isEmpty()) {
+      return JwtIdentity.anonymous(visitorId);
+    }
+
+    if (!(tokenService.validate(token.get()) instanceof TokenValidation.Valid valid)) {
+      return JwtIdentity.anonymous(visitorId);
+    }
+
+    final IdentityProvider.Identity identity = valid.identity();
+    if (!identity.isRegistered()) {
+      return JwtIdentity.anonymous(visitorId);
+    }
+
+    // In-memory storage loses accounts on restart; the session then refers to nobody.
+    if (!registeredUserValidator.existsForUserId(identity.userId())) {
+      LOG.info("Session for {} has no account, continuing anonymously", identity.userId().value());
+      return JwtIdentity.anonymous(visitorId);
+    }
+
+    return identity;
+  }
+
+  private Optional<String> sessionToken(final HttpServletRequest request) {
+    final Optional<String> fromCookie = readCookie(request, jwtProperties.sessionCookieName());
+    return fromCookie.isPresent() ? fromCookie : extractTokenFromHeader(request);
+  }
+
+  private Optional<String> readCookie(final HttpServletRequest request, final String name) {
     if (request.getCookies() == null) {
       return Optional.empty();
     }
-
     return Arrays.stream(request.getCookies())
-        .filter(cookie -> jwtProperties.cookieName().equals(cookie.getName()))
+        .filter(cookie -> name.equals(cookie.getName()))
         .map(Cookie::getValue)
         .filter(value -> value != null && !value.isBlank())
         .findFirst();
+  }
+
+  private void writeCookie(
+      final HttpServletResponse response,
+      final String name,
+      final String value,
+      final int maxAgeSeconds) {
+
+    response.addHeader(
+        HttpHeaders.SET_COOKIE,
+        ResponseCookie.from(name, value)
+            .httpOnly(true)
+            .secure(jwtProperties.secureCookies())
+            .sameSite(JwtProperties.SAME_SITE)
+            .path("/")
+            .maxAge(maxAgeSeconds)
+            .build()
+            .toString());
   }
 
   private Optional<String> extractTokenFromHeader(final HttpServletRequest request) {
@@ -158,27 +210,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     return Optional.empty();
-  }
-
-  private IdentityProvider.Identity createAnonymousIdentity() {
-    final UserId userId = UserId.generateAnonymous();
-    return JwtIdentity.anonymous(userId);
-  }
-
-  private void setIdentityCookie(
-      final HttpServletResponse response, final String token, final int maxAgeSeconds) {
-
-    final Cookie cookie = new Cookie(jwtProperties.cookieName(), token);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    cookie.setMaxAge(maxAgeSeconds);
-    // In production, this should be true (HTTPS only)
-    // For local development, we allow non-secure cookies
-    cookie.setSecure(false);
-    // SameSite=Lax provides CSRF protection while allowing normal navigation
-    cookie.setAttribute("SameSite", "Lax");
-
-    response.addCookie(cookie);
   }
 
   private void setSecurityContext(final IdentityProvider.Identity identity) {
@@ -213,25 +244,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   }
 
   /**
-   * Sets the identity cookie for a registered user.
+   * Writes the session cookie after a successful authentication.
    *
    * @param response HTTP response to set the cookie on
-   * @param token the JWT token to store in the cookie
+   * @param token the session JWT
    */
   public void setRegisteredUserCookie(final HttpServletResponse response, final String token) {
-    setIdentityCookie(response, token, jwtProperties.registeredExpirationDays() * 24 * 60 * 60);
+    writeCookie(
+        response,
+        jwtProperties.sessionCookieName(),
+        token,
+        jwtProperties.sessionCookieMaxAgeSeconds());
   }
 
   /**
-   * Clears the identity cookie, effectively logging out the user.
+   * Clears the session cookie, leaving the visitor identity untouched.
    *
    * @param response HTTP response to clear the cookie on
    */
-  public void clearIdentityCookie(final HttpServletResponse response) {
-    final Cookie cookie = new Cookie(jwtProperties.cookieName(), "");
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    cookie.setMaxAge(0);
-    response.addCookie(cookie);
+  public void clearSessionCookie(final HttpServletResponse response) {
+    writeCookie(response, jwtProperties.sessionCookieName(), "", 0);
   }
 }

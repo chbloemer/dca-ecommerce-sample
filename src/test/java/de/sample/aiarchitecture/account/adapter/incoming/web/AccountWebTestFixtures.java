@@ -128,7 +128,7 @@ final class AccountWebTestFixtures {
     }
 
     @Override
-    public void clearIdentity() {
+    public void logOut() {
       clearCount++;
     }
 

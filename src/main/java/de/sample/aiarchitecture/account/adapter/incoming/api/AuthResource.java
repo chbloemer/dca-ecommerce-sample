@@ -111,7 +111,7 @@ public class AuthResource {
 
   @PostMapping("/logout")
   public ResponseEntity<Void> logout() {
-    identitySession.clearIdentity();
+    identitySession.logOut();
     return ResponseEntity.ok().build();
   }
 }
