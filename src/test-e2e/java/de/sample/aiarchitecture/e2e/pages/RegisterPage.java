@@ -10,6 +10,13 @@ import com.microsoft.playwright.Page;
 public class RegisterPage extends BasePage {
 
   private static final String URL_PATTERN = "/register";
+
+  /** Registration requires an owner; flows that only care about credentials use these. */
+  private static final String DEFAULT_FIRST_NAME = "Test";
+
+  private static final String DEFAULT_LAST_NAME = "User";
+
+  private static final String DEFAULT_DATE_OF_BIRTH = "1990-05-17";
   private static final String SUBMIT_BUTTON = "register-submit-button";
   private static final String CONFIRM_PASSWORD_INPUT = "register-confirm-password-input";
 
@@ -67,14 +74,32 @@ public class RegisterPage extends BasePage {
   }
 
   /**
-   * Fills all registration fields.
+   * Fills the owner fields.
+   *
+   * @param firstName the owner's first name
+   * @param lastName the owner's last name
+   * @param dateOfBirth the owner's date of birth, in ISO format
+   * @return this page for method chaining
+   */
+  public RegisterPage fillOwner(String firstName, String lastName, String dateOfBirth) {
+    fill("firstName", firstName);
+    fill("lastName", lastName);
+    fill("dateOfBirth", dateOfBirth);
+    return this;
+  }
+
+  /**
+   * Fills all registration fields, using the default owner.
    *
    * @param email the email address
    * @param password the password
    * @return this page for method chaining
    */
   public RegisterPage fillRegistrationForm(String email, String password) {
-    return fillEmail(email).fillPassword(password).fillConfirmPassword(password);
+    return fillOwner(DEFAULT_FIRST_NAME, DEFAULT_LAST_NAME, DEFAULT_DATE_OF_BIRTH)
+        .fillEmail(email)
+        .fillPassword(password)
+        .fillConfirmPassword(password);
   }
 
   /**

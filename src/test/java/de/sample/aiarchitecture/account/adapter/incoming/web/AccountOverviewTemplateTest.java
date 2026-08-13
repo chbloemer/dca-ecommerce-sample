@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Rendered-markup tests for {@code templates/account/overview.pug}.
  *
- * <p>Pins that the overview page renders the change-password nav item as a real link while profile
- * and orders stay disabled placeholders.
+ * <p>Pins that the overview page renders the profile and change-password nav items as real links
+ * while orders stays a disabled placeholder, and that it marks its own item as the current page.
  */
 @DisplayName("account/overview.pug")
 class AccountOverviewTemplateTest {
@@ -41,16 +41,36 @@ class AccountOverviewTemplateTest {
   }
 
   @Test
-  @DisplayName("still renders profile and orders as disabled spans")
-  void stillRendersPlaceholdersAsDisabledSpans() {
+  @DisplayName("renders the profile item as a link to /account/profile")
+  void rendersProfileAsLink() {
+    final Element item = element(render(), "account-nav-profile");
+
+    assertEquals("a", item.tagName(), "the profile item must be a real link");
+    assertEquals("/account/profile", item.attr("href"));
+    assertEquals("My Profile", item.text());
+  }
+
+  @Test
+  @DisplayName("still renders orders as a disabled span")
+  void stillRendersOrdersAsDisabledSpan() {
+    final Element item = element(render(), "account-nav-orders");
+
+    assertEquals("span", item.tagName(), "the orders placeholder must stay a span");
+    assertEquals(
+        "true", item.attr("aria-disabled"), "the orders placeholder must be aria-disabled");
+  }
+
+  @Test
+  @DisplayName("marks the overview item, and only it, as the current page")
+  void marksOverviewItemAsCurrentPage() {
     final Document document = render();
 
-    for (final String key : List.of("profile", "orders")) {
-      final Element item = element(document, "account-nav-" + key);
-      assertEquals("span", item.tagName(), "placeholder '" + key + "' must stay a span");
-      assertEquals(
-          "true", item.attr("aria-disabled"), "placeholder '" + key + "' must be aria-disabled");
-    }
+    assertEquals(
+        List.of("account-nav-overview"),
+        document.select("[data-test^=account-nav-][aria-current=page]").stream()
+            .map(item -> item.attr("data-test"))
+            .toList(),
+        "the overview page marks exactly its own navigation item as the current page");
   }
 
   private static Element element(final Document document, final String dataTest) {
