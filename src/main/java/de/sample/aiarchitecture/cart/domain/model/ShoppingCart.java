@@ -57,6 +57,50 @@ public final class ShoppingCart extends BaseAggregateRoot<ShoppingCart, CartId> 
     this.status = CartStatus.ACTIVE;
   }
 
+  /**
+   * Reconstructs a stored cart.
+   *
+   * <p>Used by repositories when loading a cart from storage. Restores the status and the lines as
+   * they were stored, bypassing {@link #addItem} on purpose: a stored cart is a fact to be
+   * restored, not a decision to be re-made, so no rule is re-evaluated and <b>no domain event is
+   * raised</b>.
+   *
+   * @param id the cart's identity
+   * @param customerId the customer the cart belongs to
+   * @param status the stored status
+   * @param storedItems the stored lines, in display order
+   * @return the reconstructed cart, with no pending domain events
+   */
+  public static ShoppingCart reconstitute(
+      final CartId id,
+      final CustomerId customerId,
+      final CartStatus status,
+      final List<StoredItem> storedItems) {
+    final ShoppingCart cart = new ShoppingCart(id, customerId);
+    cart.status = status;
+    for (final StoredItem stored : storedItems) {
+      cart.items.add(
+          new CartItem(
+              stored.id(), stored.productId(), stored.quantity(), stored.priceAtAddition()));
+    }
+    return cart;
+  }
+
+  /**
+   * One stored cart line, as a repository read it back.
+   *
+   * <p>Exists so a repository can hand over the parts of a {@link CartItem} without being able to
+   * build one: {@code CartItem}'s constructor stays package-private, and only the aggregate
+   * assembles its own lines.
+   *
+   * @param id the line's identity
+   * @param productId the product the line refers to
+   * @param quantity the stored quantity
+   * @param priceAtAddition the price captured when the line was added
+   */
+  public record StoredItem(
+      CartItemId id, ProductId productId, Quantity quantity, Price priceAtAddition) {}
+
   @Override
   public CartId id() {
     return id;

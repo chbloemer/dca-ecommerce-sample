@@ -8,8 +8,6 @@ import de.sample.aiarchitecture.sharedkernel.domain.model.PagingRequest;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Price;
 import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;
 import de.sample.aiarchitecture.sharedkernel.domain.specification.CompositeSpecification;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,40 +93,26 @@ public class JpaShoppingCartRepository implements ShoppingCartRepository {
   }
 
   private ShoppingCart toDomain(final CartEntity entity) {
-    final ShoppingCart cart =
-        new ShoppingCart(CartId.of(entity.getId()), CustomerId.of(entity.getCustomerId()));
-    setStatus(cart, CartStatus.valueOf(entity.getStatus()));
-
-    if (entity.getItems() != null && !entity.getItems().isEmpty()) {
-      try {
-        final Field itemsField = ShoppingCart.class.getDeclaredField("items");
-        itemsField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        final List<CartItem> items = (List<CartItem>) itemsField.get(cart);
-
-        final Constructor<CartItem> ctor =
-            CartItem.class.getDeclaredConstructor(
-                CartItemId.class, ProductId.class, Quantity.class, Price.class);
-        ctor.setAccessible(true);
-
-        for (final CartItemEntity it : entity.getItems()) {
-          final CartItemId itemId = CartItemId.of(it.getId());
-          final ProductId productId = ProductId.of(it.getProductId());
-          final Quantity quantity = Quantity.of(it.getQuantity());
-          final Price price =
-              Price.of(
-                  Money.of(
-                      it.getPriceAmount(), java.util.Currency.getInstance(it.getPriceCurrency())));
-          final CartItem item = ctor.newInstance(itemId, productId, quantity, price);
-          items.add(item);
-        }
-      } catch (ReflectiveOperationException e) {
-        throw new IllegalStateException("Failed to reconstruct cart items via reflection", e);
+    final List<ShoppingCart.StoredItem> storedItems = new ArrayList<>();
+    if (entity.getItems() != null) {
+      for (final CartItemEntity it : entity.getItems()) {
+        storedItems.add(
+            new ShoppingCart.StoredItem(
+                CartItemId.of(it.getId()),
+                ProductId.of(it.getProductId()),
+                Quantity.of(it.getQuantity()),
+                Price.of(
+                    Money.of(
+                        it.getPriceAmount(),
+                        java.util.Currency.getInstance(it.getPriceCurrency())))));
       }
     }
 
-    cart.clearDomainEvents();
-    return cart;
+    return ShoppingCart.reconstitute(
+        CartId.of(entity.getId()),
+        CustomerId.of(entity.getCustomerId()),
+        CartStatus.valueOf(entity.getStatus()),
+        storedItems);
   }
 
   private CartEntity toEntity(final ShoppingCart cart) {
@@ -150,15 +134,5 @@ public class JpaShoppingCartRepository implements ShoppingCartRepository {
     }
     e.setItems(itemEntities);
     return e;
-  }
-
-  private void setStatus(final ShoppingCart cart, final CartStatus status) {
-    try {
-      final Field statusField = ShoppingCart.class.getDeclaredField("status");
-      statusField.setAccessible(true);
-      statusField.set(cart, status);
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException("Failed to set cart status via reflection", e);
-    }
   }
 }

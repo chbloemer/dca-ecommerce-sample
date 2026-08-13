@@ -9,9 +9,8 @@ import de.sample.aiarchitecture.sharedkernel.domain.model.PagingRequest;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Price;
 import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;
 import de.sample.aiarchitecture.sharedkernel.domain.specification.CompositeSpecification;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,9 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * H2/JDBC implementation of ShoppingCartRepository.
  *
- * <p>This adapter persists carts and items to an in-memory H2 database using Spring JDBC. It
- * reconstructs aggregates without emitting domain events by using reflection to set internal state
- * and then clears any collected events.
+ * <p>This adapter persists carts and items to an in-memory H2 database using Spring JDBC. Rows are
+ * read into a {@link CartRow} plus the cart's stored lines and handed to {@code
+ * ShoppingCart.reconstitute}, which restores the aggregate without raising domain events.
  */
 @org.springframework.context.annotation.Profile("jdbc")
 @Repository
@@ -43,57 +42,39 @@ public class JdbcShoppingCartRepository implements ShoppingCartRepository {
 
   @Override
   public Optional<ShoppingCart> findById(final CartId id) {
-    final List<ShoppingCart> carts =
+    final List<CartRow> rows =
         jdbcTemplate.query(
             "SELECT id, customer_id, status FROM carts WHERE id = ?", cartRowMapper(), id.value());
-    if (carts.isEmpty()) return Optional.empty();
-    final ShoppingCart cart = carts.get(0);
-    loadItems(cart);
-    clearDomainEvents(cart);
-    return Optional.of(cart);
+    return rows.stream().findFirst().map(this::toDomain);
   }
 
   @Override
   public List<ShoppingCart> findByCustomerId(final CustomerId customerId) {
-    final List<ShoppingCart> carts =
+    final List<CartRow> rows =
         jdbcTemplate.query(
             "SELECT id, customer_id, status FROM carts WHERE customer_id = ? ORDER BY updated_at DESC",
             cartRowMapper(),
             customerId.value());
-    carts.forEach(
-        c -> {
-          loadItems(c);
-          clearDomainEvents(c);
-        });
-    return carts;
+    return toDomain(rows);
   }
 
   @Override
   public Optional<ShoppingCart> findActiveCartByCustomerId(final CustomerId customerId) {
-    final List<ShoppingCart> carts =
+    final List<CartRow> rows =
         jdbcTemplate.query(
             "SELECT id, customer_id, status FROM carts WHERE customer_id = ? AND status = ? ORDER BY updated_at DESC LIMIT 1",
             cartRowMapper(),
             customerId.value(),
             CartStatus.ACTIVE.name());
-    if (carts.isEmpty()) return Optional.empty();
-    final ShoppingCart cart = carts.get(0);
-    loadItems(cart);
-    clearDomainEvents(cart);
-    return Optional.of(cart);
+    return rows.stream().findFirst().map(this::toDomain);
   }
 
   @Override
   public List<ShoppingCart> findAll() {
-    final List<ShoppingCart> carts =
+    final List<CartRow> rows =
         jdbcTemplate.query(
             "SELECT id, customer_id, status FROM carts ORDER BY updated_at DESC", cartRowMapper());
-    carts.forEach(
-        c -> {
-          loadItems(c);
-          clearDomainEvents(c);
-        });
-    return carts;
+    return toDomain(rows);
   }
 
   @Override
@@ -148,14 +129,9 @@ public class JdbcShoppingCartRepository implements ShoppingCartRepository {
             + " ORDER BY updated_at DESC LIMIT ? OFFSET ?";
     final Object[] params =
         appendLimitOffset(pred.params().toArray(), pageQuery.pageSize(), (int) pageQuery.offset());
-    final List<ShoppingCart> content = jdbcTemplate.query(selectSql, cartRowMapper(), params);
-    content.forEach(
-        c -> {
-          loadItems(c);
-          clearDomainEvents(c);
-        });
+    final List<CartRow> rows = jdbcTemplate.query(selectSql, cartRowMapper(), params);
 
-    return new PageResult<>(content, total, pageQuery.pageNumber(), pageQuery.pageSize());
+    return new PageResult<>(toDomain(rows), total, pageQuery.pageNumber(), pageQuery.pageSize());
   }
 
   private Object[] appendLimitOffset(final Object[] base, final int limit, final int offset) {
@@ -173,61 +149,44 @@ public class JdbcShoppingCartRepository implements ShoppingCartRepository {
     return this.specTranslator;
   }
 
-  private RowMapper<ShoppingCart> cartRowMapper() {
-    return (rs, rowNum) -> {
-      final CartId id = CartId.of(rs.getString("id"));
-      final CustomerId customerId = CustomerId.of(rs.getString("customer_id"));
-      final ShoppingCart cart = new ShoppingCart(id, customerId);
-      final String status = rs.getString("status");
-      setStatus(cart, CartStatus.valueOf(status));
-      return cart;
-    };
+  /** One row of the {@code carts} table; the cart's lines are read separately. */
+  private record CartRow(CartId id, CustomerId customerId, CartStatus status) {}
+
+  private RowMapper<CartRow> cartRowMapper() {
+    return (rs, rowNum) ->
+        new CartRow(
+            CartId.of(rs.getString("id")),
+            CustomerId.of(rs.getString("customer_id")),
+            CartStatus.valueOf(rs.getString("status")));
   }
 
-  private void loadItems(final ShoppingCart cart) {
+  private List<ShoppingCart> toDomain(final List<CartRow> rows) {
+    return rows.stream().map(this::toDomain).toList();
+  }
+
+  /** Reads the cart's lines and lets the aggregate assemble itself from them. */
+  private ShoppingCart toDomain(final CartRow row) {
+    return ShoppingCart.reconstitute(
+        row.id(), row.customerId(), row.status(), storedItemsOf(row.id()));
+  }
+
+  private List<ShoppingCart.StoredItem> storedItemsOf(final CartId cartId) {
     final List<Map<String, Object>> rows =
         jdbcTemplate.queryForList(
             "SELECT id, product_id, quantity, price_amount, price_currency FROM cart_items WHERE cart_id = ?",
-            cart.id().value());
-    if (rows.isEmpty()) return;
-    try {
-      final Field itemsField = ShoppingCart.class.getDeclaredField("items");
-      itemsField.setAccessible(true);
-      @SuppressWarnings("unchecked")
-      final List<CartItem> items = (List<CartItem>) itemsField.get(cart);
+            cartId.value());
 
-      final Constructor<CartItem> ctor =
-          CartItem.class.getDeclaredConstructor(
-              CartItemId.class, ProductId.class, Quantity.class, Price.class);
-      ctor.setAccessible(true);
-
-      for (final Map<String, Object> row : rows) {
-        final CartItemId itemId = CartItemId.of((String) row.get("id"));
-        final ProductId productId = ProductId.of((String) row.get("product_id"));
-        final Quantity quantity = Quantity.of(((Number) row.get("quantity")).intValue());
-        final String currency = (String) row.get("price_currency");
-        final BigDecimal amount = (BigDecimal) row.get("price_amount");
-        final Price price = Price.of(Money.of(amount, java.util.Currency.getInstance(currency)));
-
-        final CartItem item = ctor.newInstance(itemId, productId, quantity, price);
-        items.add(item);
-      }
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException("Failed to reconstruct cart items via reflection", e);
+    final List<ShoppingCart.StoredItem> storedItems = new ArrayList<>();
+    for (final Map<String, Object> row : rows) {
+      final String currency = (String) row.get("price_currency");
+      final BigDecimal amount = (BigDecimal) row.get("price_amount");
+      storedItems.add(
+          new ShoppingCart.StoredItem(
+              CartItemId.of((String) row.get("id")),
+              ProductId.of((String) row.get("product_id")),
+              Quantity.of(((Number) row.get("quantity")).intValue()),
+              Price.of(Money.of(amount, java.util.Currency.getInstance(currency)))));
     }
-  }
-
-  private void setStatus(final ShoppingCart cart, final CartStatus status) {
-    try {
-      final Field statusField = ShoppingCart.class.getDeclaredField("status");
-      statusField.setAccessible(true);
-      statusField.set(cart, status);
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException("Failed to set cart status via reflection", e);
-    }
-  }
-
-  private void clearDomainEvents(final ShoppingCart cart) {
-    cart.clearDomainEvents();
+    return storedItems;
   }
 }
