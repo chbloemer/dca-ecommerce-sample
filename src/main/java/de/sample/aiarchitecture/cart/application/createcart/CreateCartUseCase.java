@@ -4,6 +4,7 @@ import de.sample.aiarchitecture.cart.application.shared.ShoppingCartRepository;
 import de.sample.aiarchitecture.cart.domain.model.CartId;
 import de.sample.aiarchitecture.cart.domain.model.CustomerId;
 import de.sample.aiarchitecture.cart.domain.model.ShoppingCart;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateCartUseCase implements CreateCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public CreateCartUseCase(final ShoppingCartRepository shoppingCartRepository) {
+  public CreateCartUseCase(
+      final ShoppingCartRepository shoppingCartRepository,
+      final DomainEventPublisher eventPublisher) {
     this.shoppingCartRepository = shoppingCartRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -35,6 +40,8 @@ public class CreateCartUseCase implements CreateCartInputPort {
 
     // Persist
     shoppingCartRepository.save(cart);
+
+    eventPublisher.publishAndClearEvents(cart);
 
     // Map to output
     return new CreateCartResult(

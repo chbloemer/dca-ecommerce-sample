@@ -470,6 +470,15 @@ Product product = productRepository.save(product);
 eventPublisher.publishAndClearEvents(product);
 ```
 
+**Every use case that saves an aggregate must publish — unconditionally.** Not only where an event
+is expected: whether an action raised one is the aggregate's business, and a use case that publishes
+"only when needed" breaks silently the day that action starts raising an event. An aggregate saved
+while still holding its events loses them; worse, with the in-memory repository the same instance
+stays in the map, so a later use case can publish them out of context. A repository must not clear
+events either — on the load path it would swallow what a use case still owes.
+Enforced by `UseCasePatternsArchUnitTest` → *"Use cases that save an aggregate must publish its
+domain events"*.
+
 **Event Handling:**
 
 ```java

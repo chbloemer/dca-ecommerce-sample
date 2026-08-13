@@ -7,6 +7,7 @@ import de.sample.aiarchitecture.checkout.domain.model.CheckoutSession;
 import de.sample.aiarchitecture.checkout.domain.model.CheckoutSessionId;
 import de.sample.aiarchitecture.checkout.domain.model.PaymentProviderId;
 import de.sample.aiarchitecture.checkout.domain.model.PaymentSelection;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,12 +33,15 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
 
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final PaymentProviderRegistry paymentProviderRegistry;
+  private final DomainEventPublisher eventPublisher;
 
   public SubmitPaymentUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
-      final PaymentProviderRegistry paymentProviderRegistry) {
+      final PaymentProviderRegistry paymentProviderRegistry,
+      final DomainEventPublisher eventPublisher) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.paymentProviderRegistry = paymentProviderRegistry;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -69,6 +73,8 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
 
     // Save session
     checkoutSessionRepository.save(session);
+
+    eventPublisher.publishAndClearEvents(session);
 
     // Map to response
     return mapToResponse(session, provider);

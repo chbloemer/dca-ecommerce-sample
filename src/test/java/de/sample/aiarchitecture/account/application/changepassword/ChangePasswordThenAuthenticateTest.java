@@ -47,7 +47,9 @@ class ChangePasswordThenAuthenticateTest {
     changePassword =
         new ChangePasswordUseCase(
             accountRepository, passwordHasher, new TestDomainEventPublisher(interactions));
-    authenticate = new AuthenticateAccountUseCase(accountRepository, passwordHasher);
+    authenticate =
+        new AuthenticateAccountUseCase(
+            accountRepository, passwordHasher, new TestDomainEventPublisher(interactions));
 
     final Account account = accountWith(AccountStatus.ACTIVE, CURRENT_PASSWORD, passwordHasher);
     account.clearDomainEvents();
