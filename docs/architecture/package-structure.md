@@ -328,7 +328,8 @@ de.sample.aiarchitecture
 │       │       └── AccountNavigation
 │       └── outgoing/
 │           ├── persistence/
-│           │   └── InMemoryAccountRepository
+│           │   ├── JdbcAccountRepository      # default (ADR-031)
+│           │   └── InMemoryAccountRepository  # "inmemory" profile
 │           └── security/
 │               ├── SpringSecurityPasswordHasher
 │               └── AccountBasedRegisteredUserValidator

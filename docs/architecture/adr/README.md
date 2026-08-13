@@ -37,6 +37,7 @@ Architecture Decision Records capture important architectural decisions with con
 | [ADR-028](adr-028-immutable-owner-name.md) | The Account Owner's Name Is Immutable by Type, Not by Rule | ✅ Accepted |
 | [ADR-029](adr-029-expiry-is-not-logout.md) | Session Expiry Ends the Session, Not the Identity | ✅ Accepted |
 | [ADR-030](adr-030-three-cookie-session-design.md) | Separate Cookies for Identity, Session and Renewal | ✅ Accepted (partially implemented) |
+| [ADR-031](adr-031-persistence-adapters-as-the-default.md) | A Repository Hands Out Copies — Real Persistence Is the Default | ✅ Accepted (account and cart converted) |
 
 ### Proposed 🟡
 
