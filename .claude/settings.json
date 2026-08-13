@@ -15,11 +15,8 @@
       "Bash(./gradlew spotlessApply:*)",
       "Bash(./gradlew spotlessCheck:*)",
       "mcp__product-catalog__all-products",
-      "Write(src/**)",
       "Edit(src/**)",
-      "Write(docs/**)",
       "Edit(docs/**)",
-      "Write(scripts/**)",
       "Edit(scripts/**)",
       "Bash(rm src/**)"
     ],

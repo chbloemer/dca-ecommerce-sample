@@ -609,11 +609,10 @@ Events should:
 
 **Domain Event Interface**:
 ```java
-// domain/model/ddd/DomainEvent.java
+// sharedkernel/marker/tactical/DomainEvent.java
 public interface DomainEvent {
   UUID eventId();
   Instant occurredOn();
-  int version();
 }
 ```
 

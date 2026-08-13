@@ -544,7 +544,7 @@ Integration Events are **adapter-layer DTOs** published across bounded context b
 | **Layer** | Domain (`domain.event`) | Adapter (`adapter.outgoing.event`) |
 | **Interface** | `DomainEvent` | `IntegrationEvent` (separate hierarchy) |
 | **Naming** | No suffix (`CartCheckedOut`) | `Event` suffix (`CartCheckedOutEvent`) |
-| **Versioning** | None — can change freely | `int version()` for backward compatibility |
+| **Versioning** | None — can change freely | `@IntegrationEventType(name, version)` as a class property, not a data field (ADR-027) |
 | **Creation** | Raised by aggregates | Created by outgoing event adapters via `from()` factory |
 | **Consumption** | Within same context | By incoming event adapters in other contexts |
 
