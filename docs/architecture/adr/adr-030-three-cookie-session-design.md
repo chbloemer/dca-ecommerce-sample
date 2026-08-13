@@ -96,7 +96,8 @@ leaked token.
 ### Negative
 
 ❌ **No revocation until `shop-refresh` exists** — a stolen session token is valid until it expires
-❌ **A logout on device A does not end a session on device B** — same reason
+❌ **A logout on device A does not end a session on device B** — the token's subject is the user,
+   not the session, so individual sessions are not addressable (see *Alternative 3*)
 
 ---
 
@@ -123,7 +124,22 @@ separating them.
 recovered from the *account* on login. What remains is a shared-device risk with no compensating
 benefit.
 
-### Alternative 3: Server-side sessions instead of tokens
+### Alternative 3: A per-session subject with the user as a separate claim
+
+Instead of `sub = userId`, the session token can carry `sub = sessionId` and reference the user in
+its own claim. Each login on each device then has its own addressable subject.
+
+**Not adopted here, but it is the answer to this ADR's main limitation.** With `sub = userId` a
+token identifies *who*, not *which session*, so there is nothing to revoke individually — logging
+out on one device cannot end the session on another, and a leaked token is indistinguishable from
+the legitimate one. A per-session subject makes both possible, and it is what the production
+implementations behind the JWT implementation guide do.
+
+It only pays off together with the deferred `shop-refresh` and its server-side row: without a store
+there is nothing to revoke, so a session id would be a subject nobody can act on. When the renewal
+flow lands, this is the token shape to land with it.
+
+### Alternative 4: Server-side sessions instead of tokens
 
 **Rejected** for this sample: it trades the token design for session affinity or a shared session
 store, and hides the very tradeoffs the reference implementation exists to demonstrate.

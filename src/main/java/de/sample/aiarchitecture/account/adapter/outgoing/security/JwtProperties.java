@@ -22,15 +22,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *       secure-cookies: false   # true in staging/production
  * </pre>
  *
- * <p>Identity and session live in <b>separate</b> cookies on purpose (ADR-030): the visitor
- * identity carries the cart and must survive an expired session, which one shared cookie cannot
- * express — see also ADR-029.
+ * <p>Identity and session live in <b>separate</b> cookies on purpose (ADR-030): the identity
+ * carries the cart and must survive an expired session, which one shared cookie cannot express —
+ * see also ADR-029.
  *
  * @param secret the secret key for signing JWTs (must be at least 256 bits for HS256)
- * @param anonymousExpirationDays how long the visitor identity remains valid (default: 30 days)
+ * @param anonymousExpirationDays how long the identity remains valid (default: 30 days)
  * @param registeredExpirationDays how long an authenticated session remains valid (default: 7 days)
  * @param issuer the token issuer claim (iss)
- * @param cookieName the name of the cookie that stores the visitor identity
+ * @param cookieName the name of the cookie that stores the identity
  * @param sessionCookieName the name of the cookie that stores the authenticated session
  * @param secureCookies whether cookies are flagged {@code Secure}; must be {@code true} wherever
  *     the application is reachable over HTTPS, and is configuration rather than a constant so that
@@ -56,7 +56,7 @@ public record JwtProperties(
    * SameSite policy for both cookies.
    *
    * <p>{@code Lax} rather than {@code Strict}: the identity cookie must survive a top-level
-   * navigation from an external link, or a visitor arriving from a search result would be handed a
+   * navigation from an external link, or someone arriving from a search result would be handed a
    * fresh identity and lose their cart.
    */
   public static final String SAME_SITE = "Lax";
@@ -91,7 +91,7 @@ public record JwtProperties(
   }
 
   /**
-   * Returns how long the visitor identity cookie lives.
+   * Returns how long the identity cookie lives.
    *
    * @return the max age in seconds
    */

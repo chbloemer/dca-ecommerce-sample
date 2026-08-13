@@ -82,25 +82,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    // The visitor identity is resolved first and independently of authentication: it carries the
-    // cart, so an expired or missing session must never cost it (ADR-029).
-    final UserId visitorId = resolveVisitorIdentity(request, response);
-    setSecurityContext(resolveSession(request, visitorId));
+    // The identity is resolved first and independently of authentication: it carries the cart, so
+    // an expired or missing session must never cost it (ADR-029). It is the same UserId before and
+    // after login — authentication adds a session, it does not replace who the browser is.
+    final UserId identityUserId = resolveIdentity(request, response);
+    setSecurityContext(resolveSession(request, identityUserId));
 
     // Continue filter chain
     filterChain.doFilter(request, response);
   }
 
   /**
-   * Resolves the visitor identity from the identity cookie, minting one only when the browser
-   * presents none that can be read.
+   * Resolves the identity from the identity cookie, minting one only when the browser presents none
+   * that can be read.
    *
    * <p>A token in this cookie is used for its {@code UserId} alone. Browsers from before the
    * identity/session split still hold a token carrying registered claims here; honouring those
-   * claims would let a cookie named for the visitor identity grant authentication, which is the
-   * conflation ADR-030 removes.
+   * claims would let the identity cookie grant authentication, which is the conflation ADR-030
+   * removes.
    */
-  private UserId resolveVisitorIdentity(
+  private UserId resolveIdentity(
       final HttpServletRequest request, final HttpServletResponse response) {
 
     final Optional<String> stored = readCookie(request, jwtProperties.cookieName());
@@ -110,8 +111,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return valid.identity().userId();
       }
       LOG.debug(
-          "Visitor identity not usable ({}), issuing a new one",
-          validation.getClass().getSimpleName());
+          "Identity not usable ({}), issuing a new one", validation.getClass().getSimpleName());
     }
 
     // A valid session without an identity cookie: adopt the session's UserId rather than inventing
@@ -136,33 +136,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   /**
    * Resolves the authenticated session, falling back to an anonymous identity that keeps the
-   * visitor's {@code UserId}.
+   * browser's existing {@code UserId}.
    *
    * <p>Every fallback below is deliberately silent and non-blocking: the filter enriches the
    * request, it does not gate it (ADR-029). An expired session is the routine end of a session, not
-   * an error the visitor should see.
+   * an error the person should see.
    */
   private IdentityProvider.Identity resolveSession(
-      final HttpServletRequest request, final UserId visitorId) {
+      final HttpServletRequest request, final UserId identityUserId) {
 
     final Optional<String> token = sessionToken(request);
     if (token.isEmpty()) {
-      return JwtIdentity.anonymous(visitorId);
+      return JwtIdentity.anonymous(identityUserId);
     }
 
     if (!(tokenService.validate(token.get()) instanceof TokenValidation.Valid valid)) {
-      return JwtIdentity.anonymous(visitorId);
+      return JwtIdentity.anonymous(identityUserId);
     }
 
     final IdentityProvider.Identity identity = valid.identity();
     if (!identity.isRegistered()) {
-      return JwtIdentity.anonymous(visitorId);
+      return JwtIdentity.anonymous(identityUserId);
     }
 
     // In-memory storage loses accounts on restart; the session then refers to nobody.
     if (!registeredUserValidator.existsForUserId(identity.userId())) {
       LOG.info("Session for {} has no account, continuing anonymously", identity.userId().value());
-      return JwtIdentity.anonymous(visitorId);
+      return JwtIdentity.anonymous(identityUserId);
     }
 
     return identity;
@@ -258,7 +258,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   }
 
   /**
-   * Clears the session cookie, leaving the visitor identity untouched.
+   * Clears the session cookie, leaving the identity untouched.
    *
    * @param response HTTP response to clear the cookie on
    */

@@ -254,15 +254,39 @@ class JwtAuthenticationFilterTest {
 
     session.logOut();
 
-    final String rotated =
+    assertNotEquals(
+        before,
+        userIdInCookie(response, IDENTITY_COOKIE),
+        "the next person on this device must not inherit the cart");
+  }
+
+  @Test
+  @DisplayName("logging in re-points the identity cookie at the account's UserId")
+  void loginAlignsTheIdentityWithTheAccount() {
+    // The browser arrived as one UserId; the account it authenticates as is another. The anonymous
+    // cart is merged into the account's and then deleted, so an identity cookie left on the
+    // superseded UserId would drop the next expired session onto a cart that no longer exists.
+    final UserId arrivedAs = UserId.generateAnonymous();
+    final UserId accountUserId = UserId.generateAnonymous();
+    final MockHttpServletResponse response = new MockHttpServletResponse();
+
+    new JwtIdentitySession(properties, tokenService, response)
+        .setRegisteredIdentity(
+            tokenService.generateRegisteredToken(accountUserId, EMAIL, Set.of("CUSTOMER")));
+
+    final UserId storedIdentity = userIdInCookie(response, IDENTITY_COOKIE);
+    assertEquals(accountUserId, storedIdentity, "the identity must follow the account");
+    assertNotEquals(arrivedAs, storedIdentity);
+  }
+
+  private UserId userIdInCookie(final MockHttpServletResponse response, final String name) {
+    final String header =
         response.getHeaders("Set-Cookie").stream()
-            .filter(header -> header.startsWith(IDENTITY_COOKIE + "="))
+            .filter(value -> value.startsWith(name + "="))
             .findFirst()
             .orElseThrow();
-    final String token = rotated.substring(rotated.indexOf('=') + 1, rotated.indexOf(';'));
-    final UserId after = tokenService.validateAndParse(token).orElseThrow().userId();
-
-    assertNotEquals(before, after, "the next person on this device must not inherit the cart");
+    final String token = header.substring(header.indexOf('=') + 1, header.indexOf(';'));
+    return tokenService.validateAndParse(token).orElseThrow().userId();
   }
 
   @Test
