@@ -53,3 +53,4 @@ The decision has four load-bearing parts:
 
 - [ADR-026: Transactional Outbox for Integration Events](adr-026-transactional-outbox-integration-events.md)
 - [ADR-005: Domain Events Publishing Strategy](adr-005-domain-events-publishing.md)
+- [ADR-006: Domain Events as Immutable Records](adr-006-domain-events-immutable-records.md) — its illustrative interface still shows an `int version()` method. That part is superseded here; the immutability and naming decisions remain in force.
