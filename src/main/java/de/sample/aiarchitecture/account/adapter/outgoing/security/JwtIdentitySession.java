@@ -14,10 +14,10 @@ import org.springframework.web.context.annotation.RequestScope;
  * <p>This component manages user session identity via HTTP cookies. It is request-scoped because it
  * needs access to the current HTTP response to set/clear cookies.
  *
- * <p>Identity and session are separate cookies (ADR-030): {@code shop-identity} carries the visitor
- * {@code UserId} the cart is keyed on, {@code shop-session} carries the authentication. Both are
- * {@code HttpOnly} and {@code SameSite=Lax}; {@code Secure} comes from configuration so that local
- * HTTP development cannot bake {@code false} into a deployment.
+ * <p>Identity and session are separate cookies (ADR-030): {@code shop-identity} carries the {@code
+ * UserId} the cart is keyed on, {@code shop-session} carries the authentication. Both are {@code
+ * HttpOnly} and {@code SameSite=Lax}; {@code Secure} comes from configuration so that local HTTP
+ * development cannot bake {@code false} into a deployment.
  */
 @Component
 @RequestScope
@@ -40,6 +40,20 @@ public class JwtIdentitySession implements IdentitySession {
   public void setRegisteredIdentity(final String token) {
     writeCookie(
         jwtProperties.sessionCookieName(), token, jwtProperties.sessionCookieMaxAgeSeconds());
+
+    // Align the identity with the account the session belongs to. Authenticating adopts the
+    // account's UserId, which need not be the one the browser arrived with — and the anonymous
+    // cart is merged into the account's cart and then deleted. Leaving the identity cookie on the
+    // superseded UserId would mean that the next session expiry drops the browser onto a cart that
+    // no longer exists, which is exactly what ADR-029 exists to prevent.
+    tokenService
+        .validateAndParse(token)
+        .ifPresent(
+            identity ->
+                writeCookie(
+                    jwtProperties.cookieName(),
+                    tokenService.generateAnonymousToken(identity.userId()),
+                    jwtProperties.identityCookieMaxAgeSeconds()));
   }
 
   @Override

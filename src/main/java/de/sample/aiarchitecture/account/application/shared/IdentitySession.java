@@ -59,9 +59,9 @@ public interface IdentitySession extends OutputPort {
   /**
    * Ends the authenticated session because the user asked to leave.
    *
-   * <p>Distinct from a session that merely expired: expiry keeps the visitor identity, because
-   * nobody decided anything and the identity carries the cart. An explicit logout also gives the
-   * browser a <b>new</b> visitor identity, so the next person on a shared device starts clean.
+   * <p>Distinct from a session that merely expired: expiry keeps the identity, because nobody
+   * decided anything and the identity carries the cart. An explicit logout also gives the browser a
+   * <b>new</b> identity, so the next person on a shared device starts clean.
    *
    * <p>Nothing is deleted by this: a registered user's cart belongs to their account and is
    * restored at the next login. See ADR-029 and ADR-030.
