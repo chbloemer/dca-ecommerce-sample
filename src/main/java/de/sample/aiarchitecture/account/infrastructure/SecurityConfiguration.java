@@ -108,8 +108,9 @@ public class SecurityConfiguration {
                     .anyRequest()
                     .authenticated())
 
-        // Disable Spring Security's default LogoutFilter — JWT cookie cleanup is handled by
-        // LogoutPageController via IdentitySession.clearIdentity()
+        // Disable Spring Security's default LogoutFilter — logout is handled by
+        // LogoutPageController via IdentitySession.logOut(), which clears the session cookie and
+        // rotates the visitor identity rather than deleting it (ADR-029)
         .logout(logout -> logout.disable())
 
         // Allow iframes (development only - enables embedding in Slidev presentations)

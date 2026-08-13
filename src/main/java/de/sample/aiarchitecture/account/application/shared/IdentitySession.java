@@ -28,7 +28,7 @@ import de.sample.aiarchitecture.sharedkernel.marker.port.out.OutputPort;
  *     }
  *
  *     public ResponseEntity<Void> logout() {
- *         identitySession.clearIdentity();
+ *         identitySession.logOut();
  *         // ...
  *     }
  * }
@@ -57,10 +57,14 @@ public interface IdentitySession extends OutputPort {
   void setRegisteredIdentity(String token);
 
   /**
-   * Clears the identity cookie, effectively logging out the user.
+   * Ends the authenticated session because the user asked to leave.
    *
-   * <p>This terminates the user's session by removing the authentication cookie. After calling this
-   * method, subsequent requests will create a new anonymous identity.
+   * <p>Distinct from a session that merely expired: expiry keeps the visitor identity, because
+   * nobody decided anything and the identity carries the cart. An explicit logout also gives the
+   * browser a <b>new</b> visitor identity, so the next person on a shared device starts clean.
+   *
+   * <p>Nothing is deleted by this: a registered user's cart belongs to their account and is
+   * restored at the next login. See ADR-029 and ADR-030.
    */
-  void clearIdentity();
+  void logOut();
 }
