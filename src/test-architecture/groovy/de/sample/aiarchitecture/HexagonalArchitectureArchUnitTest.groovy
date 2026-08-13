@@ -152,4 +152,20 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
       .because("Interfaces in application.shared are output ports and must extend OutputPort to be part of the port hierarchy")
       .check(allClasses)
   }
+
+  def "Output ports must not reside in the domain layer"() {
+    expect:
+    // Repository/Store/OutputPort interfaces belong to the application layer (application/shared/),
+    // never to domain/ - the domain must stay port-free and framework-free. This catches the case
+    // where a *Repository is declared next to the aggregate in domain.model instead of being moved
+    // to application.shared, which the rule above cannot detect on its own since it only scopes
+    // application.shared and silently passes when the port isn't there at all.
+    noClasses()
+      .that().areAssignableTo(OUTPUT_PORT_MARKER)
+      .and().areInterfaces()
+      .should().resideInAPackage(DOMAIN_PACKAGE)
+      .because("output ports (Repository, Store, OutputPort) are an application-layer concern and must live in application/shared/, not domain/")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
 }
