@@ -4,6 +4,7 @@ import de.sample.aiarchitecture.account.application.shared.AccountRepository;
 import de.sample.aiarchitecture.account.domain.gateway.PasswordHasher;
 import de.sample.aiarchitecture.account.domain.model.Account;
 import de.sample.aiarchitecture.account.domain.model.Email;
+import de.sample.aiarchitecture.account.domain.model.Owner;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>Validates the email is not already registered
  *   <li>Validates password strength requirements (delegated to domain)
  *   <li>Hashes the password (delegated to domain)
+ *   <li>Builds the Owner from the submitted name and date of birth (validated by the Value Object)
  *   <li>Creates a new Account
  *   <li>Links the Account to the user's current UserId
  *   <li>Publishes domain events (AccountRegistered, AccountLinkedToIdentity)
@@ -65,15 +67,15 @@ public class RegisterAccountUseCase implements RegisterAccountInputPort {
     }
 
     // Create the account (password validation and hashing done by aggregate via gateway)
+    final Owner owner = Owner.of(command.firstName(), command.lastName(), command.dateOfBirth());
     final Account account =
-        Account.register(email, command.password(), currentUserId, passwordHasher);
+        Account.register(email, owner, command.password(), currentUserId, passwordHasher);
 
     // Persist the account
     accountRepository.save(account);
 
     // Publish domain events
-    account.domainEvents().forEach(eventPublisher::publish);
-    account.clearDomainEvents();
+    eventPublisher.publishAndClearEvents(account);
 
     return RegisterAccountResult.of(
         account.id().value(),

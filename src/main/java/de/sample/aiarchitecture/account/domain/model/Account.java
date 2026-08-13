@@ -1,8 +1,10 @@
 package de.sample.aiarchitecture.account.domain.model;
 
 import de.sample.aiarchitecture.account.domain.event.AccountClosed;
+import de.sample.aiarchitecture.account.domain.event.AccountEmailChanged;
 import de.sample.aiarchitecture.account.domain.event.AccountLinkedToIdentity;
 import de.sample.aiarchitecture.account.domain.event.AccountLoggedIn;
+import de.sample.aiarchitecture.account.domain.event.AccountOwnerDateOfBirthChanged;
 import de.sample.aiarchitecture.account.domain.event.AccountPasswordChanged;
 import de.sample.aiarchitecture.account.domain.event.AccountReactivated;
 import de.sample.aiarchitecture.account.domain.event.AccountRegistered;
@@ -11,7 +13,9 @@ import de.sample.aiarchitecture.account.domain.gateway.PasswordHasher;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.BaseAggregateRoot;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,6 +30,7 @@ import java.util.Set;
  *   <li>AccountId - The aggregate root identity (internal)
  *   <li>UserId - The cross-context identity (shared, in JWT)
  *   <li>Email - The login credential (unique)
+ *   <li>Owner - The person the account belongs to (name and date of birth)
  *   <li>HashedPassword - BCrypt hashed password (never stored as plaintext)
  * </ul>
  *
@@ -36,6 +41,8 @@ import java.util.Set;
  *   <li>Password must meet strength requirements (validated by domain)
  *   <li>Each account is linked to exactly one UserId
  *   <li>Cannot login if account is suspended or closed
+ *   <li>The owner's name is captured at registration and never changes; only the date of birth can
+ *       be corrected afterwards
  * </ul>
  *
  * <p><b>Domain Events:</b>
@@ -45,6 +52,8 @@ import java.util.Set;
  *   <li>{@link AccountLinkedToIdentity} - when UserId is linked
  *   <li>{@link AccountLoggedIn} - when a user logs in
  *   <li>{@link AccountPasswordChanged} - when password is changed
+ *   <li>{@link AccountEmailChanged} - when the email address is changed
+ *   <li>{@link AccountOwnerDateOfBirthChanged} - when the owner's date of birth is corrected
  *   <li>{@link AccountSuspended} - when account is suspended
  *   <li>{@link AccountReactivated} - when account is reactivated
  *   <li>{@link AccountClosed} - when account is permanently closed
@@ -53,7 +62,8 @@ import java.util.Set;
 public final class Account extends BaseAggregateRoot<Account, AccountId> {
 
   private final AccountId id;
-  private final Email email;
+  private Email email;
+  private Owner owner;
   private final UserId linkedUserId;
   private HashedPassword password;
   private AccountStatus status;
@@ -64,16 +74,21 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
   private Account(
       final AccountId id,
       final Email email,
+      final Owner owner,
       final UserId linkedUserId,
       final HashedPassword password,
-      final Set<String> roles) {
+      final Set<String> roles,
+      final Instant createdAt) {
     this.id = id;
     this.email = email;
+    // Every account belongs to somebody: an owner-less account could never satisfy the rule that
+    // the owner's name is fixed, because there would be no name to fix.
+    this.owner = Objects.requireNonNull(owner, "An account must have an owner");
     this.linkedUserId = linkedUserId;
     this.password = password;
     this.status = AccountStatus.ACTIVE;
     this.roles = new HashSet<>(roles);
-    this.createdAt = Instant.now();
+    this.createdAt = createdAt;
   }
 
   /**
@@ -93,6 +108,7 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
    * checkout session for users who register during checkout.
    *
    * @param email the user's email address (login credential)
+   * @param owner the person the account belongs to; their name is fixed from here on
    * @param plainPassword the plaintext password (will be validated and hashed)
    * @param currentUserId the UserId to link to (from the user's JWT)
    * @param passwordHasher the password hashing domain gateway
@@ -101,6 +117,7 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
    */
   public static Account register(
       final Email email,
+      final Owner owner,
       final String plainPassword,
       final UserId currentUserId,
       final PasswordHasher passwordHasher) {
@@ -114,10 +131,11 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
     final Set<String> defaultRoles = Set.of("CUSTOMER");
 
     final Account account =
-        new Account(accountId, email, currentUserId, hashedPassword, defaultRoles);
+        new Account(
+            accountId, email, owner, currentUserId, hashedPassword, defaultRoles, Instant.now());
 
     // Raise domain events
-    account.registerEvent(AccountRegistered.now(accountId, email, currentUserId));
+    account.registerEvent(AccountRegistered.now(accountId, email, owner, currentUserId));
     account.registerEvent(AccountLinkedToIdentity.now(accountId, currentUserId));
 
     return account;
@@ -130,6 +148,7 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
    *
    * @param id the account ID
    * @param email the email
+   * @param owner the person the account belongs to
    * @param linkedUserId the linked user ID
    * @param hashedPassword the BCrypt password hash
    * @param status the account status
@@ -141,13 +160,15 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
   public static Account reconstitute(
       final AccountId id,
       final Email email,
+      final Owner owner,
       final UserId linkedUserId,
       final HashedPassword hashedPassword,
       final AccountStatus status,
       final Set<String> roles,
       final Instant createdAt,
       final Instant lastLoginAt) {
-    final Account account = new Account(id, email, linkedUserId, hashedPassword, roles);
+    final Account account =
+        new Account(id, email, owner, linkedUserId, hashedPassword, roles, createdAt);
     account.status = status;
     account.lastLoginAt = lastLoginAt;
     return account;
@@ -160,6 +181,10 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
 
   public Email email() {
     return email;
+  }
+
+  public Owner owner() {
+    return owner;
   }
 
   public UserId linkedUserId() {
@@ -236,6 +261,50 @@ public final class Account extends BaseAggregateRoot<Account, AccountId> {
     }
     this.password = HashedPassword.fromPlaintext(newPlainPassword, passwordHasher);
     registerEvent(AccountPasswordChanged.now(this.id));
+  }
+
+  /**
+   * Changes the account's email address, which is also its login credential.
+   *
+   * <p>Raises {@link AccountEmailChanged} only when the new address differs from the stored one.
+   * Uniqueness across accounts is decided outside the aggregate.
+   *
+   * @param newEmail the new email address
+   * @throws IllegalStateException if the account is closed
+   */
+  public void changeEmail(final Email newEmail) {
+    if (status.isTerminal()) {
+      throw new IllegalStateException("Cannot change email on closed account");
+    }
+    if (email.equals(newEmail)) {
+      return;
+    }
+    final Email previousEmail = this.email;
+    this.email = newEmail;
+    registerEvent(AccountEmailChanged.now(this.id, previousEmail, newEmail));
+  }
+
+  /**
+   * Corrects the date of birth of the account's owner.
+   *
+   * <p>The owner's name is not touched: the corrected owner is derived via {@link
+   * Owner#withDateOfBirth(LocalDate)}, which carries both names over. Raises {@link
+   * AccountOwnerDateOfBirthChanged} only when the new date differs from the stored one.
+   *
+   * @param newDateOfBirth the corrected date of birth
+   * @throws IllegalStateException if the account is closed
+   * @throws IllegalArgumentException if the date lies in the future
+   */
+  public void changeOwnerDateOfBirth(final LocalDate newDateOfBirth) {
+    if (status.isTerminal()) {
+      throw new IllegalStateException("Cannot change the date of birth on closed account");
+    }
+    if (owner.dateOfBirth().equals(newDateOfBirth)) {
+      return;
+    }
+    final LocalDate previousDateOfBirth = owner.dateOfBirth();
+    this.owner = owner.withDateOfBirth(newDateOfBirth);
+    registerEvent(AccountOwnerDateOfBirthChanged.now(this.id, previousDateOfBirth, newDateOfBirth));
   }
 
   /**

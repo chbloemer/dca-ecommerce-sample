@@ -5,6 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.sample.aiarchitecture.account.application.getaccountoverview.GetAccountOverviewInputPort;
 import de.sample.aiarchitecture.account.application.getaccountoverview.GetAccountOverviewQuery;
 import de.sample.aiarchitecture.account.application.getaccountoverview.GetAccountOverviewResult;
+import de.sample.aiarchitecture.account.application.getprofile.GetProfileInputPort;
+import de.sample.aiarchitecture.account.application.getprofile.GetProfileQuery;
+import de.sample.aiarchitecture.account.application.getprofile.GetProfileResult;
+import de.sample.aiarchitecture.account.application.shared.IdentitySession;
+import de.sample.aiarchitecture.account.application.shared.TokenService;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
 import java.net.URLDecoder;
@@ -66,6 +71,73 @@ final class AccountWebTestFixtures {
 
     List<GetAccountOverviewQuery> receivedQueries() {
       return List.copyOf(receivedQueries);
+    }
+  }
+
+  /** Test double for the get profile input port, recording the queries it receives. */
+  static final class TestGetProfile implements GetProfileInputPort {
+
+    private final List<GetProfileQuery> receivedQueries = new ArrayList<>();
+    private GetProfileResult result = GetProfileResult.notFound();
+
+    @Override
+    public GetProfileResult execute(final GetProfileQuery query) {
+      receivedQueries.add(query);
+      return result;
+    }
+
+    void setResult(final GetProfileResult result) {
+      this.result = result;
+    }
+
+    List<GetProfileQuery> receivedQueries() {
+      return List.copyOf(receivedQueries);
+    }
+  }
+
+  /** Test double for the token service, recording the claims each issued token was built from. */
+  static final class TestTokenService implements TokenService {
+
+    private final List<IssuedToken> issuedTokens = new ArrayList<>();
+
+    @Override
+    public String generateRegisteredToken(
+        final UserId userId, final String email, final Set<String> roles) {
+      final IssuedToken token = new IssuedToken(userId, email, Set.copyOf(roles));
+      issuedTokens.add(token);
+      return "token-for-" + email;
+    }
+
+    List<IssuedToken> issuedTokens() {
+      return List.copyOf(issuedTokens);
+    }
+
+    /** The claims a token was generated for. */
+    record IssuedToken(UserId userId, String email, Set<String> roles) {}
+  }
+
+  /** Test double for the identity session, recording the tokens it was handed. */
+  static final class TestIdentitySession implements IdentitySession {
+
+    private final List<String> setTokens = new ArrayList<>();
+    private int clearCount;
+
+    @Override
+    public void setRegisteredIdentity(final String token) {
+      setTokens.add(token);
+    }
+
+    @Override
+    public void clearIdentity() {
+      clearCount++;
+    }
+
+    List<String> setTokens() {
+      return List.copyOf(setTokens);
+    }
+
+    int clearCount() {
+      return clearCount;
     }
   }
 

@@ -1330,6 +1330,12 @@ Commands modify system state and publish domain events.
 - `CheckoutCartUseCase` - Completes cart checkout
 - `ChangePasswordUseCase` - Replaces an account's password; a wrong current password or a rejected
   new one is reported as an outcome of `ChangePasswordResult`, not as an exception crossing the port
+- `ChangeProfileUseCase` (`account.application.changeprofile`) - Changes the basic information of
+  an account behind `/account/profile`: its email address and the date of birth of its `Owner`. All
+  submitted values are validated before the aggregate is mutated, so a rejected value leaves the
+  whole profile untouched; the uniqueness check skips the caller's own address. The owner's **name
+  is not changeable**: the command carries no name component and the aggregate offers no operation
+  that would accept one
 
 **Characteristics:**
 - Transactional (`@Transactional`)
@@ -1346,6 +1352,9 @@ Queries retrieve data without modifying state.
 - `GetProductByIdUseCase` - Retrieves a product
 - `GetAllProductsUseCase` - Lists all products
 - `GetCartByIdUseCase` - Retrieves a cart
+- `GetProfileUseCase` (`account.application.getprofile`) - Projects the profile fields the
+  `/account/profile` page renders — the owner's name for display, the email and date of birth for
+  editing; an account that cannot log in is reported as absent
 
 **Characteristics:**
 - Read-only (`@Transactional(readOnly = true)`)

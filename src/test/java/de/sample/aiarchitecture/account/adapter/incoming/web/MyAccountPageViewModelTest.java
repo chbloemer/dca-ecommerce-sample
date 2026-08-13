@@ -16,7 +16,8 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link MyAccountPageViewModel}.
  *
  * <p>Covers the email the greeting is built from, the four nav items in order, the overview item as
- * the active link to {@code /account}, and the absent href on the placeholder items.
+ * the active link to {@code /account}, the profile item as an inactive link, and the absent href on
+ * the orders placeholder.
  *
  * <p>The rendered DOM — greeting wording, {@code aria-disabled} attributes, item order in the
  * markup — is covered by {@link AccountOverviewTemplateTest}, not here. No E2E test exists for the
@@ -67,14 +68,23 @@ class MyAccountPageViewModelTest {
   }
 
   @Test
-  @DisplayName("profile and orders items carry no href and are not active")
-  void placeholderItemsCarryNoHref() {
-    for (final String key : List.of(AccountNavigation.PROFILE, AccountNavigation.ORDERS)) {
-      final NavItem item = navItem(key);
-      assertNull(item.href(), "placeholder item '" + key + "' must not carry an href");
-      assertFalse(item.navigable(), "placeholder item '" + key + "' must not be navigable");
-      assertFalse(item.active(), "placeholder item '" + key + "' must not be active");
-    }
+  @DisplayName("profile item links to /account/profile and is not the active item here")
+  void profileItemLinksToProfilePage() {
+    final NavItem profile = navItem(AccountNavigation.PROFILE);
+
+    assertEquals("/account/profile", profile.href());
+    assertTrue(profile.navigable(), "the profile item must be navigable");
+    assertFalse(profile.active(), "the profile item is not active on the overview page");
+  }
+
+  @Test
+  @DisplayName("orders item carries no href and is not active")
+  void ordersItemCarriesNoHref() {
+    final NavItem orders = navItem(AccountNavigation.ORDERS);
+
+    assertNull(orders.href(), "the orders placeholder must not carry an href");
+    assertFalse(orders.navigable(), "the orders placeholder must not be navigable");
+    assertFalse(orders.active(), "the orders placeholder must not be active");
   }
 
   @Test

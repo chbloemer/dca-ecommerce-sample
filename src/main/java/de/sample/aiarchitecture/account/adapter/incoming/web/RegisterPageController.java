@@ -7,6 +7,9 @@ import de.sample.aiarchitecture.account.application.shared.IdentitySession;
 import de.sample.aiarchitecture.account.application.shared.TokenService;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
+import java.time.LocalDate;
+import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +67,9 @@ public class RegisterPageController {
    * @param email the user's email
    * @param password the user's password
    * @param confirmPassword password confirmation
+   * @param firstName the owner's first name
+   * @param lastName the owner's last name
+   * @param dateOfBirth the owner's date of birth, as the browser sent it
    * @param returnUrl optional URL to redirect to after registration
    * @param redirectAttributes for passing flash messages
    * @param model Spring MVC model
@@ -74,31 +80,35 @@ public class RegisterPageController {
       @RequestParam final String email,
       @RequestParam final String password,
       @RequestParam final String confirmPassword,
+      @RequestParam final String firstName,
+      @RequestParam final String lastName,
+      @RequestParam final String dateOfBirth,
       @RequestParam(required = false) final String returnUrl,
       final RedirectAttributes redirectAttributes,
       final Model model) {
 
+    final Submission submission =
+        new Submission(email, firstName, lastName, dateOfBirth, returnUrl);
+
     if (!password.equals(confirmPassword)) {
-      model.addAttribute("title", "Register");
-      model.addAttribute("error", "Passwords do not match");
-      model.addAttribute("email", email);
-      model.addAttribute("returnUrl", returnUrl);
-      return "account/register";
+      return renderError(model, submission, "Passwords do not match");
     }
 
     if (password.length() < 8) {
-      model.addAttribute("title", "Register");
-      model.addAttribute("error", "Password must be at least 8 characters");
-      model.addAttribute("email", email);
-      model.addAttribute("returnUrl", returnUrl);
-      return "account/register";
+      return renderError(model, submission, "Password must be at least 8 characters");
+    }
+
+    final Optional<LocalDate> submittedDate = SubmittedDate.parse(dateOfBirth);
+    if (submittedDate.isEmpty()) {
+      return renderError(model, submission, SubmittedDate.NOT_A_DATE);
     }
 
     try {
       final String currentUserId = identityProvider.getCurrentIdentity().userId().value();
 
       final RegisterAccountCommand command =
-          new RegisterAccountCommand(email, password, currentUserId);
+          new RegisterAccountCommand(
+              email, password, currentUserId, firstName, lastName, submittedDate.get());
 
       final RegisterAccountResult result = registerAccountUseCase.execute(command);
 
@@ -116,11 +126,32 @@ public class RegisterPageController {
       return "redirect:/";
 
     } catch (final IllegalArgumentException e) {
-      model.addAttribute("title", "Register");
-      model.addAttribute("error", e.getMessage());
-      model.addAttribute("email", email);
-      model.addAttribute("returnUrl", returnUrl);
-      return "account/register";
+      return renderError(model, submission, e.getMessage());
     }
   }
+
+  /**
+   * Re-renders the form with the submitted values so the user does not retype them.
+   *
+   * <p>The password is deliberately not carried over.
+   */
+  private static String renderError(
+      final Model model, final Submission submission, final String error) {
+    model.addAttribute("title", "Register");
+    model.addAttribute("error", error);
+    model.addAttribute("email", submission.email());
+    model.addAttribute("firstName", submission.firstName());
+    model.addAttribute("lastName", submission.lastName());
+    model.addAttribute("dateOfBirth", submission.dateOfBirth());
+    model.addAttribute("returnUrl", submission.returnUrl());
+    return "account/register";
+  }
+
+  /** The re-fillable part of a registration submission. */
+  private record Submission(
+      String email,
+      String firstName,
+      String lastName,
+      String dateOfBirth,
+      @Nullable String returnUrl) {}
 }

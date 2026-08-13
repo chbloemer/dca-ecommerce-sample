@@ -12,8 +12,10 @@ import de.sample.aiarchitecture.account.domain.model.AccountId;
 import de.sample.aiarchitecture.account.domain.model.AccountStatus;
 import de.sample.aiarchitecture.account.domain.model.Email;
 import de.sample.aiarchitecture.account.domain.model.HashedPassword;
+import de.sample.aiarchitecture.account.domain.model.Owner;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +42,7 @@ class GetAccountOverviewUseCaseTest {
   private static final String UNKNOWN_USER_ID = "user-does-not-exist";
   private static final String EMAIL = "jane.doe@example.com";
   private static final String PASSWORD_HASH = "$2a$10$abcdefghijklmnopqrstuv";
+  private static final Owner OWNER = Owner.of("Jane", "Doe", LocalDate.of(1990, 5, 17));
   private static final Instant LAST_LOGIN =
       Instant.parse("2026-07-31T08:15:30Z").truncatedTo(ChronoUnit.SECONDS);
 
@@ -139,6 +142,7 @@ class GetAccountOverviewUseCaseTest {
     return Account.reconstitute(
         AccountId.generate(),
         Email.of(EMAIL),
+        OWNER,
         UserId.of(LINKED_USER_ID),
         HashedPassword.of(PASSWORD_HASH),
         status,

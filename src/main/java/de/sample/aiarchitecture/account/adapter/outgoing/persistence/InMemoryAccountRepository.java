@@ -55,6 +55,18 @@ public class InMemoryAccountRepository implements AccountRepository {
     // Update main storage
     accounts.put(account.id(), account);
 
+    // Drop every address this account no longer uses: an account that changed its email must stop
+    // resolving under the old one, otherwise it would keep logging in under both and would occupy
+    // the address for everyone else. Looking up the previously stored aggregate would not do here —
+    // callers mutate the aggregate in place before calling save, so accounts.get(id) can already be
+    // the very same, already-mutated instance.
+    emailIndex
+        .entrySet()
+        .removeIf(
+            entry ->
+                entry.getValue().equals(account.id())
+                    && !entry.getKey().equals(account.email().value()));
+
     // Update indexes
     emailIndex.put(account.email().value(), account.id());
     userIdIndex.put(account.linkedUserId().value(), account.id());

@@ -15,8 +15,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * Unit tests for {@link AccountNavigation}.
  *
- * <p>Pins the account area's site map: four items in a fixed order, change-password a real link,
- * profile and orders still non-navigable placeholders, and exactly one item active per page.
+ * <p>Pins the account area's site map: four items in a fixed order, profile and change-password
+ * real links, orders still a non-navigable placeholder, and exactly one item active per page.
  */
 @DisplayName("AccountNavigation")
 class AccountNavigationTest {
@@ -60,12 +60,34 @@ class AccountNavigationTest {
   }
 
   @Test
-  @DisplayName("profile and orders remain non-navigable placeholders without href")
-  void profileAndOrdersRemainPlaceholders() {
-    for (final String key : List.of(AccountNavigation.PROFILE, AccountNavigation.ORDERS)) {
-      assertNull(item(key).href(), "placeholder item '" + key + "' must not carry an href");
-      assertFalse(item(key).navigable(), "placeholder item '" + key + "' must not be navigable");
-    }
+  @DisplayName("the profile item has href /account/profile")
+  void profileItemHasHref() {
+    assertEquals(
+        "/account/profile",
+        item(AccountNavigation.PROFILE).href(),
+        "the profile item must link to the profile page");
+  }
+
+  @Test
+  @DisplayName("the profile item is navigable")
+  void profileItemIsNavigable() {
+    assertTrue(
+        item(AccountNavigation.PROFILE).navigable(),
+        "the profile item is no longer a disabled placeholder");
+  }
+
+  @Test
+  @DisplayName("the profile item has the label 'My Profile'")
+  void profileItemHasLabel() {
+    assertEquals("My Profile", item(AccountNavigation.PROFILE).label());
+  }
+
+  @Test
+  @DisplayName("orders remains a non-navigable placeholder without href")
+  void ordersRemainsPlaceholder() {
+    assertNull(item(AccountNavigation.ORDERS).href(), "the orders item must not carry an href yet");
+    assertFalse(
+        item(AccountNavigation.ORDERS).navigable(), "the orders item must not be navigable yet");
   }
 
   @Test

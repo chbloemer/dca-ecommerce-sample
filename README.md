@@ -8,7 +8,7 @@ This project showcases best practices for structuring a Spring Boot application 
 - **Product Catalog** - Product management with enriched views (pricing + stock from other contexts)
 - **Shopping Cart** - Customer shopping cart management with article price resolution
 - **Checkout** - Multi-step checkout flow with session management
-- **Account** - User registration, authentication and account self-service (overview, change password)
+- **Account** - User registration, authentication and account self-service (overview, profile, change password)
 - **Portal** - Application home page and navigation
 - **Inventory** - Stock level management (Open Host Service)
 - **Pricing** - Product pricing management (Open Host Service)
@@ -482,8 +482,11 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── Account.java              # Aggregate Root
 │   │   │   ├── AccountId.java            # Value Objects
 │   │   │   ├── Email.java
+│   │   │   ├── Owner.java               # Name (fixed) + date of birth
 │   │   │   ├── HashedPassword.java
 │   │   │   └── AccountStatus.java
+│   │   ├── specification/                # Domain specifications
+│   │   │   └── UsableDateOfBirth.java    # Known, not in the future
 │   │   ├── service/                      # Domain services
 │   │   │   └── PasswordHasher.java       # Interface for password hashing
 │   │   └── event/                        # Domain events
@@ -491,6 +494,8 @@ src/main/java/de/sample/aiarchitecture/
 │   │       ├── AccountLinkedToIdentity.java
 │   │       ├── AccountLoggedIn.java
 │   │       ├── AccountPasswordChanged.java
+│   │       ├── AccountEmailChanged.java
+│   │       ├── AccountOwnerDateOfBirthChanged.java
 │   │       ├── AccountSuspended.java
 │   │       ├── AccountReactivated.java
 │   │       └── AccountClosed.java
@@ -515,6 +520,16 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── ChangePasswordUseCase.java
 │   │   │   ├── ChangePasswordCommand.java
 │   │   │   └── ChangePasswordResult.java
+│   │   ├── getprofile/                   # Use case: Get Profile (read, /account/profile)
+│   │   │   ├── GetProfileInputPort.java
+│   │   │   ├── GetProfileUseCase.java
+│   │   │   ├── GetProfileQuery.java
+│   │   │   └── GetProfileResult.java
+│   │   ├── changeprofile/                # Use case: Change Profile (email, date of birth)
+│   │   │   ├── ChangeProfileInputPort.java
+│   │   │   ├── ChangeProfileUseCase.java
+│   │   │   ├── ChangeProfileCommand.java
+│   │   │   └── ChangeProfileResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── AccountRepository.java
 │   │       ├── RegisteredUserValidator.java
@@ -538,6 +553,8 @@ src/main/java/de/sample/aiarchitecture/
 │       │       ├── MyAccountPageViewModel.java
 │       │       ├── ChangePasswordPageController.java
 │       │       ├── ChangePasswordPageViewModel.java
+│       │       ├── ProfilePageController.java
+│       │       ├── ProfilePageViewModel.java
 │       │       └── AccountNavigation.java
 │       └── outgoing/                     # Outgoing adapters
 │           ├── persistence/
@@ -963,6 +980,14 @@ These tests verify:
 - Email must be unique across all accounts
 - Password is hashed before storage (never stored in plain text)
 - Account status transitions: PENDING → ACTIVE → SUSPENDED/DELETED
+- An account belongs to an `Owner` (first name, last name, date of birth), captured at registration
+- The owner's **name can never be changed**: no operation on the aggregate accepts an `Owner` or
+  mentions a name, so `register` is the only way a name enters the system. The profile page
+  `/account/profile` shows it as text without an input
+- The profile page changes what may change — the email address and the owner's date of birth. The
+  buyer's name in the checkout context is a separate, per-order concept and stays editable there
+- Changing the email also changes the login credential, so the identity token is re-issued and the
+  session stays valid
 
 ## Further Reading
 

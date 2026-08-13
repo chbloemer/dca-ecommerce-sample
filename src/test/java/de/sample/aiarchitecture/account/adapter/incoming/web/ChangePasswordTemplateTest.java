@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
  * and the error and success message elements.
  *
  * <p>These tests render the production template through {@code layout.pug} and assert on the parsed
- * DOM — they are the only tests that pin the {@code data-test} contract a later E2E page object
- * binds to.
+ * DOM — they are the only tests that pin this page's {@code data-test} contract, which a later E2E
+ * page object binds to.
  */
 @DisplayName("account/change-password.pug")
 class ChangePasswordTemplateTest {

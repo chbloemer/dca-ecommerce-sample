@@ -13,7 +13,7 @@ public final class AccountNavigation {
 
   public static final String OVERVIEW = "overview";
 
-  /** Navigation item key of the (future) profile page. */
+  /** Navigation item key of the profile page. */
   public static final String PROFILE = "profile";
 
   public static final String CHANGE_PASSWORD = "change-password";
@@ -32,7 +32,7 @@ public final class AccountNavigation {
   public static List<NavItem> itemsWithActive(final String activeKey) {
     return List.of(
         new NavItem(OVERVIEW, "Overview", MyAccountPageController.ACCOUNT_PATH, activeKey),
-        new NavItem(PROFILE, "My Profile", null, activeKey),
+        new NavItem(PROFILE, "My Profile", ProfilePageController.PROFILE_PATH, activeKey),
         new NavItem(
             CHANGE_PASSWORD,
             "Change Password",

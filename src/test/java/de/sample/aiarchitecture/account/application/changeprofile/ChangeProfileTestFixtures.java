@@ -1,4 +1,4 @@
-package de.sample.aiarchitecture.account.application.changepassword;
+package de.sample.aiarchitecture.account.application.changeprofile;
 
 import de.sample.aiarchitecture.account.application.shared.AccountRepository;
 import de.sample.aiarchitecture.account.domain.gateway.PasswordHasher;
@@ -22,41 +22,67 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Test doubles shared by the change-password application tests.
+ * Test doubles shared by the change-profile application tests.
  *
  * <p>All doubles implement ports only — no production adapter is pulled into an application-layer
  * test.
  */
-final class ChangePasswordTestFixtures {
+final class ChangeProfileTestFixtures {
 
   static final String USER_ID = "user-4711";
   static final String EMAIL = "jane.doe@example.com";
-  static final String CURRENT_PASSWORD = "OldPassw0rd";
-  static final String NEW_PASSWORD = "NewPassw0rd";
-  static final Owner OWNER = Owner.of("Jane", "Doe", LocalDate.of(1990, 5, 17));
+  static final String NEW_EMAIL = "jane.new@example.com";
+  static final String PASSWORD = "OldPassw0rd";
+  static final String FIRST_NAME = "Jane";
+  static final String LAST_NAME = "Doe";
+  static final LocalDate DATE_OF_BIRTH = LocalDate.of(1990, 5, 17);
+  static final LocalDate NEW_DATE_OF_BIRTH = LocalDate.of(1990, 5, 18);
+  static final Owner OWNER = Owner.of(FIRST_NAME, LAST_NAME, DATE_OF_BIRTH);
 
-  private ChangePasswordTestFixtures() {}
+  private ChangeProfileTestFixtures() {}
 
   /**
-   * Creates an account with the given status whose password is the given plaintext.
+   * Creates an account with the given status.
    *
    * @param status the account status
-   * @param plainPassword the plaintext password the account is created with
    * @param hasher the round-tripping test hasher
    * @return the account
    */
-  static Account accountWith(
-      final AccountStatus status, final String plainPassword, final PasswordHasher hasher) {
-    return Account.reconstitute(
-        AccountId.of("account-1"),
-        Email.of(EMAIL),
-        OWNER,
-        UserId.of(USER_ID),
-        HashedPassword.fromPlaintext(plainPassword, hasher),
-        status,
-        Set.of("CUSTOMER"),
-        Instant.parse("2026-01-01T00:00:00Z"),
-        Instant.parse("2026-07-31T08:15:30Z"));
+  static Account accountWith(final AccountStatus status, final PasswordHasher hasher) {
+    final Account account =
+        Account.reconstitute(
+            AccountId.of("account-1"),
+            Email.of(EMAIL),
+            OWNER,
+            UserId.of(USER_ID),
+            HashedPassword.fromPlaintext(PASSWORD, hasher),
+            status,
+            Set.of("CUSTOMER"),
+            Instant.parse("2026-01-01T00:00:00Z"),
+            Instant.parse("2026-07-31T08:15:30Z"));
+    return account;
+  }
+
+  /**
+   * Creates a second, unrelated account holding the given email address.
+   *
+   * @param email the email address that account occupies
+   * @param hasher the round-tripping test hasher
+   * @return the other account
+   */
+  static Account otherAccountWith(final String email, final PasswordHasher hasher) {
+    final Account account =
+        Account.reconstitute(
+            AccountId.of("account-2"),
+            Email.of(email),
+            Owner.of("John", "Other", DATE_OF_BIRTH),
+            UserId.of("user-0815"),
+            HashedPassword.fromPlaintext("OtherPassw0rd", hasher),
+            AccountStatus.ACTIVE,
+            Set.of("CUSTOMER"),
+            Instant.parse("2026-01-01T00:00:00Z"),
+            Instant.parse("2026-07-31T08:15:30Z"));
+    return account;
   }
 
   /** Round-tripping password hasher: reversible, deterministic, no BCrypt. */
@@ -80,18 +106,9 @@ final class ChangePasswordTestFixtures {
 
     private final Map<AccountId, Account> accounts = new LinkedHashMap<>();
     private final List<Account> savedAccounts = new ArrayList<>();
-    private final List<String> interactions;
-
-    TestAccountRepository(final List<String> interactions) {
-      this.interactions = interactions;
-    }
 
     void store(final Account account) {
       accounts.put(account.id(), account);
-    }
-
-    List<Account> savedAccounts() {
-      return List.copyOf(savedAccounts);
     }
 
     int saveCount() {
@@ -105,7 +122,6 @@ final class ChangePasswordTestFixtures {
 
     @Override
     public Account save(final Account aggregate) {
-      interactions.add("save");
       savedAccounts.add(aggregate);
       accounts.put(aggregate.id(), aggregate);
       return aggregate;
@@ -131,15 +147,10 @@ final class ChangePasswordTestFixtures {
     }
   }
 
-  /** Recording domain event publisher, covering both publishing styles. */
+  /** Recording domain event publisher. */
   static final class TestDomainEventPublisher implements DomainEventPublisher {
 
     private final List<DomainEvent> publishedEvents = new ArrayList<>();
-    private final List<String> interactions;
-
-    TestDomainEventPublisher(final List<String> interactions) {
-      this.interactions = interactions;
-    }
 
     List<DomainEvent> publishedEvents() {
       return List.copyOf(publishedEvents);
@@ -147,13 +158,11 @@ final class ChangePasswordTestFixtures {
 
     @Override
     public void publish(final DomainEvent event) {
-      interactions.add("publish");
       publishedEvents.add(event);
     }
 
     @Override
     public void publishAndClearEvents(final AggregateRoot<?, ?> aggregate) {
-      interactions.add("publish");
       publishedEvents.addAll(aggregate.domainEvents());
       aggregate.clearDomainEvents();
     }
