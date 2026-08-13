@@ -253,41 +253,42 @@ public interface ProductRepository extends Repository<Product, ProductId> {
 }
 ```
 
-**Example: Repository Implementation**
+**A repository hands out copies, not references**
+
+This is where the collection illusion stops (ADR-031). A `Map` returns the instance it holds, so a
+caller who mutates an aggregate has already changed the store and `save` is decoration. A database
+returns a *new* object on every read, so the same code loses the change silently. An adapter that
+behaves like the map hides the bug until the day it is replaced.
+
+Every adapter therefore maps back through the aggregate's `reconstitute` factory — the JDBC one
+because a row leaves it no choice, the in-memory one on purpose:
 
 ```java
-@Repository
-public class InMemoryProductRepository implements ProductRepository {
-    private final ConcurrentHashMap<ProductId, Product> products = new ConcurrentHashMap<>();
+// JdbcAccountRepository — a row becomes a fresh aggregate
+private Account toDomain(final AccountRow row) {
+    return Account.reconstitute(row.id(), row.email(), row.owner(), /* ... */);
+}
 
-    @Override
-    public Optional<Product> findById(ProductId id) {
-        return Optional.ofNullable(products.get(id));
-    }
-
-    @Override
-    public Product save(Product product) {
-        products.put(product.id(), product);
-        return product;
-    }
-
-    @Override
-    public void deleteById(ProductId id) {
-        products.remove(id);
-    }
-
-    // Domain-specific implementations...
+// InMemoryAccountRepository — copies on the way in and on the way out,
+// so that it fails wherever a database would fail
+@Override
+public Optional<Account> findById(final AccountId id) {
+    return Optional.ofNullable(accounts.get(id)).map(InMemoryAccountRepository::copyOf);
 }
 ```
 
+Both adapters run the same `AccountRepositoryContractTest`: the contract belongs to the port, and
+an implementation that cannot satisfy it does not implement the port.
+
 **Rules:**
-1. Interface lives in domain layer
+1. Interface lives in the application layer as an output port (ADR-008)
 2. Implementation lives in infrastructure/adapter layer (secondary adapter)
 3. One repository per aggregate root (not per entity)
 4. Collection-oriented interface (not generic CRUD)
 5. Use ubiquitous language in method names
 6. Return immutable collections when appropriate
 7. Base interface provides common operations (findById, save, deleteById)
+8. Reads return copies — a mutation that was not saved must not be visible (ADR-031)
 
 **Benefits:**
 - DRY principle: Common methods defined once in base interface

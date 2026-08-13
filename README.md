@@ -19,12 +19,13 @@ This project showcases best practices for structuring a Spring Boot application 
 - **AI-Accessible Product Catalog** via MCP server (Spring AI 2.0.0-M2)
 - **Spring Modulith** for framework-enforced module boundaries and event-driven cross-module communication
 - **Complete Architecture Testing** with ArchUnit (10 test suites) and Spring Modulith verification
-- **24 Architecture Decision Records** documenting design choices
+- **31 Architecture Decision Records** documenting design choices
 - **Shared Kernel** pattern for cross-context value objects
 - **Framework-Independent Domain** layer (no Spring/JPA in core)
 - **Multi-step Checkout Flow** with 5 steps and session management
 - **Specification Pattern with Visitor** for database-agnostic cart filtering
-- **Multiple Persistence Strategies** (InMemory, JPA, JDBC) for shopping cart
+- **Multiple Persistence Strategies** (InMemory, JPA, JDBC) — cart via JPA, account via JDBC, both
+  against H2; every adapter hands out copies, never the stored instance (ADR-031)
 
 ## Architecture Patterns
 
@@ -558,7 +559,8 @@ src/main/java/de/sample/aiarchitecture/
 │       │       └── AccountNavigation.java
 │       └── outgoing/                     # Outgoing adapters
 │           ├── persistence/
-│           │   └── InMemoryAccountRepository.java
+│           │   ├── JdbcAccountRepository.java     # default (ADR-031)
+│           │   └── InMemoryAccountRepository.java # "inmemory" profile
 │           └── security/
 │               ├── SpringSecurityPasswordHasher.java
 │               ├── AccountBasedRegisteredUserValidator.java
