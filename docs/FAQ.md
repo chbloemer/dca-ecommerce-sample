@@ -132,7 +132,7 @@ public interface ProductRepository extends Repository<Product, ProductId> {
 }
 
 // The implementation is the Secondary/Driven Adapter:
-package de.sample.aiarchitecture.portadapter.outgoing.persistence;
+package de.sample.aiarchitecture.product.adapter.outgoing.persistence;
 
 @Repository
 class ProductJpaRepository implements ProductRepository {
@@ -286,7 +286,7 @@ public record CreateProductOutput(
 ) {}
 
 // DTO (Adapter Layer)
-package de.sample.aiarchitecture.portadapter.incoming.api.product;
+package de.sample.aiarchitecture.product.adapter.incoming.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

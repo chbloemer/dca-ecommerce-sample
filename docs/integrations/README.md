@@ -27,7 +27,7 @@ Pug template engine for server-side HTML rendering.
 Integrations document how technologies connect to the core architecture. They are:
 - **Replaceable** - Could swap technologies without affecting core architecture
 - **Framework-independent core** - Domain layer remains independent
-- **Adapter layer code** - Integration code lives in `portadapter.*`
+- **Adapter layer code** - Integration code lives in `{boundedcontext}.adapter.*`
 
 ## Related Documentation
 

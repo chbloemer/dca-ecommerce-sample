@@ -1624,11 +1624,11 @@ Adapters are implementations that connect external systems to the ports.
 
 **Primary Adapters (Driving / Incoming):**
 - REST Controllers, Web MVC, MCP Server
-- Location: `de.sample.aiarchitecture.portadapter.incoming`
+- Location: `de.sample.aiarchitecture.{boundedcontext}.adapter.incoming`
 
 **Secondary Adapters (Driven / Outgoing):**
 - Repository implementations
-- Location: `de.sample.aiarchitecture.portadapter.outgoing`
+- Location: `de.sample.aiarchitecture.{boundedcontext}.adapter.outgoing`
 
 ### Example: Product Management Flow
 
@@ -1908,7 +1908,7 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 ```
 ┌─────────────────────────────────────┐
 │  Infrastructure & Adapters          │  ← Outermost layer
-│  (portadapter, infrastructure)      │
+│  (adapter, infrastructure)          │
 ├─────────────────────────────────────┤
 │  Application Services                │  ← Use cases
 │  (application)                       │
@@ -1953,8 +1953,8 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 #### Infrastructure & Adapters
 
 **Location:**
-- `de.sample.aiarchitecture.portadapter.incoming` (REST, Web, MCP adapters)
-- `de.sample.aiarchitecture.portadapter.outgoing` (Repository implementations)
+- `de.sample.aiarchitecture.{boundedcontext}.adapter.incoming` (REST, Web, MCP, event adapters)
+- `de.sample.aiarchitecture.{boundedcontext}.adapter.outgoing` (Repository implementations)
 - `de.sample.aiarchitecture.infrastructure` (Spring configuration)
 
 **Contains:**
@@ -2060,105 +2060,45 @@ Secondary Adapters (Persistence)
 
 ## Package Structure
 
+The top level is organised by bounded context, not by layer — each context carries its own
+domain, application and adapter layers:
+
 ```
 de.sample.aiarchitecture
-├── application                          # Application Layer (Use Cases)
-│   ├── UseCase                          # Base use case interface
-│   │
-│   ├── product/                         # Product Bounded Context Use Cases
-│   │   ├── CreateProductUseCase
-│   │   ├── CreateProductInput
-│   │   ├── CreateProductOutput
-│   │   ├── UpdateProductPriceUseCase
-│   │   ├── UpdateProductPriceInput
-│   │   ├── UpdateProductPriceOutput
-│   │   ├── GetProductByIdUseCase
-│   │   ├── GetProductByIdInput
-│   │   ├── GetProductByIdOutput
-│   │   ├── GetAllProductsUseCase
-│   │   ├── GetAllProductsInput
-│   │   └── GetAllProductsOutput
-│   │
-│   ├── cart/                            # Shopping Cart Bounded Context Use Cases
-│   │   ├── CreateCartUseCase
-│   │   ├── CreateCartInput
-│   │   ├── CreateCartOutput
-│   │   ├── AddItemToCartUseCase
-│   │   ├── AddItemToCartInput
-│   │   ├── AddItemToCartOutput
-│   │   ├── CheckoutCartUseCase
-│   │   ├── CheckoutCartInput
-│   │   ├── CheckoutCartOutput
-│   │   ├── GetCartByIdUseCase
-│   │   ├── GetCartByIdInput
-│   │   └── GetCartByIdOutput
-│
-├── domain                               # Domain Layer (Core Business Logic)
-│   └── model
-│       ├── ddd                          # DDD Marker Interfaces
-│       │   ├── AggregateRoot
-│       │   ├── Entity
-│       │   ├── Value
-│       │   ├── Repository
-│       │   ├── DomainService
-│       │   ├── DomainEvent
-│       │   ├── Factory
-│       │   └── Specification
-│       │
-│       ├── shared                       # Shared Kernel (Strategic DDD Pattern)
-│       │   ├── Money                    # Value Object (universal)
-│       │   ├── ProductId                # Value Object (cross-context identifier)
-│       │   └── Price                    # Value Object (wraps Money)
-│       │
-│       ├── product                      # Product Bounded Context
-│       │   ├── Product                  # Aggregate Root
-│       │   ├── SKU                      # Value Object
-│       │   ├── ProductName              # Value Object
-│       │   ├── ProductRepository        # Repository Interface
-│       │   └── ProductFactory           # Factory
-│       │
-│       └── cart                         # Shopping Cart Bounded Context
-│           ├── ShoppingCart             # Aggregate Root
-│           ├── CartItem                 # Entity
-│           ├── CartId                   # Value Object
-│           ├── Quantity                 # Value Object
-│           ├── CartRepository           # Repository Interface
-│           └── CartTotalCalculator      # Domain Service
-│
-├── infrastructure                       # Infrastructure Configuration (cross-cutting)
-│   ├── config                           # Spring @Configuration classes
-│   │   ├── SecurityConfiguration
-│   │   ├── TransactionConfiguration
-│   │   └── AsyncConfiguration
-│   ├── support                          # Framework support components
-│   │   └── AsyncInitializationProcessor
-│   └── security                         # Security infrastructure
-│       └── jwt/                         # JWT authentication
-│
-└── portadapter                          # Adapters (Hexagonal Architecture)
-    ├── incoming                         # Incoming Adapters (Primary/Driving)
-    │   ├── api                          # REST API (JSON/XML)
-    │   │   ├── product
-    │   │   │   ├── ProductResource      # REST Controller
-    │   │   │   ├── ProductDto           # DTO
-    │   │   │   └── ProductDtoConverter  # Converter
-    │   │   └── cart
-    │   │       ├── ShoppingCartResource
-    │   │       ├── ShoppingCartDto
-    │   │       └── ShoppingCartDtoConverter
-    │   ├── mcp                          # MCP Server (AI interface)
-    │   │   └── ProductCatalogMcpTools
-    │   └── web                          # Web MVC (HTML)
-    │       └── product
-    │           └── ProductPageController
-    │
-    └── outgoing                         # Outgoing Adapters (Secondary/Driven)
-        ├── product
-        │   ├── InMemoryProductRepository  # Repository Implementation
-        │   └── SampleDataInitializer      # Sample Data
-        └── cart
-            └── InMemoryShoppingCartRepository  # Repository Implementation
+├── sharedkernel/            # Markers, universal value objects, shared adapters
+├── {boundedcontext}/        # product, cart, checkout, account, portal,
+│   ├── domain/              # inventory, pricing, backoffice
+│   ├── application/
+│   └── adapter/
+│       ├── incoming/
+│       └── outgoing/
+└── infrastructure/          # Global, cross-cutting framework configuration
 ```
+
+Inside a context:
+
+```
+{boundedcontext}/
+├── domain/
+│   ├── model/               # Aggregates, entities, value objects, enriched models
+│   ├── readmodel/           # Optional: read model types
+│   ├── specification/       # Optional: specifications
+│   ├── service/             # Domain services
+│   └── event/               # Domain events
+├── application/
+│   ├── {usecasename}/       # One folder per use case (lowercase)
+│   │   ├── *InputPort.java
+│   │   ├── *UseCase.java
+│   │   ├── *Command.java / *Query.java
+│   │   └── *Result.java
+│   └── shared/              # Shared output ports (repositories, stores, data ports)
+└── adapter/
+    ├── incoming/            # api/, web/, mcp/, openhost/, event/
+    └── outgoing/            # persistence/, event/, client/
+```
+
+See [package-structure.md](package-structure.md) for the full tree, the per-context breakdown and
+the file-location quick reference.
 
 ---
 
@@ -2274,7 +2214,7 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 #### Domain Layer Rules
 
 1. Domain must NOT depend on infrastructure
-2. Domain must NOT depend on portadapters
+2. Domain must NOT depend on adapters
 3. Domain must NOT use Spring annotations
 4. Domain must NOT use JPA annotations
 5. Domain must be framework-independent
@@ -2283,7 +2223,7 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 
 1. Use Cases (InputPort implementations) must end with "UseCase"
 2. Use Cases must be annotated with `@Service`
-3. Application layer must NOT depend on portadapters
+3. Application layer must NOT depend on adapters
 4. Application layer may only use ports (not infrastructure implementations)
 
 #### Clean Architecture (Use Case) Rules
@@ -2303,7 +2243,7 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 1. Primary adapters may only call application services
 2. Secondary adapters implement domain repository interfaces
 3. Adapters must NOT communicate directly with each other
-4. Repository implementations must be in `portadapter.outgoing`
+4. Repository implementations must be in `adapter.outgoing`
 5. Controllers and Resources must never access repositories directly - they drive the application through input ports only
 
 #### Onion Architecture Rules

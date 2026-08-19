@@ -530,8 +530,8 @@ public class InMemoryProductRepository implements ProductRepository {
 ./gradlew test-architecture
 
 # Expected:
-# Repository Interfaces must reside in domain package PASSED ✅
-# Repository Implementations must reside in portadapter.outgoing package PASSED ✅
+# Repository interfaces must reside in the application layer's shared output-port package PASSED ✅
+# Repository Implementations must reside in adapter.outgoing package PASSED ✅
 ```
 
 ### Dependency Check
