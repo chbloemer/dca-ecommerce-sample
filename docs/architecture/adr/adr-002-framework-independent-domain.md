@@ -157,14 +157,14 @@ Domain code focuses ONLY on business rules:
 Domain defines interfaces, infrastructure implements:
 
 ```java
-// Domain defines what it needs
-// domain/model/product/ProductRepository.java
+// The application layer declares what it needs (ADR-008)
+// product/application/shared/ProductRepository.java
 public interface ProductRepository extends Repository<Product, ProductId> {
   Optional<Product> findBySku(@NonNull SKU sku);
 }
 
-// Infrastructure provides implementation
-// portadapter/outgoing/product/JpaProductRepository.java
+// An outgoing adapter provides the implementation
+// product/adapter/outgoing/persistence/JpaProductRepository.java
 @Repository
 public class JpaProductRepository implements ProductRepository {
   // JPA/Hibernate code HERE, not in domain

@@ -24,9 +24,10 @@ import java.util.Optional;
  * <p><b>Characteristics:</b>
  *
  * <ul>
- *   <li>Interface resides in domain layer (e.g., {@code domain.model.product.ProductRepository})
- *   <li>Implementation resides in secondary adapters (e.g., {@code
- *       portadapter.secondary.product.InMemoryProductRepository})
+ *   <li>Interface resides in the application layer as an output port (e.g., {@code
+ *       product.application.shared.ProductRepository}) — see ADR-008
+ *   <li>Implementation resides in an outgoing adapter (e.g., {@code
+ *       product.adapter.outgoing.persistence.InMemoryProductRepository})
  *   <li>Methods use ubiquitous language (e.g., {@code findBySku()}, {@code findByCategory()})
  *   <li>Should NOT have Spring annotations in the interface
  *   <li>Collections should be immutable when returned
