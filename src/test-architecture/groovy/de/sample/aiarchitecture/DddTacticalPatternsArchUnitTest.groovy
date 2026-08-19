@@ -413,7 +413,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Repository Interfaces should extend Repository Marker Interface"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE)
+      .that().resideInAPackage(APPLICATION_PACKAGE)
       .and().areInterfaces()
       .and().haveSimpleNameEndingWith("Repository")
       .and().doNotHaveSimpleName("Repository")
@@ -423,12 +423,15 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
       .check(allClasses)
   }
 
-  def "Repository Interfaces must reside in application output port package"() {
+  def "Repository interfaces must reside in the application layer's shared output-port package"() {
     expect:
+    // areAssignableTo, not implement: ArchUnit's implement() matches non-interfaces only, so
+    // implement(Repository) AND areInterfaces() is an empty subject set for any codebase.
     classes()
-      .that().implement(Repository.class)
-      .and().areInterfaces()
-      .should().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE)
+      .that().areInterfaces()
+      .and().areAssignableTo(Repository.class)
+      .and().doNotHaveSimpleName("Repository")
+      .should().resideInAPackage(SHARED_OUTPUT_PORT_PACKAGE)
       .because("Repository interfaces are output ports in the application layer (Hexagonal Architecture)")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -437,9 +440,9 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Repository Implementations must reside in adapter.outgoing package"() {
     expect:
     classes()
-      .that().implement(Repository.class)
-      .and().areNotInterfaces()
-      .should().resideInAnyPackage(PRODUCT_ADAPTER_PACKAGE, CART_ADAPTER_PACKAGE, CHECKOUT_ADAPTER_PACKAGE, ACCOUNT_ADAPTER_PACKAGE, INVENTORY_ADAPTER_PACKAGE, PRICING_ADAPTER_PACKAGE)
+      .that().areNotInterfaces()
+      .and().areAssignableTo(Repository.class)
+      .should().resideInAPackage(OUTGOING_ADAPTER_PACKAGE)
       .because("Repository implementations are outgoing adapters in bounded contexts")
       .allowEmptyShould(true)
       .check(allClasses)

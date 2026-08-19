@@ -59,7 +59,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     noClasses()
       .that().resideInAPackage(INCOMING_ADAPTER_PACKAGE)
       .should().dependOnClassesThat(INFRASTRUCTURE_IMPLEMENTATION)
-      .because("Incoming adapters should only use outbound ports from sharedkernel.application.port, not infrastructure implementation details")
+      .because("Incoming adapters should only use outbound ports declared as interfaces (sharedkernel.marker.port.out), not infrastructure implementation details")
       .check(allClasses)
   }
 
@@ -68,7 +68,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     noClasses()
       .that().resideInAPackage(OUTGOING_ADAPTER_PACKAGE)
       .should().dependOnClassesThat(INFRASTRUCTURE_IMPLEMENTATION)
-      .because("Outgoing adapters should only use outbound ports from sharedkernel.application.port, not infrastructure implementation details")
+      .because("Outgoing adapters should only use outbound ports declared as interfaces (sharedkernel.marker.port.out), not infrastructure implementation details")
       .check(allClasses)
   }
 
@@ -133,7 +133,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     true // Pattern verification: outgoing adapters call Open Host Services via api/ packages
   }
 
-  def "Repository Implementations must reside in portadapter.outgoing package"() {
+  def "Classes named *Repository must reside in the outgoing adapter package"() {
     expect:
     ArchRuleDefinition.classes()
       .that().haveSimpleNameEndingWith("Repository")
