@@ -53,9 +53,9 @@ A bounded context is an explicit boundary within which a domain model is defined
    - **Trade-off**: Creates coupling but ensures consistency for universal concepts
 
 2. **Product Catalog Context** (`de.sample.aiarchitecture.product.domain.model`)
-   - Manages products, pricing, inventory
+   - Manages the product catalogue; pricing and stock live in their own contexts
    - Aggregate Root: `Product`
-   - Value Objects: `SKU`, `ProductName`, `ProductDescription`, `ProductStock`, `Category`
+   - Value Objects: `SKU`, `ProductName`, `ProductDescription`, `Category`, `ImageUrl`
    - Depends on: Shared Kernel
 
 3. **Shopping Cart Context** (`de.sample.aiarchitecture.cart.domain.model`)
@@ -100,14 +100,17 @@ public final class Product implements AggregateRoot<Product, ProductId> {
     private final ProductId id;
     private final SKU sku;
     private ProductName name;
-    private Price price;
-    private ProductStock stock;
+    private ProductDescription description;
+    private Category category;
 
-    public void changePrice(Price newPrice) {
-        if (newPrice == null) {
-            throw new IllegalArgumentException("Price cannot be null");
+    // Price and stock are deliberately absent: they belong to the Pricing and
+    // Inventory contexts, and this aggregate references neither.
+    public void updateName(ProductName newName) {
+        if (newName == null) {
+            throw new IllegalArgumentException("Name cannot be null");
         }
-        this.price = newPrice;
+        this.name = newName;
+        registerEvent(ProductNameChanged.now(id, newName));
     }
 }
 ```
@@ -754,22 +757,23 @@ A factory encapsulates complex object creation logic.
 
 ```java
 public class ProductFactory implements Factory {
-    private final ProductIdGenerator idGenerator;
-
-    public ProductFactory(final ProductIdGenerator idGenerator) {
-        this.idGenerator = idGenerator;
-    }
 
     public Product createProduct(
         final SKU sku,
         final ProductName name,
         final ProductDescription description,
-        final Price price,
-        final ProductStock initialStock,
-        final Category category
+        final Category category,
+        final ImageUrl imageUrl,
+        final Money initialPrice,
+        final int initialStock
     ) {
-        final ProductId id = idGenerator.nextId();
-        return new Product(id, sku, name, description, price, initialStock, category);
+        final ProductId id = ProductId.generate();
+        final Product product = new Product(id, sku, name, description, category, imageUrl);
+
+        // Price and stock are not the product's state — they are carried out on the
+        // creation event, so Pricing and Inventory can seed their own aggregates.
+        product.registerEvent(ProductCreated.now(id, sku, name, initialPrice, initialStock));
+        return product;
     }
 }
 ```
@@ -2178,7 +2182,6 @@ de.sample.aiarchitecture
 - `SKU` - stock keeping unit
 - `ProductName` - product name
 - `ProductDescription` - product description
-- `ProductStock` - inventory levels
 - `Category` - product category
 
 **Dependencies:**

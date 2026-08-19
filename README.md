@@ -45,7 +45,7 @@ This project showcases best practices for structuring a Spring Boot application 
 - **Domain Services**: PricingService, CartTotalCalculator, CheckoutStepValidator
 - **Domain Events**: ProductCreated, CartCheckedOut, CartItemAddedToCart, CartItemQuantityChanged, ProductRemovedFromCart, CartCleared, CheckoutSessionStarted, CheckoutConfirmed, AccountRegistered, PriceChanged, StockChanged, etc.
 - **Factories**: ProductFactory, EnrichedCartFactory, CheckoutCartFactory
-- **Specifications**: ProductAvailabilitySpecification, CartSpecification (with Visitor pattern: ActiveCart, HasMinTotal, HasAnyAvailableItem, LastUpdatedBefore, CustomerAllowsMarketing)
+- **Specifications**: CartSpecification (with Visitor pattern: ActiveCart, HasMinTotal, HasAnyAvailableItem, LastUpdatedBefore, CustomerAllowsMarketing)
 
 ### Clean Architecture
 
@@ -134,13 +134,10 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── ProductName.java
 │   │   │   ├── ProductDescription.java
 │   │   │   ├── ProductArticle.java
-│   │   │   ├── ProductStock.java
 │   │   │   ├── EnrichedProduct.java      # Enriched read model
 │   │   │   ├── Category.java
 │   │   │   ├── ImageUrl.java
 │   │   │   └── ProductFactory.java       # Factory
-│   │   ├── specification/                # Specifications
-│   │   │   └── ProductAvailabilitySpecification.java
 │   │   ├── service/                      # Domain services
 │   │   │   └── PricingService.java
 │   │   └── event/                        # Domain events
@@ -164,11 +161,6 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── GetProductByIdUseCase.java
 │   │   │   ├── GetProductByIdQuery.java
 │   │   │   └── GetProductByIdResult.java
-│   │   ├── reduceproductstock/           # Use case: Reduce Product Stock
-│   │   │   ├── ReduceProductStockInputPort.java
-│   │   │   ├── ReduceProductStockUseCase.java
-│   │   │   ├── ReduceProductStockCommand.java
-│   │   │   └── ReduceProductStockResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── ProductRepository.java
 │   │       ├── PricingDataPort.java      # Port for pricing data from Pricing context
@@ -189,9 +181,7 @@ src/main/java/de/sample/aiarchitecture/
 │       │   │   ├── ProductCatalogPageViewModel.java
 │       │   │   └── ProductDetailPageViewModel.java
 │       │   └── event/
-│       │       ├── ProductEventConsumer.java
-│       │       └── acl/
-│       │           └── CheckoutEventTranslator.java  # Anti-corruption layer
+│       │       └── ProductEventConsumer.java
 │       └── outgoing/                     # Outgoing adapters (secondary)
 │           ├── event/
 │           │   └── ProductCreatedEventPublisher.java
@@ -303,8 +293,7 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   └── RecoverCartOnLoginResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── ShoppingCartRepository.java
-│   │       ├── ArticleDataPort.java      # Port for article data (prices + stock)
-│   │       └── ProductDataPort.java      # Port for product data from other context
+│   │       └── ArticleDataPort.java      # Port for article data (prices + stock)
 │   ├── infrastructure/                   # Per-context infrastructure
 │   │   └── CartDomainConfiguration.java
 │   └── adapter/                          # Adapters

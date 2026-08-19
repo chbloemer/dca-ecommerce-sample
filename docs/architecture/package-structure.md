@@ -36,12 +36,10 @@ de.sample.aiarchitecture
 │   │   ├── model/                  # Domain Model
 │   │   │   ├── Product (Aggregate Root)
 │   │   │   ├── SKU, ProductName, ProductDescription (Value Objects)
-│   │   │   ├── ProductStock, Category (Value Objects)
+│   │   │   ├── Category (Value Object)
 │   │   │   ├── ProductFactory
 │   │   │   ├── ProductArticle (external article data)
 │   │   │   └── EnrichedProduct (Enriched Domain Model with factory)
-│   │   ├── specification/
-│   │   │   └── ProductAvailabilitySpecification
 │   │   ├── service/                # Domain Services
 │   │   │   └── PricingService
 │   │   └── event/                  # Domain Events
@@ -62,11 +60,6 @@ de.sample.aiarchitecture
 │   │   │   ├── GetProductByIdUseCase
 │   │   │   ├── GetProductByIdQuery
 │   │   │   └── GetProductByIdResult
-│   │   ├── reduceproductstock/    # Use case: Reduce Product Stock
-│   │   │   ├── ReduceProductStockInputPort
-│   │   │   ├── ReduceProductStockUseCase
-│   │   │   ├── ReduceProductStockCommand
-│   │   │   └── ReduceProductStockResult
 │   │   ├── updateproductprice/    # Use case: Update Product Price
 │   │   │   ├── UpdateProductPriceInputPort
 │   │   │   ├── UpdateProductPriceUseCase
@@ -165,8 +158,7 @@ de.sample.aiarchitecture
 │   │   │   ├── RecoverCartCommand, RecoverCartOnLoginResult
 │   │   └── shared/                 # Shared output ports
 │   │       ├── ShoppingCartRepository
-│   │       ├── ArticleDataPort
-│   │       └── ProductDataPort
+│   │       └── ArticleDataPort
 │   ├── infrastructure/            # Per-context infrastructure
 │   │   └── CartDomainConfiguration
 │   └── adapter/
