@@ -149,19 +149,6 @@ a given price. Contains the tier rules for bulk discounts (5/10/15/20% from
 Product or in the Pricing context? Since prices live in the Pricing context,
 relocation would be a natural fit.
 
-## Specifications
-
-### ProductAvailabilitySpecification
-
-**Definition:** Business rule determining whether a product is sellable
-(available and in stock).
-
-**Type:** Specification
-
-**Notes:** File currently empty in the repository — functionality still to be
-implemented. Open question: intended semantics to be clarified with the domain
-expert.
-
 ## Factories
 
 ### ProductFactory
@@ -173,6 +160,18 @@ the respective contexts via `ProductCreated`.
 **Type:** Factory
 
 ## Concepts (no code artifact)
+
+### Product Availability
+
+**Definition:** Business rule determining whether a product is sellable —
+available and in stock.
+
+**Type:** Concept
+
+**Notes:** Not implemented. Would be a Specification once its semantics are
+settled: "available" and "in stock" are owned by different contexts (Product
+and Inventory), so the rule needs a decision on where it lives before it can
+be written. Open question for the domain expert.
 
 ### Cross-Context Read Model
 
