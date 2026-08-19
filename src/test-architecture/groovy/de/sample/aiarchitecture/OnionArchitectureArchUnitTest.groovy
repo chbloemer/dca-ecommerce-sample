@@ -29,8 +29,8 @@ class OnionArchitectureArchUnitTest extends BaseArchUnitTest {
   def "Domain must not access Application Services (Onion Architecture - Domain is innermost layer)"() {
     expect:
     noClasses()
-    .that().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
-    .should().dependOnClassesThat().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE)
+    .that().resideInAnyPackage(DOMAIN_PACKAGE)
+    .should().dependOnClassesThat().resideInAnyPackage(APPLICATION_PACKAGE)
     .because("Domain is the innermost layer in onion architecture and should not depend on application services")
     .check(allClasses)
   }
@@ -41,14 +41,11 @@ class OnionArchitectureArchUnitTest extends BaseArchUnitTest {
     .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
     .importPackages(BASE_PACKAGE)
 
+    // Matched by pattern, never by context name: a context added tomorrow is covered without
+    // being registered here. DOMAIN_PACKAGE is "${BASE_PACKAGE}.*.domain..", which also covers
+    // the shared kernel's own domain package.
     final String[] domainPackagePatterns = [
-      "${BASE_PACKAGE}.product.domain..",
-      "${BASE_PACKAGE}.cart.domain..",
-      "${BASE_PACKAGE}.checkout.domain..",
-      "${BASE_PACKAGE}.account.domain..",
-      "${BASE_PACKAGE}.inventory.domain..",
-      "${BASE_PACKAGE}.pricing.domain..",
-      "${BASE_PACKAGE}.sharedkernel.domain..",
+      DOMAIN_PACKAGE,
       "${BASE_PACKAGE}.sharedkernel.marker.tactical..",   // Allow DDD marker interfaces
       "${BASE_PACKAGE}.sharedkernel.marker.port.out.."    // Allow output port interfaces (e.g., Repository)
     ] as String[]
@@ -67,7 +64,7 @@ class OnionArchitectureArchUnitTest extends BaseArchUnitTest {
   def "Domain Models must not have Spring/JPA annotations"() {
     expect:
     noClasses()
-    .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+    .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
     .should().beAnnotatedWith(Component.class)
     .orShould().beAnnotatedWith(Service.class)
     .orShould().beAnnotatedWith("jakarta.persistence.Entity")

@@ -93,8 +93,6 @@ abstract class BaseArchUnitTest extends Specification {
   protected static final Class<? extends java.lang.annotation.Annotation> OPEN_HOST_SERVICE_ANNOTATION = OpenHostService
 
   // Extra non-context modules (e.g. backoffice) that belong in some layer rules but aren't bounded contexts.
-  protected static final List<String> EXTRA_APPLICATION_PACKAGES = List.of("${BASE_PACKAGE}.backoffice.application..".toString())
-  protected static final List<String> EXTRA_ADAPTER_PACKAGES     = List.of("${BASE_PACKAGE}.backoffice.adapter..".toString())
 
   // ============================================================================
 
@@ -110,52 +108,14 @@ abstract class BaseArchUnitTest extends Specification {
   protected static final String SHAREDKERNEL_MARKER_PORT_OUT_PACKAGE = "${BASE_PACKAGE}.sharedkernel.marker.port.out.."
 
   // Bounded Context packages (Strategic DDD)
-  protected static final String PRODUCT_CONTEXT_PACKAGE = "${BASE_PACKAGE}.product.."
-  protected static final String PRODUCT_DOMAIN_PACKAGE = "${BASE_PACKAGE}.product.domain.."
-  protected static final String PRODUCT_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.product.domain.model.."
-  protected static final String PRODUCT_APPLICATION_PACKAGE = "${BASE_PACKAGE}.product.application.."
-  protected static final String PRODUCT_ADAPTER_PACKAGE = "${BASE_PACKAGE}.product.adapter.."
 
-  protected static final String CART_CONTEXT_PACKAGE = "${BASE_PACKAGE}.cart.."
-  protected static final String CART_DOMAIN_PACKAGE = "${BASE_PACKAGE}.cart.domain.."
-  protected static final String CART_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.cart.domain.model.."
-  protected static final String CART_APPLICATION_PACKAGE = "${BASE_PACKAGE}.cart.application.."
-  protected static final String CART_ADAPTER_PACKAGE = "${BASE_PACKAGE}.cart.adapter.."
 
-  protected static final String CHECKOUT_CONTEXT_PACKAGE = "${BASE_PACKAGE}.checkout.."
-  protected static final String CHECKOUT_DOMAIN_PACKAGE = "${BASE_PACKAGE}.checkout.domain.."
-  protected static final String CHECKOUT_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.checkout.domain.model.."
-  protected static final String CHECKOUT_APPLICATION_PACKAGE = "${BASE_PACKAGE}.checkout.application.."
-  protected static final String CHECKOUT_ADAPTER_PACKAGE = "${BASE_PACKAGE}.checkout.adapter.."
 
-  protected static final String ACCOUNT_CONTEXT_PACKAGE = "${BASE_PACKAGE}.account.."
-  protected static final String ACCOUNT_DOMAIN_PACKAGE = "${BASE_PACKAGE}.account.domain.."
-  protected static final String ACCOUNT_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.account.domain.model.."
-  protected static final String ACCOUNT_APPLICATION_PACKAGE = "${BASE_PACKAGE}.account.application.."
-  protected static final String ACCOUNT_ADAPTER_PACKAGE = "${BASE_PACKAGE}.account.adapter.."
 
-  protected static final String PORTAL_CONTEXT_PACKAGE = "${BASE_PACKAGE}.portal.."
-  protected static final String PORTAL_DOMAIN_PACKAGE = "${BASE_PACKAGE}.portal.domain.."
-  protected static final String PORTAL_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.portal.domain.model.."
-  protected static final String PORTAL_APPLICATION_PACKAGE = "${BASE_PACKAGE}.portal.application.."
-  protected static final String PORTAL_ADAPTER_PACKAGE = "${BASE_PACKAGE}.portal.adapter.."
 
-  protected static final String INVENTORY_CONTEXT_PACKAGE = "${BASE_PACKAGE}.inventory.."
-  protected static final String INVENTORY_DOMAIN_PACKAGE = "${BASE_PACKAGE}.inventory.domain.."
-  protected static final String INVENTORY_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.inventory.domain.model.."
-  protected static final String INVENTORY_APPLICATION_PACKAGE = "${BASE_PACKAGE}.inventory.application.."
-  protected static final String INVENTORY_ADAPTER_PACKAGE = "${BASE_PACKAGE}.inventory.adapter.."
 
-  protected static final String PRICING_CONTEXT_PACKAGE = "${BASE_PACKAGE}.pricing.."
-  protected static final String PRICING_DOMAIN_PACKAGE = "${BASE_PACKAGE}.pricing.domain.."
-  protected static final String PRICING_DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.pricing.domain.model.."
-  protected static final String PRICING_APPLICATION_PACKAGE = "${BASE_PACKAGE}.pricing.application.."
-  protected static final String PRICING_ADAPTER_PACKAGE = "${BASE_PACKAGE}.pricing.adapter.."
 
   // Backoffice module (operational, not a bounded context)
-  protected static final String BACKOFFICE_PACKAGE = "${BASE_PACKAGE}.backoffice.."
-  protected static final String BACKOFFICE_APPLICATION_PACKAGE = "${BASE_PACKAGE}.backoffice.application.."
-  protected static final String BACKOFFICE_ADAPTER_PACKAGE = "${BASE_PACKAGE}.backoffice.adapter.."
 
   // Generic patterns (matching all bounded contexts)
   protected static final String DOMAIN_PACKAGE = "${BASE_PACKAGE}.*.domain.."
@@ -411,17 +371,4 @@ abstract class BaseArchUnitTest extends Specification {
     return patterns.toArray(new String[0])
   }
 
-  /** Application patterns for all contexts PLUS extra non-context modules (backoffice). */
-  protected String[] allApplicationPatterns() {
-    def patterns = getBoundedContextApplicationPatterns().toList()
-    patterns.addAll(EXTRA_APPLICATION_PACKAGES)
-    return patterns.toArray(new String[0])
-  }
-
-  /** Adapter patterns for all contexts PLUS extra non-context modules (backoffice). */
-  protected String[] allAdapterPatterns() {
-    def patterns = getBoundedContextAdapterPatterns().toList()
-    patterns.addAll(EXTRA_ADAPTER_PACKAGES)
-    return patterns.toArray(new String[0])
-  }
 }
