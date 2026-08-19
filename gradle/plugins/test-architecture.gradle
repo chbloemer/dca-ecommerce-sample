@@ -26,3 +26,7 @@ tasks.register('test-architecture', Test) {
 
 // Apply common test configuration
 configureTestTask(tasks.getByName('test-architecture'), "test-architecture")
+
+// Make `check` run the architecture suite too. Without this the rules only run when
+// somebody types the task by hand, which is not governance — it is a suggestion.
+tasks.named('check') { dependsOn 'test-architecture' }
