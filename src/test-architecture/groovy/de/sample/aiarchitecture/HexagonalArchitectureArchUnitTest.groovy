@@ -26,7 +26,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     expect:
     noClasses()
       .that().resideInAPackage(DOMAIN_MODEL_PACKAGE)
-      .should().accessClassesThat().resideInAPackage(ADAPTER_PACKAGE)
+      .should().dependOnClassesThat().resideInAPackage(ADAPTER_PACKAGE)
       .because("Domain should not depend on adapters (ports and adapters pattern)")
       .check(allClasses)
   }
@@ -35,7 +35,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     expect:
     noClasses()
       .that().resideInAPackage(APPLICATION_PACKAGE)
-      .should().accessClassesThat().resideInAPackage(ADAPTER_PACKAGE)
+      .should().dependOnClassesThat().resideInAPackage(ADAPTER_PACKAGE)
       .because("Application services should only depend on domain and outbound ports, not adapters")
       .check(allClasses)
   }
@@ -112,7 +112,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
         noClasses()
           .that().resideInAPackage("${contextPackage}.adapter.incoming..")
             .and().resideOutsideOfPackage("..adapter.incoming.event..")
-          .should().accessClassesThat().resideInAnyPackage(otherContextPatterns)
+          .should().dependOnClassesThat().resideInAnyPackage(otherContextPatterns)
           .allowEmptyShould(true)
           .because("Incoming adapters in '${contextName}' must only orchestrate use cases from their own bounded context - use domain events for cross-context integration")
           .check(allClasses)
