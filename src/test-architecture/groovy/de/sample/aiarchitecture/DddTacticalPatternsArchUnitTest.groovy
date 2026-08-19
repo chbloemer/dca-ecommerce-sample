@@ -9,7 +9,11 @@ import de.sample.aiarchitecture.sharedkernel.marker.tactical.Value
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 
+import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.core.domain.JavaModifier
+import com.tngtech.archunit.core.domain.JavaParameterizedType
+import com.tngtech.archunit.core.domain.JavaType
+import com.tngtech.archunit.core.domain.JavaWildcardType
 
 /**
  * ArchUnit tests for DDD Tactical Patterns (Building Blocks).
@@ -495,11 +499,16 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     true
   }
 
-  def "Repository methods must return Aggregate Roots"() {
+  def "Repository methods must not return non-root Entities"() {
     when:
-    // Repository methods should return Aggregate Roots or collections of Aggregate Roots
-    // Not entities or value objects
-
+    // The prohibition, not a positive requirement. A repository may legitimately return a
+    // boolean, a count, a page wrapper or a Value Object composed for one use case (Vernon's
+    // use-case optimal query). What it must never hand out is an Entity that is not an
+    // Aggregate Root: the caller could then mutate a part of an aggregate without going
+    // through the root, and the root's invariants would never run.
+    //
+    // The type parameter side needs no rule — the compiler pins it via
+    // Repository<T extends AggregateRoot<T, ID>, ID extends Id>. Only method returns are open.
     def repositoryInterfaces = allClasses.stream()
       .filter { it.isAssignableTo(Repository.class) }
       .filter { it.isInterface() }
@@ -509,37 +518,9 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     def violations = []
     repositoryInterfaces.each { repoInterface ->
       repoInterface.getMethods().each { method ->
-        def returnType = method.getRawReturnType()
-
-        // Skip void methods (like save, delete operations)
-        if (returnType.getName() == "void") {
-          return
-        }
-
-        // Skip methods that return primitives, Optional, or common Java types
-        if (returnType.isPrimitive() ||
-          returnType.getName().startsWith("java.lang") ||
-          returnType.getName().startsWith("java.util.Optional")) {
-          return
-        }
-
-        // Check if return type is a collection
-        if (returnType.getName().startsWith("java.util.List") ||
-          returnType.getName().startsWith("java.util.Set") ||
-          returnType.getName().startsWith("java.util.Collection")) {
-          // Check generic type parameter
-          method.getRawReturnType().tryGetComponentType().ifPresent { componentType ->
-            if (componentType.isAssignableTo(Entity.class) &&
-              !componentType.isAssignableTo(AggregateRoot.class)) {
-              violations.add("${repoInterface.getName()}.${method.getName()} returns collection of ${componentType.getName()} which is an Entity but not an Aggregate Root")
-            }
-          }
-        } else {
-          // Check if direct return type is an Entity but not Aggregate Root
-          if (returnType.isAssignableTo(Entity.class) &&
-            !returnType.isAssignableTo(AggregateRoot.class) &&
-            !returnType.isInterface()) {
-            violations.add("${repoInterface.getName()}.${method.getName()} returns ${returnType.getName()} which is an Entity but not an Aggregate Root")
+        typesInvolvedIn(method.getReturnType()).each { type ->
+          if (type.isAssignableTo(Entity.class) && !type.isAssignableTo(AggregateRoot.class)) {
+            violations.add("${repoInterface.getName()}.${method.getName()} exposes ${type.getName()}, an Entity that is not an Aggregate Root")
           }
         }
       }
@@ -548,10 +529,38 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     then:
     if (!violations.isEmpty()) {
       throw new AssertionError(
-      "Repository methods should return Aggregate Roots, not Entities (DDD pattern).\n" +
+      "Repository methods must not expose an Entity that is not an Aggregate Root: a caller " +
+      "could mutate part of an aggregate without passing its root (DDD pattern).\n" +
       "Violations found:\n" + violations.join("\n"))
     }
     true
+  }
+
+  /**
+   * Every class involved in a type, including the type arguments of a generic type.
+   *
+   * <p>Walks the type recursively, so {@code Optional<CartItem>},
+   * {@code List<? extends CartItem>}, {@code CartItem[]} and
+   * {@code Map<String, List<CartItem>>} all yield {@code CartItem}.
+   *
+   * <p>The previous implementation enumerated {@code List}, {@code Set} and {@code Collection}
+   * by name and called {@code tryGetComponentType()} on the raw type — which resolves
+   * <em>array</em> component types, so it returned empty for every collection and the branch
+   * was dead. {@code Optional} was skipped by an early return. Measured on this codebase, not
+   * one repository return type reached an assertion.
+   */
+  private static List<JavaClass> typesInvolvedIn(final JavaType type) {
+    final List<JavaClass> involved = []
+    final JavaClass erasure = type.toErasure()
+    involved.add(erasure)
+    erasure.tryGetComponentType().ifPresent { involved.add(it) }
+
+    if (type instanceof JavaParameterizedType) {
+      type.getActualTypeArguments().each { involved.addAll(typesInvolvedIn(it)) }
+    } else if (type instanceof JavaWildcardType) {
+      type.getUpperBounds().each { involved.addAll(typesInvolvedIn(it)) }
+    }
+    return involved
   }
 
   // ============================================================================

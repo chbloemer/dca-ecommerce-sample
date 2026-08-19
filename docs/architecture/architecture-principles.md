@@ -2222,7 +2222,10 @@ class holds the forbidden type outright.
 7. **Aggregates reference other aggregates by ID only** (Vernon's Rule #2)
 8. **Aggregates must not hold references to repositories or output ports** - dependencies are passed as method parameters
 9. **Domain model classes must not have public setters** - state changes go through intention-revealing methods
-10. **Stores** must extend the `Store` marker (not `Repository`), live in `application.shared`, keep their implementation in `adapter.outgoing`, and must not declare `findById`/`save`
+10. **Repository methods must not expose a non-root Entity** - checked recursively through type
+    arguments, so `Optional<CartItem>` and `List<CartItem>` fail too. Deliberately a prohibition:
+    a boolean, a count, a `PageResult` or an Enriched Domain Model (ADR-021) are legitimate returns
+11. **Stores** must extend the `Store` marker (not `Repository`), live in `application.shared`, keep their implementation in `adapter.outgoing`, and must not declare `findById`/`save`
 
 #### Domain Layer Rules
 
