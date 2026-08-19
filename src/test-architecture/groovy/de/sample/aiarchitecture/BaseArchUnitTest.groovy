@@ -161,6 +161,8 @@ abstract class BaseArchUnitTest extends Specification {
   protected static final String DOMAIN_PACKAGE = "${BASE_PACKAGE}.*.domain.."
   protected static final String DOMAIN_MODEL_PACKAGE = "${BASE_PACKAGE}.*.domain.model.."
   protected static final String APPLICATION_PACKAGE = "${BASE_PACKAGE}.*.application.."
+  // Output ports shared by the use cases of one context (repositories, stores, gateways)
+  protected static final String SHARED_OUTPUT_PORT_PACKAGE = "${BASE_PACKAGE}.*.application.shared.."
   protected static final String ADAPTER_PACKAGE = "${BASE_PACKAGE}.*.adapter.."
   protected static final String INCOMING_ADAPTER_PACKAGE = "${BASE_PACKAGE}.*.adapter.incoming.."
   protected static final String OUTGOING_ADAPTER_PACKAGE = "${BASE_PACKAGE}.*.adapter.outgoing.."
