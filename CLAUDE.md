@@ -224,7 +224,7 @@ If architecture tests fail:
 
 #### Value Objects
 - Implement `Value` interface
-- Use Java records for immutability
+- Prefer Java records; immutable final classes with their own `equals`/`hashCode` are allowed
 - Include validation in constructor
 - Equality based on attributes
 
