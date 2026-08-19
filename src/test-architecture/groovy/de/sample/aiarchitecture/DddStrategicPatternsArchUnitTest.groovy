@@ -98,7 +98,7 @@ class DddStrategicPatternsArchUnitTest extends BaseArchUnitTest {
     boundedContexts.each { contextPackage, annotation ->
       noClasses()
         .that().resideInAPackage(sharedKernelPackage + "..")
-        .should().accessClassesThat().resideInAPackage(contextPackage + "..")
+        .should().dependOnClassesThat().resideInAPackage(contextPackage + "..")
         .allowEmptyShould(true)
         .because("Shared Kernel must not depend on bounded context '${annotation.name()}' (${contextPackage}) - Shared Kernel must be context-independent")
         .check(allClasses)
@@ -140,9 +140,44 @@ class DddStrategicPatternsArchUnitTest extends BaseArchUnitTest {
         // Use allowEmptyShould(true) for contexts that may not have an application layer yet
         noClasses()
           .that().resideInAPackage(sourceContext + ".application..")
-          .should().accessClassesThat().resideInAnyPackage(forbiddenContextPatterns)
+          // dependOnClassesThat, not accessClassesThat: "access" is a method call or field
+          // access, so a field, parameter or record component of a foreign type slips past it.
+          .should().dependOnClassesThat().resideInAnyPackage(forbiddenContextPatterns)
           .allowEmptyShould(true)
           .because("Application layer of bounded context '${sourceName}' must not access other contexts directly - define output ports and use adapters instead")
+          .check(allClasses)
+      }
+    }
+  }
+
+  def "Bounded contexts must not access each other in the domain layer"() {
+    given:
+    Map<String, BoundedContext> boundedContexts = discoverBoundedContextPackages()
+    List<String> contextPackages = boundedContexts.keySet().toList()
+
+    expect:
+    // Stricter than the application-layer rule above, and deliberately without exceptions: a
+    // domain layer talks to its own context and the shared kernel, nothing else. Not even the
+    // other context's api/ — reaching an Open Host Service is the job of the application layer
+    // or an outgoing adapter, which have somewhere to put the translation.
+    //
+    // The shared kernel cannot appear among the forbidden targets: it carries @SharedKernel, not
+    // @BoundedContext, so discoverBoundedContextPackages() never returns it. That is what keeps
+    // Money and ProductId reachable from every context's domain without an allow-list.
+    contextPackages.each { sourceContext ->
+      String sourceName = boundedContexts[sourceContext].name()
+
+      List<String> otherContexts = contextPackages.findAll { it != sourceContext }
+      if (!otherContexts.isEmpty()) {
+        String[] forbiddenContextPatterns = otherContexts.collect { it + ".." } as String[]
+
+        noClasses()
+          .that().resideInAPackage(sourceContext + ".domain..")
+          // dependOnClassesThat, not accessClassesThat: "access" is a method call or field
+          // access, so a field or record component of a foreign type slips past it.
+          .should().dependOnClassesThat().resideInAnyPackage(forbiddenContextPatterns)
+          .allowEmptyShould(true)
+          .because("The domain layer of bounded context '${sourceName}' must depend on nothing outside its own context and the shared kernel")
           .check(allClasses)
       }
     }
@@ -221,7 +256,7 @@ class DddStrategicPatternsArchUnitTest extends BaseArchUnitTest {
           // Forbid access to domain layers of other contexts
           noClasses()
             .that().resideInAPackage("${sourceContext}.adapter.outgoing..")
-            .should().accessClassesThat()
+            .should().dependOnClassesThat()
               .resideInAPackage("${targetContext}.domain..")
             .allowEmptyShould(true)
             .because("Outgoing adapters in '${sourceName}' must not access domain layer of '${targetName}' - use api/ or events/ packages instead")
@@ -230,7 +265,7 @@ class DddStrategicPatternsArchUnitTest extends BaseArchUnitTest {
           // Forbid access to application layers of other contexts
           noClasses()
             .that().resideInAPackage("${sourceContext}.adapter.outgoing..")
-            .should().accessClassesThat()
+            .should().dependOnClassesThat()
               .resideInAPackage("${targetContext}.application..")
             .allowEmptyShould(true)
             .because("Outgoing adapters in '${sourceName}' must not access application layer of '${targetName}' - use api/ or events/ packages instead")

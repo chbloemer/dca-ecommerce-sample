@@ -2192,11 +2192,24 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 
 #### DDD Strategic Patterns (Bounded Contexts)
 
-1. **Shared Kernel must be context-independent** - no dependencies on Product or Cart contexts
-2. **Product Context must not access Cart Context** - enforces bounded context isolation
-3. **Cart Context must not access Product Context** - cart references products by ID only
-4. **Both contexts may access Shared Kernel** - for universal value objects
-5. **Shared Kernel must be minimal** - only universal concepts with consistent meaning
+These rules discover contexts dynamically from `@BoundedContext`, so a context added tomorrow is
+covered without being registered anywhere. No rule names a context.
+
+1. **Shared Kernel must be context-independent** - no dependencies on any bounded context
+2. **No context's domain layer may reach another context** - not even the other context's `api/`;
+   translating an Open Host Service is the application layer's or an adapter's job
+3. **No context's application layer may reach another context directly** - define output ports and
+   use adapters
+4. **Outgoing adapters may only use another context's `api/` or `events/`** - never its domain or
+   application layer
+5. **Every context may access the Shared Kernel** - it carries `@SharedKernel`, not
+   `@BoundedContext`, so it never appears among a rule's forbidden targets
+6. **Shared Kernel must be minimal** - only universal concepts with consistent meaning
+
+All of these use `dependOnClassesThat`, not `accessClassesThat`. ArchUnit counts an *access* as a
+method call or field access, so a field, parameter or record component of a foreign type is not an
+access — it is a dependency. An isolation rule written with `accessClassesThat` stays green while a
+class holds the forbidden type outright.
 
 #### DDD Tactical Patterns
 
