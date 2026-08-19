@@ -120,14 +120,10 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     }
   }
 
-  def "Outgoing adapters may access Open Host Services from other contexts"() {
-    expect:
-    // This is a "positive" test documenting the allowed pattern:
-    // Outgoing adapters may access api/ packages from other contexts (Open Host Services)
-    // This is verified by the successful compilation and the stricter tests in DddStrategicPatternsArchUnitTest
-    // that ensure outgoing adapters do NOT access domain or application layers of other contexts
-    true // Pattern verification: outgoing adapters call Open Host Services via api/ packages
-  }
+  // Note: that outgoing adapters MAY access other contexts' Open Host Services is not a
+  // testable rule — a permission has no violation. The enforceable half lives in
+  // DddStrategicPatternsArchUnitTest: "Outgoing adapters accessing other contexts must
+  // only use OpenHostService classes (except allowed ACL patterns)".
 
   def "Classes named *Repository must reside in the outgoing adapter package"() {
     expect:
