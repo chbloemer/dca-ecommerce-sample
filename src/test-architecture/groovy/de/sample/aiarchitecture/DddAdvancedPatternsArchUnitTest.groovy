@@ -52,7 +52,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().implement(DomainEvent.class)
-      .should().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .should().resideInAnyPackage(DOMAIN_PACKAGE)
       .because("Domain events are part of the domain layer (named in past tense)")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -61,7 +61,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
   def "Domain Events should be immutable (final or records)"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_PACKAGE)
       .and().implement(DomainEvent.class)
       .and().areNotInterfaces()
       .and().areNotEnums()
@@ -75,7 +75,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
   def "Domain Events must not have Spring annotations"() {
     expect:
     noClasses()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_PACKAGE)
       .and().implement(DomainEvent.class)
       .should().beAnnotatedWith(Component.class)
       .orShould().beAnnotatedWith(Service.class)
@@ -202,7 +202,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().implement(DomainService.class)
-      .should().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .should().resideInAnyPackage(DOMAIN_PACKAGE)
       .because("Domain services are part of the domain layer, not application layer")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -223,7 +223,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().implement(DomainService.class)
-      .and().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .and().resideInAnyPackage(DOMAIN_PACKAGE)
       .should().haveOnlyFinalFields()
       .because("Domain services should be stateless (only final fields for dependencies)")
       .allowEmptyShould(true)
@@ -248,7 +248,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().implement(Factory.class)
-      .should().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .should().resideInAnyPackage(DOMAIN_PACKAGE)
       .because("Factories are part of the domain layer (complex aggregate creation logic)")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -258,7 +258,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     noClasses()
       .that().implement(Factory.class)
-      .and().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .and().resideInAnyPackage(DOMAIN_PACKAGE)
       .should().beAnnotatedWith(Component.class)
       .orShould().beAnnotatedWith(Service.class)
       .because("Factories should be framework-independent")
@@ -270,7 +270,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().implement(Factory.class)
-      .and().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .and().resideInAnyPackage(DOMAIN_PACKAGE)
       .should().haveOnlyFinalFields()
       .because("Factories should be stateless (only final fields for dependencies)")
       .allowEmptyShould(true)
@@ -287,7 +287,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
       .that().haveSimpleNameEndingWith("Specification")
       .and().areNotInterfaces()
       .and().doNotHaveSimpleName("Specification")
-      .should().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .should().resideInAnyPackage(DOMAIN_PACKAGE)
       .because("Specification implementations are part of the domain layer")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -297,7 +297,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     noClasses()
       .that().haveSimpleNameEndingWith("Specification")
-      .and().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .and().resideInAnyPackage(DOMAIN_PACKAGE)
       .should().beAnnotatedWith(Component.class)
       .orShould().beAnnotatedWith(Service.class)
       .because("Specifications should be framework-independent value objects")

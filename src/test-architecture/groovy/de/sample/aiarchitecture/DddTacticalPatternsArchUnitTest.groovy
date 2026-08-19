@@ -33,7 +33,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Aggregate Roots must implement AggregateRoot<T, ID>"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
       .and().haveSimpleNameEndingWith("AggregateRoot")
       .and().areNotInterfaces()
       .and().doNotHaveSimpleName("AggregateRoot") // Exclude the marker interface itself
@@ -320,7 +320,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Value Object classes should be final (immutability)"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
       .and().implement(Value.class)
       .and().areNotInterfaces()
       .and().areNotRecords()
@@ -398,9 +398,9 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Records for Value Objects are allowed (preferred pattern for simple Value Objects)"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
       .and().areRecords()
-      .should().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .should().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
       .because("Records are a valid pattern for immutable value objects (Java 14+)")
       .allowEmptyShould(true)
       .check(allClasses)
