@@ -395,13 +395,19 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     true
   }
 
-  def "Records for Value Objects are allowed (preferred pattern for simple Value Objects)"() {
+  def "Value Objects must be records"() {
     expect:
+    // Was a tautology: "records in the domain model should reside in the domain model", which
+    // passes for any codebase. The real rule is ADR-009 — a Value Object is a record, so the
+    // compiler grants immutability and attribute equality instead of a rule having to check them.
     classes()
-      .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
-      .and().areRecords()
-      .should().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
-      .because("Records are a valid pattern for immutable value objects (Java 14+)")
+      .that().areAssignableTo(VALUE_MARKER)
+      .and().areNotInterfaces()
+      .and().areNotEnums()
+      .should().beRecords()
+      .because("A Value Object is defined by its attributes, which a record gives for free: "
+      + "final components, attribute-based equality and no identity (ADR-009). An enum is "
+      + "already a fixed set of immutable values and needs no record.")
       .allowEmptyShould(true)
       .check(allClasses)
   }
