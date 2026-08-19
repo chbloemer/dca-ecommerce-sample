@@ -63,6 +63,14 @@ public record Money(
 
 **Value Objects SHOULD be implemented as Java records whenever possible.**
 
+A hand-written class is a **permitted alternative** — programming taste differs, and a team may
+prefer explicit classes. Such a class must earn what a record gets for free:
+
+- the class is `final` and all instance fields are `final` (enforced by the immutability rules)
+- no setter methods (enforced)
+- `equals()` and `hashCode()` are overridden to implement attribute equality (enforced by
+  *"Value Objects must be records or immutable classes with attribute equality"*)
+
 ### Implementation Pattern
 
 ```java
@@ -247,6 +255,7 @@ public record Category(@NonNull String name) implements Value { ... }
 ```bash
 ./gradlew test-architecture
 # "Value Object classes should be final (immutability)" PASSED ✅
+# "Value Objects must be records or immutable classes with attribute equality" PASSED ✅
 ```
 
 ---
