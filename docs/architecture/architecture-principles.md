@@ -301,9 +301,9 @@ an implementation that cannot satisfy it does not implement the port.
 - Fluent API: save() returning aggregate enables method chaining
 
 **Implementation:**
-- Base Interface: `de.sample.aiarchitecture.sharedkernel.application.port.Repository`
+- Base Interface: `de.sample.aiarchitecture.sharedkernel.marker.port.out.Repository`
 - Domain Interfaces: `ProductRepository`, `ShoppingCartRepository`
-- Implementations: `InMemoryProductRepository`, `InMemoryShoppingCartRepository` (in `portadapter.outgoing`)
+- Implementations: `InMemoryProductRepository`, `JpaShoppingCartRepository` (in `adapter.outgoing.persistence`)
 
 #### Store
 
@@ -338,8 +338,8 @@ public interface Store extends OutputPort {}
 ```java
 public interface LoginProtectionStore extends Store {
     void record(LoginAttempt attempt);
-    int  countRecentFailures(BaseStore baseStore, Email email, Duration window);
-    boolean isLoginBlocked(BaseStore baseStore, Email email);
+    int  countRecentFailures(Email email, Duration window);
+    boolean isLoginBlocked(Email email);
 }
 ```
 
@@ -362,6 +362,21 @@ public interface LoginProtectionStore extends Store {
 
 **Naming as Ubiquitous Language:**
 A reader should know from the interface name alone whether they're dealing with a managed aggregate (Repository) or recorded data (Store) — without opening the implementation.
+
+**Enforced by `DddTacticalPatternsArchUnitTest`:**
+
+1. *Store interfaces must extend the Store marker, not Repository* — an interface named `*Store`
+   that carries the `Repository` marker promises identity-based load/save it does not offer.
+2. *Store interfaces must reside in the application layer's shared output-port package* — same
+   placement as Repository: the contract belongs to the application layer, the implementation to an
+   adapter.
+3. *Store implementations must reside in the `adapter.outgoing` package*.
+4. *Store interfaces must not declare `findById` or `save` methods* — those are Repository
+   semantics. A Store with them is a Repository under the wrong name, and its stored object should
+   then be an Aggregate Root.
+
+Until these rules existed the Repository/Store distinction was documented doctrine only: nothing
+made `./gradlew test-architecture` fail when a Store took on aggregate-lifecycle methods.
 
 > **Note on `EventStore` (Event Sourcing):** The `EventStore` from Event Sourcing is a *specialization* of Store — one specifically for Domain Events that supports aggregate reconstruction. The general `Store` is the broader pattern.
 
@@ -2254,6 +2269,7 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 7. **Aggregates reference other aggregates by ID only** (Vernon's Rule #2)
 8. **Aggregates must not hold references to repositories or output ports** - dependencies are passed as method parameters
 9. **Domain model classes must not have public setters** - state changes go through intention-revealing methods
+10. **Stores** must extend the `Store` marker (not `Repository`), live in `application.shared`, keep their implementation in `adapter.outgoing`, and must not declare `findById`/`save`
 
 #### Domain Layer Rules
 

@@ -3,6 +3,7 @@ package de.sample.aiarchitecture
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.AggregateRoot
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Entity
 import de.sample.aiarchitecture.sharedkernel.marker.port.out.Repository
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.Store
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Factory
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Value
 
@@ -549,6 +550,70 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
       "Violations found:\n" + violations.join("\n"))
     }
     true
+  }
+
+  // ============================================================================
+  // STORE PATTERN (Repository's sibling for non-aggregate operational data)
+  // ============================================================================
+
+  def "Store interfaces must extend the Store marker, not Repository"() {
+    expect:
+    // A *Store records or queries operational data that has no aggregate lifecycle. Marking one
+    // as a Repository is a category error: the name would promise identity-based load/save.
+    classes()
+      .that().areInterfaces()
+      .and().haveSimpleNameEndingWith("Store")
+      .and().doNotHaveSimpleName("Store")
+      .should().beAssignableTo(Store.class)
+      .andShould().notBeAssignableTo(Repository.class)
+      .because("Stores extend the Store marker; Repository is reserved for Aggregate Roots")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Store interfaces must reside in the application layer's shared output-port package"() {
+    expect:
+    // Same placement as Repository: a Store is an output port, so it is declared where the
+    // application layer owns its contracts, not where an adapter implements them.
+    classes()
+      .that().areInterfaces()
+      .and().areAssignableTo(Store.class)
+      .and().doNotHaveSimpleName("Store")
+      .should().resideInAPackage(SHARED_OUTPUT_PORT_PACKAGE)
+      .because("Store interfaces are output ports in the application layer (Hexagonal Architecture)")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Store implementations must reside in the adapter.outgoing package"() {
+    expect:
+    classes()
+      .that().areNotInterfaces()
+      .and().areAssignableTo(Store.class)
+      .should().resideInAPackage(OUTGOING_ADAPTER_PACKAGE)
+      .because("Store implementations are outgoing adapters in bounded contexts")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Store interfaces must not declare findById or save methods"() {
+    when:
+    // findById/save are Repository semantics. A Store that has them is a Repository wearing the
+    // wrong name, and the stored object should then be an Aggregate Root.
+    def violations = allClasses
+      .findAll { it.isAssignableTo(Store.class) && it.isInterface() && it.simpleName != "Store" }
+      .collectMany { storeInterface ->
+        storeInterface.methods
+          .findAll { it.name in ["findById", "save", "deleteById", "delete"] }
+          .collect { "${storeInterface.fullName}.${it.name}() - Repository semantics on a Store" }
+      }
+
+    then:
+    assert violations.isEmpty(),
+      "Store interfaces use record/count/exists semantics, not findById/save.\n" +
+      "Violations:\n" + violations.join("\n") +
+      "\n\nFix: rename to *Repository if the stored object is an Aggregate Root, " +
+      "otherwise rename the methods to record(...), count(...), exists(...)."
   }
 
   // ============================================================================
