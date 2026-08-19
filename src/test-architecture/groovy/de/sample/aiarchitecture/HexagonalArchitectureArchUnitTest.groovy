@@ -121,10 +121,6 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
   }
 
   def "Outgoing adapters may access Open Host Services from other contexts"() {
-    given:
-    Map<String, BoundedContext> boundedContexts = discoverBoundedContextPackages()
-    List<String> contextPackages = boundedContexts.keySet().toList()
-
     expect:
     // This is a "positive" test documenting the allowed pattern:
     // Outgoing adapters may access api/ packages from other contexts (Open Host Services)
