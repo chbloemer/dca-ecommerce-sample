@@ -3167,3 +3167,46 @@ Before starting, check tasks/logs/ folder for US-94 and US-99 results to see the
   - New agent files do not register mid-session; edits to already registered agents take effect on the next spawn
 
 ---
+
+### US-146: Decide the Anti-Corruption Layer's Fate: Demonstrate It or Retire It
+**Epic:** architecture
+**Depends on:** —
+
+**As a** architect maintaining the reference implementation
+**I want** the Anti-Corruption Layer either demonstrated or deliberately retired
+**So that** no architecture rule claims to be enforced while matching zero classes
+
+Three contexts consume another context's integration event and translate it inline in the
+consumer; no translator class exists. The rule "Anti-Corruption Layer components must be in
+acl packages" matches zero classes and passes in silence. The question underneath is real:
+with Spring Modulith the consumer owns the shared trigger interface (interface inversion,
+ADR-024), so a foreign event is not foreign in the way the classic ACL literature assumes —
+the consumer may already be the translation boundary.
+
+**Acceptance Criteria:**
+- A decision is recorded in an ADR: either the ACL is the pattern for consuming a foreign integration event, or the consumer itself is the translation boundary
+- If the ACL is kept: at least one of the three consumers delegates to a translator that maps the foreign integration event to a local value object, and the translator lives in {context}.adapter.incoming.event.acl
+- If the ACL is kept: the ArchUnit rule matches a non-zero number of classes, proven by breaking it on purpose and observing a failure
+- If the ACL is retired: the rule and the acl package convention are removed, and the implementation guide states that the event consumer is the translation boundary
+- Either way, no ArchUnit rule reports status enforced in the knowledge catalog while matching zero classes
+- The interaction with interface inversion (ADR-024) is addressed explicitly in the decision, not left implicit
+- Run ./gradlew test-architecture to verify architectural compliance
+
+**Architectural Guidance:**
+- **Affected Layers:** Adapter, Application
+- **Locations:**
+  - `{context}.adapter.incoming.event/*EventConsumer`
+  - `{context}.adapter.incoming.event.acl/*EventTranslator`
+  - `src/test-architecture/groovy/.../DddStrategicPatternsArchUnitTest.groovy`
+  - `docs/architecture/adr/`
+  - `implementing-domain-centric-architecture/README.md`
+- **Patterns:** Anti-Corruption Layer, Event Consumer, Interface Inversion, Published Language
+- **Constraints:**
+  - No direct imports from other bounded context domains — a foreign event's payload must not carry the producer's domain types
+  - Event consumer calls the use case via its InputPort, never the domain directly
+  - A translator maps to a local value object; it must not hand a foreign type into the application layer
+  - A rule that cannot be made to fail proves nothing — pin any kept rule with a deliberate break
+  - No Spring annotations in domain layer
+  - Run ./gradlew test-architecture to verify architectural compliance
+
+---
