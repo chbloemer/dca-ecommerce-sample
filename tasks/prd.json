@@ -3045,7 +3045,7 @@
       "id": "US-115",
       "epic": "interest-interface-pattern",
       "title": "Document Interest Interface Pattern",
-      "description": "Update all documentation sources (dca-book, implementing-domain-centric-architecture, ai-architecture-sample docs) with the Interest Interface Pattern description, examples, and guidance.",
+      "description": "Update all documentation sources (dca-book, implementing-domain-centric-architecture, dca-ecommerce-sample docs) with the Interest Interface Pattern description, examples, and guidance.",
       "depends_on": [
         "US-110",
         "US-114"
@@ -3055,7 +3055,7 @@
         "dca-book/06-application-layer.md: Show how use cases use Interest Interface for read models",
         "dca-book/appendix-d-cheat-sheet.md: Add Interest Interface Pattern with code example",
         "implementing-domain-centric-architecture/README.md: Add pattern after 'Enriched Read Model Pattern'",
-        "ai-architecture-sample/docs/architecture/architecture-principles.md: Add to DDD Tactical Patterns",
+        "dca-ecommerce-sample/docs/architecture/architecture-principles.md: Add to DDD Tactical Patterns",
         "All documentation references actual code from the implementation",
         "Pattern benefits and 'Tell Don't Ask' principle explained",
         "Cross-project consistency verified"

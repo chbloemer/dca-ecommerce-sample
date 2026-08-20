@@ -1,6 +1,6 @@
 # Architectural Evolution
 
-This document traces the evolution of the ai-architecture-sample across 6 branches, from basic Hexagonal Architecture to Spring Modulith.
+This document traces the evolution of the dca-ecommerce-sample across 6 branches, from basic Hexagonal Architecture to Spring Modulith.
 
 ## Timeline
 

@@ -330,7 +330,7 @@ app:
       secret: ${JWT_SECRET:dev-only-secret-key-must-be-at-least-256-bits}
       anonymous-expiration-days: 30
       registered-expiration-days: 7
-      issuer: ai-architecture-sample
+      issuer: dca-ecommerce-sample
       cookie-name: shop-identity
       session-cookie-name: shop-session      # ADR-030
       secure-cookies: ${JWT_SECURE_COOKIES:false}

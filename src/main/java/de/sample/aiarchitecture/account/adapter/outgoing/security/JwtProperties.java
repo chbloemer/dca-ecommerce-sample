@@ -16,7 +16,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *       secret: ${JWT_SECRET:dev-only-secret-key}
  *       anonymous-expiration-days: 30
  *       registered-expiration-days: 7
- *       issuer: ai-architecture-sample
+ *       issuer: dca-ecommerce-sample
  *       cookie-name: shop-identity
  *       session-cookie-name: shop-session
  *       secure-cookies: false   # true in staging/production
@@ -62,7 +62,7 @@ public record JwtProperties(
   public static final String SAME_SITE = "Lax";
 
   /** Default issuer if not configured. */
-  public static final String DEFAULT_ISSUER = "ai-architecture-sample";
+  public static final String DEFAULT_ISSUER = "dca-ecommerce-sample";
 
   public JwtProperties {
     if (secret == null || secret.length() < 32) {

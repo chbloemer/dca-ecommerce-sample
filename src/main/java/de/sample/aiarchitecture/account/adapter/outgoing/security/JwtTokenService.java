@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
  *   "type": "anonymous" | "registered",
  *   "email": "user@example.com",  // only for registered
  *   "roles": ["CUSTOMER"],        // only for registered
- *   "iss": "ai-architecture-sample",
+ *   "iss": "dca-ecommerce-sample",
  *   "iat": 1706688000,
  *   "exp": 1707292800
  * }

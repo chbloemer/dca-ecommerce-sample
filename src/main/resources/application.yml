@@ -75,7 +75,7 @@ app:
       anonymous-expiration-days: 30
       # The authenticated session is shorter; its expiry costs the visitor nothing
       registered-expiration-days: 7
-      issuer: ai-architecture-sample
+      issuer: dca-ecommerce-sample
       # Identity and session are separate cookies (ADR-030)
       cookie-name: shop-identity
       session-cookie-name: shop-session
