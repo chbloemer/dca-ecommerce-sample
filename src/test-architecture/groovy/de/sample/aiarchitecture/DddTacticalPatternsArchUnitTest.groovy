@@ -3,12 +3,17 @@ package de.sample.aiarchitecture
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.AggregateRoot
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Entity
 import de.sample.aiarchitecture.sharedkernel.marker.port.out.Repository
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.Store
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Factory
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Value
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 
+import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.core.domain.JavaModifier
+import com.tngtech.archunit.core.domain.JavaParameterizedType
+import com.tngtech.archunit.core.domain.JavaType
+import com.tngtech.archunit.core.domain.JavaWildcardType
 
 /**
  * ArchUnit tests for DDD Tactical Patterns (Building Blocks).
@@ -33,7 +38,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Aggregate Roots must implement AggregateRoot<T, ID>"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
       .and().haveSimpleNameEndingWith("AggregateRoot")
       .and().areNotInterfaces()
       .and().doNotHaveSimpleName("AggregateRoot") // Exclude the marker interface itself
@@ -135,20 +140,22 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
 
     def violations = []
     entityClasses.each { entityClass ->
+      // Matched by type, not by name: the old check accepted any field whose lowercased name
+      // ended in "id", so valid, paid and uuid satisfied it while no identity existed. An
+      // identity is a value object implementing the Id marker.
       def hasIdField = entityClass.getAllFields().any { field ->
-        def fieldName = field.getName().toLowerCase()
-        fieldName == "id" || fieldName.endsWith("id")
+        field.getRawType().isAssignableTo(ID_MARKER)
       }
 
       if (!hasIdField) {
-        violations.add("${entityClass.getName()} appears to have no ID field")
+        violations.add("${entityClass.getName()} has no field whose type implements ${ID_MARKER.simpleName}")
       }
     }
 
     then:
     if (!violations.isEmpty()) {
       throw new AssertionError(
-      "Entities must have an identity field (DDD pattern).\n" +
+      "Entities must have an identity field typed as an Id value object (DDD pattern).\n" +
       "Violations found:\n" + violations.join("\n"))
     }
     true
@@ -320,7 +327,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Value Object classes should be final (immutability)"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
       .and().implement(Value.class)
       .and().areNotInterfaces()
       .and().areNotRecords()
@@ -395,15 +402,41 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     true
   }
 
-  def "Records for Value Objects are allowed (preferred pattern for simple Value Objects)"() {
-    expect:
-    classes()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
-      .and().areRecords()
-      .should().resideInAnyPackage(PRODUCT_DOMAIN_MODEL_PACKAGE, CART_DOMAIN_MODEL_PACKAGE, CHECKOUT_DOMAIN_MODEL_PACKAGE, ACCOUNT_DOMAIN_MODEL_PACKAGE, INVENTORY_DOMAIN_MODEL_PACKAGE, PRICING_DOMAIN_MODEL_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
-      .because("Records are a valid pattern for immutable value objects (Java 14+)")
-      .allowEmptyShould(true)
-      .check(allClasses)
+  def "Value Objects must be records or immutable classes with attribute equality"() {
+    when:
+    // Records are the preferred implementation: the compiler grants final fields,
+    // no setters and attribute-based equality. A hand-written class is a permitted
+    // alternative — the immutability rules above (final class, final fields, no setters)
+    // apply to it unchanged. What they cannot check is the one thing a record gives for
+    // free: a Value Object compares by its attributes, so a non-record class must override
+    // equals and hashCode itself.
+    def valueObjectClasses = allClasses.stream()
+      .filter { it.isAssignableTo(VALUE_MARKER) }
+      .filter { !it.isInterface() && !it.isRecord() && !it.isEnum() }
+      .collect()
+
+    def violations = []
+    valueObjectClasses.each { voClass ->
+      def overridesOwn = { String name, int paramCount ->
+        voClass.getAllMethods().any {
+          it.getName() == name &&
+            it.getRawParameterTypes().size() == paramCount &&
+            it.getOwner().getName() != "java.lang.Object"
+        }
+      }
+      if (!overridesOwn("equals", 1) || !overridesOwn("hashCode", 0)) {
+        violations.add("${voClass.getName()} is a non-record Value Object without its own equals/hashCode")
+      }
+    }
+
+    then:
+    if (!violations.isEmpty()) {
+      throw new AssertionError(
+      "Value Objects are records by preference; an immutable class is allowed, "
+      + "but it must implement attribute equality itself.\n"
+      + "Violations found:\n" + violations.join("\n"))
+    }
+    true
   }
 
   // ============================================================================
@@ -413,7 +446,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Repository Interfaces should extend Repository Marker Interface"() {
     expect:
     classes()
-      .that().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE)
+      .that().resideInAPackage(APPLICATION_PACKAGE)
       .and().areInterfaces()
       .and().haveSimpleNameEndingWith("Repository")
       .and().doNotHaveSimpleName("Repository")
@@ -423,12 +456,15 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
       .check(allClasses)
   }
 
-  def "Repository Interfaces must reside in application output port package"() {
+  def "Repository interfaces must reside in the application layer's shared output-port package"() {
     expect:
+    // areAssignableTo, not implement: ArchUnit's implement() matches non-interfaces only, so
+    // implement(Repository) AND areInterfaces() is an empty subject set for any codebase.
     classes()
-      .that().implement(Repository.class)
-      .and().areInterfaces()
-      .should().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE)
+      .that().areInterfaces()
+      .and().areAssignableTo(Repository.class)
+      .and().doNotHaveSimpleName("Repository")
+      .should().resideInAPackage(SHARED_OUTPUT_PORT_PACKAGE)
       .because("Repository interfaces are output ports in the application layer (Hexagonal Architecture)")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -437,9 +473,9 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
   def "Repository Implementations must reside in adapter.outgoing package"() {
     expect:
     classes()
-      .that().implement(Repository.class)
-      .and().areNotInterfaces()
-      .should().resideInAnyPackage(PRODUCT_ADAPTER_PACKAGE, CART_ADAPTER_PACKAGE, CHECKOUT_ADAPTER_PACKAGE, ACCOUNT_ADAPTER_PACKAGE, INVENTORY_ADAPTER_PACKAGE, PRICING_ADAPTER_PACKAGE)
+      .that().areNotInterfaces()
+      .and().areAssignableTo(Repository.class)
+      .should().resideInAPackage(OUTGOING_ADAPTER_PACKAGE)
       .because("Repository implementations are outgoing adapters in bounded contexts")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -483,11 +519,16 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     true
   }
 
-  def "Repository methods must return Aggregate Roots"() {
+  def "Repository methods must not return non-root Entities"() {
     when:
-    // Repository methods should return Aggregate Roots or collections of Aggregate Roots
-    // Not entities or value objects
-
+    // The prohibition, not a positive requirement. A repository may legitimately return a
+    // boolean, a count, a page wrapper or a Value Object composed for one use case (Vernon's
+    // use-case optimal query). What it must never hand out is an Entity that is not an
+    // Aggregate Root: the caller could then mutate a part of an aggregate without going
+    // through the root, and the root's invariants would never run.
+    //
+    // The type parameter side needs no rule — the compiler pins it via
+    // Repository<T extends AggregateRoot<T, ID>, ID extends Id>. Only method returns are open.
     def repositoryInterfaces = allClasses.stream()
       .filter { it.isAssignableTo(Repository.class) }
       .filter { it.isInterface() }
@@ -497,37 +538,9 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     def violations = []
     repositoryInterfaces.each { repoInterface ->
       repoInterface.getMethods().each { method ->
-        def returnType = method.getRawReturnType()
-
-        // Skip void methods (like save, delete operations)
-        if (returnType.getName() == "void") {
-          return
-        }
-
-        // Skip methods that return primitives, Optional, or common Java types
-        if (returnType.isPrimitive() ||
-          returnType.getName().startsWith("java.lang") ||
-          returnType.getName().startsWith("java.util.Optional")) {
-          return
-        }
-
-        // Check if return type is a collection
-        if (returnType.getName().startsWith("java.util.List") ||
-          returnType.getName().startsWith("java.util.Set") ||
-          returnType.getName().startsWith("java.util.Collection")) {
-          // Check generic type parameter
-          method.getRawReturnType().tryGetComponentType().ifPresent { componentType ->
-            if (componentType.isAssignableTo(Entity.class) &&
-              !componentType.isAssignableTo(AggregateRoot.class)) {
-              violations.add("${repoInterface.getName()}.${method.getName()} returns collection of ${componentType.getName()} which is an Entity but not an Aggregate Root")
-            }
-          }
-        } else {
-          // Check if direct return type is an Entity but not Aggregate Root
-          if (returnType.isAssignableTo(Entity.class) &&
-            !returnType.isAssignableTo(AggregateRoot.class) &&
-            !returnType.isInterface()) {
-            violations.add("${repoInterface.getName()}.${method.getName()} returns ${returnType.getName()} which is an Entity but not an Aggregate Root")
+        typesInvolvedIn(method.getReturnType()).each { type ->
+          if (type.isAssignableTo(Entity.class) && !type.isAssignableTo(AggregateRoot.class)) {
+            violations.add("${repoInterface.getName()}.${method.getName()} exposes ${type.getName()}, an Entity that is not an Aggregate Root")
           }
         }
       }
@@ -536,10 +549,102 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     then:
     if (!violations.isEmpty()) {
       throw new AssertionError(
-      "Repository methods should return Aggregate Roots, not Entities (DDD pattern).\n" +
+      "Repository methods must not expose an Entity that is not an Aggregate Root: a caller " +
+      "could mutate part of an aggregate without passing its root (DDD pattern).\n" +
       "Violations found:\n" + violations.join("\n"))
     }
     true
+  }
+
+  /**
+   * Every class involved in a type, including the type arguments of a generic type.
+   *
+   * <p>Walks the type recursively, so {@code Optional<CartItem>},
+   * {@code List<? extends CartItem>}, {@code CartItem[]} and
+   * {@code Map<String, List<CartItem>>} all yield {@code CartItem}.
+   *
+   * <p>The previous implementation enumerated {@code List}, {@code Set} and {@code Collection}
+   * by name and called {@code tryGetComponentType()} on the raw type — which resolves
+   * <em>array</em> component types, so it returned empty for every collection and the branch
+   * was dead. {@code Optional} was skipped by an early return. Measured on this codebase, not
+   * one repository return type reached an assertion.
+   */
+  private static List<JavaClass> typesInvolvedIn(final JavaType type) {
+    final List<JavaClass> involved = []
+    final JavaClass erasure = type.toErasure()
+    involved.add(erasure)
+    erasure.tryGetComponentType().ifPresent { involved.add(it) }
+
+    if (type instanceof JavaParameterizedType) {
+      type.getActualTypeArguments().each { involved.addAll(typesInvolvedIn(it)) }
+    } else if (type instanceof JavaWildcardType) {
+      type.getUpperBounds().each { involved.addAll(typesInvolvedIn(it)) }
+    }
+    return involved
+  }
+
+  // ============================================================================
+  // STORE PATTERN (Repository's sibling for non-aggregate operational data)
+  // ============================================================================
+
+  def "Store interfaces must extend the Store marker, not Repository"() {
+    expect:
+    // A *Store records or queries operational data that has no aggregate lifecycle. Marking one
+    // as a Repository is a category error: the name would promise identity-based load/save.
+    classes()
+      .that().areInterfaces()
+      .and().haveSimpleNameEndingWith("Store")
+      .and().doNotHaveSimpleName("Store")
+      .should().beAssignableTo(Store.class)
+      .andShould().notBeAssignableTo(Repository.class)
+      .because("Stores extend the Store marker; Repository is reserved for Aggregate Roots")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Store interfaces must reside in the application layer's shared output-port package"() {
+    expect:
+    // Same placement as Repository: a Store is an output port, so it is declared where the
+    // application layer owns its contracts, not where an adapter implements them.
+    classes()
+      .that().areInterfaces()
+      .and().areAssignableTo(Store.class)
+      .and().doNotHaveSimpleName("Store")
+      .should().resideInAPackage(SHARED_OUTPUT_PORT_PACKAGE)
+      .because("Store interfaces are output ports in the application layer (Hexagonal Architecture)")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Store implementations must reside in the adapter.outgoing package"() {
+    expect:
+    classes()
+      .that().areNotInterfaces()
+      .and().areAssignableTo(Store.class)
+      .should().resideInAPackage(OUTGOING_ADAPTER_PACKAGE)
+      .because("Store implementations are outgoing adapters in bounded contexts")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+  def "Store interfaces must not declare findById or save methods"() {
+    when:
+    // findById/save are Repository semantics. A Store that has them is a Repository wearing the
+    // wrong name, and the stored object should then be an Aggregate Root.
+    def violations = allClasses
+      .findAll { it.isAssignableTo(Store.class) && it.isInterface() && it.simpleName != "Store" }
+      .collectMany { storeInterface ->
+        storeInterface.methods
+          .findAll { it.name in ["findById", "save", "deleteById", "delete"] }
+          .collect { "${storeInterface.fullName}.${it.name}() - Repository semantics on a Store" }
+      }
+
+    then:
+    assert violations.isEmpty(),
+      "Store interfaces use record/count/exists semantics, not findById/save.\n" +
+      "Violations:\n" + violations.join("\n") +
+      "\n\nFix: rename to *Repository if the stored object is an Aggregate Root, " +
+      "otherwise rename the methods to record(...), count(...), exists(...)."
   }
 
   // ============================================================================

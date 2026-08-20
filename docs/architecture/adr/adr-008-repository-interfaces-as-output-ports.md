@@ -5,6 +5,17 @@
 **Deciders**: Architecture Team
 **Priority**: ⭐⭐⭐⭐
 
+> ⚠️ **The package path in this ADR is out of date.** Every example below writes
+> `application/port/out/`; the implementation places output ports in
+> `application/shared/` (e.g. `account/application/shared/AccountRepository.java`), and
+> `CLAUDE.md` documents that layout. `find src/main -path "*application/port/out*"` returns
+> nothing — no context uses the path this ADR names.
+>
+> **The decision itself is unaffected:** repository interfaces are output ports owned by the
+> application layer, implementations live in `adapter/outgoing`. Only the folder name drifted.
+> Not corrected in place because it is unclear whether the ADR should be amended or superseded —
+> **to be decided together with the open question in ADR-028.**
+
 ---
 
 ## Context
@@ -519,8 +530,8 @@ public class InMemoryProductRepository implements ProductRepository {
 ./gradlew test-architecture
 
 # Expected:
-# Repository Interfaces must reside in domain package PASSED ✅
-# Repository Implementations must reside in portadapter.outgoing package PASSED ✅
+# Repository interfaces must reside in the application layer's shared output-port package PASSED ✅
+# Repository Implementations must reside in adapter.outgoing package PASSED ✅
 ```
 
 ### Dependency Check

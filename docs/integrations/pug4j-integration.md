@@ -87,7 +87,7 @@ showcase the debug error page; not production code.
 
 ## Controller Example
 
-**File**: `src/main/java/de/sample/aiarchitecture/portadapter/incoming/web/product/ProductPageController.java`
+**File**: `src/main/java/de/sample/aiarchitecture/product/adapter/incoming/web/ProductPageController.java`
 
 ```java
 @Controller

@@ -4,6 +4,7 @@ import de.sample.aiarchitecture.account.application.shared.AccountRepository;
 import de.sample.aiarchitecture.account.domain.gateway.PasswordHasher;
 import de.sample.aiarchitecture.account.domain.model.Account;
 import de.sample.aiarchitecture.account.domain.model.Email;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +49,15 @@ public class AuthenticateAccountUseCase implements AuthenticateAccountInputPort 
 
   private final AccountRepository accountRepository;
   private final PasswordHasher passwordHasher;
+  private final DomainEventPublisher eventPublisher;
 
   public AuthenticateAccountUseCase(
-      final AccountRepository accountRepository, final PasswordHasher passwordHasher) {
+      final AccountRepository accountRepository,
+      final PasswordHasher passwordHasher,
+      final DomainEventPublisher eventPublisher) {
     this.accountRepository = accountRepository;
     this.passwordHasher = passwordHasher;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -92,6 +97,8 @@ public class AuthenticateAccountUseCase implements AuthenticateAccountInputPort 
     // Record successful login
     account.recordLogin();
     accountRepository.save(account);
+
+    eventPublisher.publishAndClearEvents(account);
 
     LOG.info("Successful login for user: {}", account.linkedUserId().value());
 

@@ -4,6 +4,7 @@ import de.sample.aiarchitecture.cart.application.shared.ShoppingCartRepository;
 import de.sample.aiarchitecture.cart.domain.model.CartId;
 import de.sample.aiarchitecture.cart.domain.model.CustomerId;
 import de.sample.aiarchitecture.cart.domain.model.ShoppingCart;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetOrCreateActiveCartUseCase implements GetOrCreateActiveCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public GetOrCreateActiveCartUseCase(final ShoppingCartRepository shoppingCartRepository) {
+  public GetOrCreateActiveCartUseCase(
+      final ShoppingCartRepository shoppingCartRepository,
+      final DomainEventPublisher eventPublisher) {
     this.shoppingCartRepository = shoppingCartRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -46,6 +51,8 @@ public class GetOrCreateActiveCartUseCase implements GetOrCreateActiveCartInputP
     final CartId newCartId = CartId.generate();
     final ShoppingCart newCart = new ShoppingCart(newCartId, customerId);
     shoppingCartRepository.save(newCart);
+
+    eventPublisher.publishAndClearEvents(newCart);
 
     return new GetOrCreateActiveCartResult(newCartId.value(), customerId.value(), true);
   }

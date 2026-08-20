@@ -1,0 +1,8 @@
+nav.account__nav(aria-label="Account navigation" data-test="account-nav")
+  ul.account__nav-list
+    each item in navItems
+      li.account__nav-item
+        if item.navigable()
+          a.account__nav-link(href=item.href() class=(item.active() ? "account__nav-link--active" : null) aria-current=(item.active() ? "page" : null) data-test="account-nav-" + item.key())= item.label()
+        else
+          span.account__nav-link.account__nav-link--disabled(aria-disabled="true" data-test="account-nav-" + item.key())= item.label()

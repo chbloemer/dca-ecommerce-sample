@@ -2,6 +2,13 @@
 
 > **Status: IMPLEMENTED** - All 6 phases completed on 2026-01-31
 
+> **Superseded in part by [ADR-029](architecture/adr/adr-029-expiry-is-not-logout.md) and
+> [ADR-030](architecture/adr/adr-030-three-cookie-session-design.md).** This plan describes one
+> all-in-one cookie. Identity and session now live in two cookies (`shop-identity`, `shop-session`):
+> an expired session keeps the visitor identity and its cart, and only an explicit logout rotates
+> the identity. The rest of the plan — anonymous-first identity, no IDs in URLs, the claim shapes —
+> still holds.
+
 ## Overview
 
 Add JWT-based identity from the **first visit**. Every user (anonymous or registered) receives a JWT token that identifies them throughout their journey. No cart or session IDs in URLs - the JWT carries the identity.
@@ -325,6 +332,8 @@ app:
       registered-expiration-days: 7
       issuer: ai-architecture-sample
       cookie-name: shop-identity
+      session-cookie-name: shop-session      # ADR-030
+      secure-cookies: ${JWT_SECURE_COOKIES:false}
     password:
       bcrypt-strength: 12
       min-length: 8

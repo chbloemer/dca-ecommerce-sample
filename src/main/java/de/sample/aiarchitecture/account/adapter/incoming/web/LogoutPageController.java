@@ -36,7 +36,7 @@ public class LogoutPageController {
    */
   @PostMapping
   public String handleLogout() {
-    identitySession.clearIdentity();
+    identitySession.logOut();
     return "redirect:/login?logout=true";
   }
 }

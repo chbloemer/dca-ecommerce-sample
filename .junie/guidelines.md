@@ -88,7 +88,7 @@ There are two distinct test setups: conventional unit/integration tests (JUnit P
   - Application services orchestrate domain logic and publish domain events after repository operations (see ProductApplicationService.updateProductPrice for the canonical flow).
   - Transactions are managed declaratively (see infrastructure/config/TransactionConfiguration.java and docs/architecture/transaction-management.md).
 - API layer
-  - Spring MVC REST resources under portadapter/primary/api and a web layer using Pug4j templates (see docs/pug4j-integration.md). The template engine is registered via Pug4jConfiguration.
+  - Spring MVC REST resources under {boundedcontext}/adapter/incoming/api and a web layer using Pug4j templates (see docs/integrations/pug4j-integration.md). The template engine is registered via Pug4jConfiguration.
 - Security
   - Basic Spring Security setup under infrastructure/config/SecurityConfiguration.java; adapt as needed for endpoints.
 - Coding style & nullability

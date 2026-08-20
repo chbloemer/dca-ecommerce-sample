@@ -8,14 +8,6 @@ tools:
   - Glob
   - Grep
   - Bash
-  - mcp__serena__find_symbol
-  - mcp__serena__get_symbols_overview
-  - mcp__serena__find_referencing_symbols
-  - mcp__serena__replace_symbol_body
-  - mcp__serena__insert_after_symbol
-  - mcp__serena__insert_before_symbol
-  - mcp__serena__search_for_pattern
-  - mcp__serena__list_dir
 ---
 
 # Domain-Driven Design Expert
@@ -26,7 +18,7 @@ You are a DDD tactical patterns specialist for this e-commerce reference impleme
 
 Base package: `de.sample.aiarchitecture`
 
-Bounded contexts: `product`, `cart`, `checkout`, `account`, `portal`, `inventory`, `pricing`
+Bounded contexts: `product`, `cart`, `checkout`, `account`, `portal`, `inventory`, `pricing`, `backoffice`
 
 Each context follows:
 ```
@@ -41,11 +33,11 @@ Each context follows:
 ```
 
 Shared kernel: `de.sample.aiarchitecture.sharedkernel`
-- `marker/tactical/` — `AggregateRoot`, `Entity`, `Value`, `Id`, `DomainEvent`, `IntegrationEvent`, `DomainService`, `Factory`, `Specification`
-- `marker/strategic/` — `@BoundedContext`, `@SharedKernel`
+- `marker/tactical/` — `AggregateRoot`, `BaseAggregateRoot`, `Entity`, `Value`, `Id`, `DomainEvent`, `IntegrationEvent`, `@IntegrationEventType`, `DomainService`, `DomainGateway`, `Factory`, `Specification`
+- `marker/strategic/` — `@BoundedContext`, `@SharedKernel`, `@OpenHostService`
 - `marker/port/in/` — `InputPort`, `UseCase<INPUT, OUTPUT>`
-- `marker/port/out/` — `OutputPort`, `Repository<T, ID>`, `DomainEventPublisher`, `IdentityProvider`
-- `domain/model/` — Shared value objects (`ProductId`, `Money`, `UserId`, etc.)
+- `marker/port/out/` — `OutputPort`, `Repository<T, ID>`, `Store`, `DomainEventPublisher`, `IntegrationEventPublisher`, `IdentityProvider`
+- `domain/model/` — Shared value objects (`Money`, `Price`, `ProductId`, `UserId`, `PagingRequest`, `PageResult`)
 
 ## Tactical Pattern Rules
 
@@ -78,15 +70,21 @@ Shared kernel: `de.sample.aiarchitecture.sharedkernel`
 ### Domain Events
 - Implement `DomainEvent` interface
 - Use records for immutability
-- Must have: `UUID eventId()`, `Instant occurredOn()`, `int version()`
-- Name in **past tense** (e.g., `ProductPriceChanged`, `OrderPlaced`)
+- Must have exactly: `UUID eventId()`, `Instant occurredOn()` — **no `version()`**. Domain events are internal to their bounded context and evolve freely; versioning belongs to integration events only
+- Name in **past tense**, no suffix (e.g., `ProductPriceChanged`, `CartCheckedOut`)
 - Provide `now()` static factory with auto-generated eventId and timestamp
 - Place in `{context}/domain/model/`
+- Register on the aggregate via `registerEvent(DomainEvent)`; the application layer publishes them after a successful `save()` and then calls `clearDomainEvents()`
 
 ### Integration Events
-- Extend `IntegrationEvent` (which extends `DomainEvent`)
-- Name with past tense + "Event" suffix (e.g., `OrderCreatedEvent`)
-- Used for cross-context communication
+Integration events are **not** domain events and do **not** belong to the domain layer.
+
+- Implement `IntegrationEvent` — a standalone interface requiring `UUID eventId()` and `Instant occurredOn()`. It does **not** extend `DomainEvent`
+- Place in `{context}/adapter/outgoing/event/` — they are adapter-layer DTOs, acting as an Anti-Corruption Layer between the internal model and external consumers
+- Name with past tense + `Event` suffix (e.g., `CartCheckedOutEvent`), while the domain event it derives from has no suffix (`CartCheckedOut`)
+- Declare the schema version as a **class property** via `@IntegrationEventType(name = "cart-checked-out", version = 1)` — never as a record component
+- Create them in an outgoing event adapter through a `from(DomainEvent)` factory method; an `@EventListener` on the internal domain event triggers the publication
+- Strict backward compatibility applies: bump `version` on breaking changes
 
 ### Domain Services
 - Implement `DomainService` marker interface
@@ -110,6 +108,10 @@ Shared kernel: `de.sample.aiarchitecture.sharedkernel`
 - Add domain-specific queries using ubiquitous language
 - Implementations go in `{context}/adapter/outgoing/` (e.g., `InMemoryProductRepository`)
 
+### Stores
+- Implement `Store` (extends `OutputPort`) for operational data that is **not** an aggregate — session state, projections, caches
+- Use a `Store`, not a `Repository`, when there is no aggregate root and no invariant to protect
+
 ## Critical Constraints
 
 1. **Zero-dependency domain**: No Spring, JPA, Hibernate, or framework annotations in `domain/` packages
@@ -119,7 +121,8 @@ Shared kernel: `de.sample.aiarchitecture.sharedkernel`
 
 ## Workflow
 
-1. Use Serena's `get_symbols_overview` and `find_symbol` to explore existing domain models efficiently
+1. Explore the existing domain model before writing: `Glob` for the context's packages, `Grep` for
+   the marker interface a concept implements, `Read` for the aggregate you are extending
 2. Understand the bounded context's ubiquitous language before coding
 3. Implement following the patterns above
 4. Run `./gradlew test-architecture` to verify architectural compliance

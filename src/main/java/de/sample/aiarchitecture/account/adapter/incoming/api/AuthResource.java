@@ -84,7 +84,13 @@ public class AuthResource {
     final String currentUserId = identityProvider.getCurrentIdentity().userId().value();
 
     final RegisterAccountCommand command =
-        new RegisterAccountCommand(request.email(), request.password(), currentUserId);
+        new RegisterAccountCommand(
+            request.email(),
+            request.password(),
+            currentUserId,
+            request.firstName(),
+            request.lastName(),
+            request.dateOfBirth());
 
     try {
       final RegisterAccountResult result = registerAccountUseCase.execute(command);
@@ -105,7 +111,7 @@ public class AuthResource {
 
   @PostMapping("/logout")
   public ResponseEntity<Void> logout() {
-    identitySession.clearIdentity();
+    identitySession.logOut();
     return ResponseEntity.ok().build();
   }
 }

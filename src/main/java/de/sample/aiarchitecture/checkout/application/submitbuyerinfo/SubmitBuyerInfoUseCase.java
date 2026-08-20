@@ -4,6 +4,7 @@ import de.sample.aiarchitecture.checkout.application.shared.CheckoutSessionRepos
 import de.sample.aiarchitecture.checkout.domain.model.BuyerInfo;
 import de.sample.aiarchitecture.checkout.domain.model.CheckoutSession;
 import de.sample.aiarchitecture.checkout.domain.model.CheckoutSessionId;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubmitBuyerInfoUseCase implements SubmitBuyerInfoInputPort {
 
   private final CheckoutSessionRepository checkoutSessionRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public SubmitBuyerInfoUseCase(final CheckoutSessionRepository checkoutSessionRepository) {
+  public SubmitBuyerInfoUseCase(
+      final CheckoutSessionRepository checkoutSessionRepository,
+      final DomainEventPublisher eventPublisher) {
     this.checkoutSessionRepository = checkoutSessionRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -51,6 +56,8 @@ public class SubmitBuyerInfoUseCase implements SubmitBuyerInfoInputPort {
 
     // Save session
     checkoutSessionRepository.save(session);
+
+    eventPublisher.publishAndClearEvents(session);
 
     // Map to response
     return mapToResponse(session);

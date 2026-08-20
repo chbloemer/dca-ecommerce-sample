@@ -1,9 +1,15 @@
 # ADR-006: Domain Events as Immutable Records
 
 **Date**: October 24, 2025
-**Status**: ✅ Accepted
+**Status**: ✅ Accepted — partially superseded by [ADR-027](adr-027-integration-event-contract-identity.md)
 **Deciders**: Architecture Team
 **Priority**: ⭐⭐⭐⭐
+
+> **Note:** The `int version()` method shown in this record's interface examples no longer exists.
+> [ADR-027](adr-027-integration-event-contract-identity.md) moved the version to a class property
+> (`@IntegrationEventType`) on integration events, and domain events carry no version at all. The
+> decisions on immutability, records, value equality and past-tense naming are unchanged. The
+> original text is kept as written.
 
 ---
 

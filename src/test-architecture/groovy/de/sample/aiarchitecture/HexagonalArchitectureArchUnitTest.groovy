@@ -26,7 +26,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     expect:
     noClasses()
       .that().resideInAPackage(DOMAIN_MODEL_PACKAGE)
-      .should().accessClassesThat().resideInAPackage(ADAPTER_PACKAGE)
+      .should().dependOnClassesThat().resideInAPackage(ADAPTER_PACKAGE)
       .because("Domain should not depend on adapters (ports and adapters pattern)")
       .check(allClasses)
   }
@@ -35,7 +35,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     expect:
     noClasses()
       .that().resideInAPackage(APPLICATION_PACKAGE)
-      .should().accessClassesThat().resideInAPackage(ADAPTER_PACKAGE)
+      .should().dependOnClassesThat().resideInAPackage(ADAPTER_PACKAGE)
       .because("Application services should only depend on domain and outbound ports, not adapters")
       .check(allClasses)
   }
@@ -59,7 +59,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     noClasses()
       .that().resideInAPackage(INCOMING_ADAPTER_PACKAGE)
       .should().dependOnClassesThat(INFRASTRUCTURE_IMPLEMENTATION)
-      .because("Incoming adapters should only use outbound ports from sharedkernel.application.port, not infrastructure implementation details")
+      .because("Incoming adapters should only use outbound ports declared as interfaces (sharedkernel.marker.port.out), not infrastructure implementation details")
       .check(allClasses)
   }
 
@@ -68,7 +68,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     noClasses()
       .that().resideInAPackage(OUTGOING_ADAPTER_PACKAGE)
       .should().dependOnClassesThat(INFRASTRUCTURE_IMPLEMENTATION)
-      .because("Outgoing adapters should only use outbound ports from sharedkernel.application.port, not infrastructure implementation details")
+      .because("Outgoing adapters should only use outbound ports declared as interfaces (sharedkernel.marker.port.out), not infrastructure implementation details")
       .check(allClasses)
   }
 
@@ -112,7 +112,7 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
         noClasses()
           .that().resideInAPackage("${contextPackage}.adapter.incoming..")
             .and().resideOutsideOfPackage("..adapter.incoming.event..")
-          .should().accessClassesThat().resideInAnyPackage(otherContextPatterns)
+          .should().dependOnClassesThat().resideInAnyPackage(otherContextPatterns)
           .allowEmptyShould(true)
           .because("Incoming adapters in '${contextName}' must only orchestrate use cases from their own bounded context - use domain events for cross-context integration")
           .check(allClasses)
@@ -120,20 +120,12 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
     }
   }
 
-  def "Outgoing adapters may access Open Host Services from other contexts"() {
-    given:
-    Map<String, BoundedContext> boundedContexts = discoverBoundedContextPackages()
-    List<String> contextPackages = boundedContexts.keySet().toList()
+  // Note: that outgoing adapters MAY access other contexts' Open Host Services is not a
+  // testable rule — a permission has no violation. The enforceable half lives in
+  // DddStrategicPatternsArchUnitTest: "Outgoing adapters accessing other contexts must
+  // only use OpenHostService classes (except allowed ACL patterns)".
 
-    expect:
-    // This is a "positive" test documenting the allowed pattern:
-    // Outgoing adapters may access api/ packages from other contexts (Open Host Services)
-    // This is verified by the successful compilation and the stricter tests in DddStrategicPatternsArchUnitTest
-    // that ensure outgoing adapters do NOT access domain or application layers of other contexts
-    true // Pattern verification: outgoing adapters call Open Host Services via api/ packages
-  }
-
-  def "Repository Implementations must reside in portadapter.outgoing package"() {
+  def "Classes named *Repository must reside in the outgoing adapter package"() {
     expect:
     ArchRuleDefinition.classes()
       .that().haveSimpleNameEndingWith("Repository")
@@ -150,6 +142,22 @@ class HexagonalArchitectureArchUnitTest extends BaseArchUnitTest {
       .and().areInterfaces()
       .should().beAssignableTo(OutputPort.class)
       .because("Interfaces in application.shared are output ports and must extend OutputPort to be part of the port hierarchy")
+      .check(allClasses)
+  }
+
+  def "Output ports must not reside in the domain layer"() {
+    expect:
+    // Repository/Store/OutputPort interfaces belong to the application layer (application/shared/),
+    // never to domain/ - the domain must stay port-free and framework-free. This catches the case
+    // where a *Repository is declared next to the aggregate in domain.model instead of being moved
+    // to application.shared, which the rule above cannot detect on its own since it only scopes
+    // application.shared and silently passes when the port isn't there at all.
+    noClasses()
+      .that().areAssignableTo(OUTPUT_PORT_MARKER)
+      .and().areInterfaces()
+      .should().resideInAPackage(DOMAIN_PACKAGE)
+      .because("output ports (Repository, Store, OutputPort) are an application-layer concern and must live in application/shared/, not domain/")
+      .allowEmptyShould(true)
       .check(allClasses)
   }
 }

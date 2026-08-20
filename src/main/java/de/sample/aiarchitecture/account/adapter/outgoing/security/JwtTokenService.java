@@ -112,6 +112,53 @@ public class JwtTokenService implements TokenService {
   }
 
   /**
+   * The outcome of validating a token.
+   *
+   * <p>Expiry and a failed signature check are kept apart deliberately (ADR-029): an expired token
+   * is the routine end of a session and must not raise an alarm, while an unreadable one is either
+   * an attack or a bug. Collapsing both into an empty {@code Optional} erases that difference at
+   * the exact boundary where it matters.
+   */
+  public sealed interface TokenValidation {
+
+    /** The token verified and is within its validity period. */
+    record Valid(IdentityProvider.Identity identity) implements TokenValidation {}
+
+    /** The token verified but its validity period has passed — expected, not an error. */
+    record Expired() implements TokenValidation {}
+
+    /** The token did not verify: bad signature, wrong issuer or malformed. */
+    record Unreadable(String reason) implements TokenValidation {}
+  }
+
+  /**
+   * Validates a token and reports what happened.
+   *
+   * @param token the JWT token to validate
+   * @return the validation outcome, never {@code null}
+   */
+  public TokenValidation validate(final String token) {
+    try {
+      final Claims claims =
+          Jwts.parser()
+              .verifyWith(secretKey)
+              .requireIssuer(properties.issuer())
+              .build()
+              .parseSignedClaims(token)
+              .getPayload();
+
+      return new TokenValidation.Valid(buildIdentityFromClaims(claims));
+
+    } catch (final ExpiredJwtException e) {
+      LOG.debug("JWT token expired: {}", e.getMessage());
+      return new TokenValidation.Expired();
+    } catch (final JwtException | IllegalArgumentException e) {
+      LOG.warn("Unreadable JWT token: {}", e.getMessage());
+      return new TokenValidation.Unreadable(e.getMessage());
+    }
+  }
+
+  /**
    * Validates and parses a JWT token, returning the Identity if valid.
    *
    * @param token the JWT token to validate

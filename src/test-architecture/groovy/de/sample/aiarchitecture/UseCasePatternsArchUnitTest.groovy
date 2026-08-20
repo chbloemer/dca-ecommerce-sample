@@ -3,7 +3,13 @@ package de.sample.aiarchitecture
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 
+import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.core.domain.JavaModifier
+import com.tngtech.archunit.lang.ArchCondition
+import com.tngtech.archunit.lang.ConditionEvents
+import com.tngtech.archunit.lang.SimpleConditionEvent
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.Repository
 
 /**
  * ArchUnit tests for Use Case and Mapping Patterns.
@@ -50,7 +56,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
     classes()
       .that().haveSimpleNameEndingWith("Command")
       .and().resideInAnyPackage(BASE_PACKAGE + "..")
-      .should().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
+      .should().resideInAnyPackage(APPLICATION_PACKAGE)
       .because("Use case commands should be in application layer (CQRS pattern)")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -61,7 +67,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
     classes()
       .that().haveSimpleNameEndingWith("Query")
       .and().resideInAnyPackage(BASE_PACKAGE + "..")
-      .should().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
+      .should().resideInAnyPackage(APPLICATION_PACKAGE)
       .because("Use case queries should be in application layer (CQRS pattern)")
       .allowEmptyShould(true)
       .check(allClasses)
@@ -71,7 +77,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().haveSimpleNameEndingWith("Command")
-      .and().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
+      .and().resideInAnyPackage(APPLICATION_PACKAGE)
       .and().areNotInterfaces()
       .and().areNotRecords()
       .should().haveModifier(JavaModifier.FINAL)
@@ -84,7 +90,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().haveSimpleNameEndingWith("Query")
-      .and().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
+      .and().resideInAnyPackage(APPLICATION_PACKAGE)
       .and().areNotInterfaces()
       .and().areNotRecords()
       .should().haveModifier(JavaModifier.FINAL)
@@ -94,7 +100,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
   }
 
   // ============================================================================
-  // USE CASE RESULT MODEL PATTERN (ADR-020)
+  // USE CASE RESULT MODEL PATTERN
   // Application layer uses *Result, Adapter layer uses *Response
   // ============================================================================
 
@@ -104,8 +110,8 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
       .that().haveSimpleNameEndingWith("Result")
       .and().resideInAnyPackage(BASE_PACKAGE + "..")
       .and().doNotImplement(de.sample.aiarchitecture.sharedkernel.marker.tactical.Value.class)
-      .should().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
-      .because("Use case result models should be in application layer (ADR-020: Application layer uses *Result). Domain Value Objects with 'Result' in name are allowed in domain layer.")
+      .should().resideInAnyPackage(APPLICATION_PACKAGE)
+      .because("Use case result models should be in application layer. Domain Value Objects with 'Result' in name are allowed in domain layer.")
       .allowEmptyShould(true)
       .check(allClasses)
   }
@@ -114,7 +120,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
     expect:
     classes()
       .that().haveSimpleNameEndingWith("Result")
-      .and().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
+      .and().resideInAnyPackage(APPLICATION_PACKAGE)
       .and().areNotInterfaces()
       .and().areNotRecords()
       .should().haveModifier(JavaModifier.FINAL)
@@ -125,15 +131,52 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
 
   def "HTTP Response Models must end with 'Response' and reside in adapter incoming package"() {
     expect:
-    // Use allIncomingAdapterPatterns() — covers all bounded contexts via @BoundedContext
+    // Matched by pattern: every incoming adapter, in any context or none.
     // discovery PLUS the @SharedKernel-annotated module's adapter, where cross-cutting
     // Response classes (ErrorResponse, base Response, SimpleResponse) typically live.
     // Hardcoded context lists are fragile — they break the moment a new context is added.
     classes()
       .that().haveSimpleNameEndingWith("Response")
       .and().resideInAnyPackage(BASE_PACKAGE + "..")
-      .should().resideInAnyPackage(allIncomingAdapterPatterns())
-      .because("HTTP response models should be in adapter incoming layer (ADR-020: Adapter layer uses *Response)")
+      .should().resideInAPackage(INCOMING_ADAPTER_PACKAGE)
+      .because("HTTP response models should be in adapter incoming layer")
+      .allowEmptyShould(true)
+      .check(allClasses)
+  }
+
+
+  // ============================================================================
+  // DOMAIN EVENT PUBLICATION (Use Case obligation)
+  // ============================================================================
+
+  def "Use cases that save an aggregate must publish its domain events"() {
+    given:
+    ArchCondition<JavaClass> publishAfterSaving =
+      new ArchCondition<JavaClass>("publish the aggregate's domain events after saving it") {
+        @Override
+        void check(JavaClass item, ConditionEvents events) {
+          boolean savesAnAggregate = item.methodCallsFromSelf.any {
+            it.target.name == "save" && it.targetOwner.isAssignableTo(Repository)
+          }
+          if (!savesAnAggregate) {
+            return
+          }
+          boolean publishes = item.methodCallsFromSelf.any {
+            it.target.name == "publishAndClearEvents" && it.targetOwner.isAssignableTo(DomainEventPublisher)
+          }
+          events.add(publishes
+            ? SimpleConditionEvent.satisfied(item, "${item.simpleName} publishes after saving")
+            : SimpleConditionEvent.violated(item, "${item.simpleName} saves an aggregate without publishing its domain events"))
+        }
+      }
+
+    expect:
+    classes()
+      .that().resideInAPackage(APPLICATION_PACKAGE)
+      .and().haveSimpleNameEndingWith("UseCase")
+      .and().areNotInterfaces()
+      .should(publishAfterSaving)
+      .because("A saved aggregate must not keep its events: unpublished, they are lost, and stored on the instance they may later be published out of context. Publishing belongs after the save, in the use case that owns the unit of work - even when the action raised no event")
       .allowEmptyShould(true)
       .check(allClasses)
   }
@@ -145,7 +188,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
   def "DTOs must not be used in the Domain Layer"() {
     expect:
     noClasses()
-      .that().resideInAnyPackage(PRODUCT_DOMAIN_PACKAGE, CART_DOMAIN_PACKAGE, CHECKOUT_DOMAIN_PACKAGE, ACCOUNT_DOMAIN_PACKAGE, INVENTORY_DOMAIN_PACKAGE, PRICING_DOMAIN_PACKAGE, SHAREDKERNEL_DOMAIN_PACKAGE)
+      .that().resideInAnyPackage(DOMAIN_PACKAGE)
       .should().dependOnClassesThat().haveSimpleNameEndingWith("Dto")
       .because("Domain layer should not depend on DTOs (presentation concerns) - Dependency Inversion Principle")
       .check(allClasses)
@@ -154,7 +197,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
   def "DTOs must not be used in the Application Layer"() {
     expect:
     noClasses()
-      .that().resideInAnyPackage(PRODUCT_APPLICATION_PACKAGE, CART_APPLICATION_PACKAGE, CHECKOUT_APPLICATION_PACKAGE, ACCOUNT_APPLICATION_PACKAGE, INVENTORY_APPLICATION_PACKAGE, PRICING_APPLICATION_PACKAGE, BACKOFFICE_APPLICATION_PACKAGE)
+      .that().resideInAnyPackage(APPLICATION_PACKAGE)
       .should().dependOnClassesThat().haveSimpleNameEndingWith("Dto")
       .because("Application layer should use Command/Query/Response models, not presentation DTOs (Clean Architecture)")
       .allowEmptyShould(true)

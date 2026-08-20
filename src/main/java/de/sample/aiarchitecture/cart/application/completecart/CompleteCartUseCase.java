@@ -3,6 +3,7 @@ package de.sample.aiarchitecture.cart.application.completecart;
 import de.sample.aiarchitecture.cart.application.shared.ShoppingCartRepository;
 import de.sample.aiarchitecture.cart.domain.model.CartId;
 import de.sample.aiarchitecture.cart.domain.model.ShoppingCart;
+import de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CompleteCartUseCase implements CompleteCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public CompleteCartUseCase(final ShoppingCartRepository shoppingCartRepository) {
+  public CompleteCartUseCase(
+      final ShoppingCartRepository shoppingCartRepository,
+      final DomainEventPublisher eventPublisher) {
     this.shoppingCartRepository = shoppingCartRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -40,6 +45,8 @@ public class CompleteCartUseCase implements CompleteCartInputPort {
 
     // Persist
     shoppingCartRepository.save(cart);
+
+    eventPublisher.publishAndClearEvents(cart);
 
     return new CompleteCartResult(cart.id().value().toString(), cart.status().name());
   }

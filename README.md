@@ -8,7 +8,7 @@ This project showcases best practices for structuring a Spring Boot application 
 - **Product Catalog** - Product management with enriched views (pricing + stock from other contexts)
 - **Shopping Cart** - Customer shopping cart management with article price resolution
 - **Checkout** - Multi-step checkout flow with session management
-- **Account** - User registration and authentication
+- **Account** - User registration, authentication and account self-service (overview, profile, change password)
 - **Portal** - Application home page and navigation
 - **Inventory** - Stock level management (Open Host Service)
 - **Pricing** - Product pricing management (Open Host Service)
@@ -19,12 +19,13 @@ This project showcases best practices for structuring a Spring Boot application 
 - **AI-Accessible Product Catalog** via MCP server (Spring AI 2.0.0-M2)
 - **Spring Modulith** for framework-enforced module boundaries and event-driven cross-module communication
 - **Complete Architecture Testing** with ArchUnit (10 test suites) and Spring Modulith verification
-- **24 Architecture Decision Records** documenting design choices
+- **31 Architecture Decision Records** documenting design choices
 - **Shared Kernel** pattern for cross-context value objects
 - **Framework-Independent Domain** layer (no Spring/JPA in core)
 - **Multi-step Checkout Flow** with 5 steps and session management
 - **Specification Pattern with Visitor** for database-agnostic cart filtering
-- **Multiple Persistence Strategies** (InMemory, JPA, JDBC) for shopping cart
+- **Multiple Persistence Strategies** (InMemory, JPA, JDBC) — cart via JPA, account via JDBC, both
+  against H2; every adapter hands out copies, never the stored instance (ADR-031)
 
 ## Architecture Patterns
 
@@ -44,7 +45,7 @@ This project showcases best practices for structuring a Spring Boot application 
 - **Domain Services**: PricingService, CartTotalCalculator, CheckoutStepValidator
 - **Domain Events**: ProductCreated, CartCheckedOut, CartItemAddedToCart, CartItemQuantityChanged, ProductRemovedFromCart, CartCleared, CheckoutSessionStarted, CheckoutConfirmed, AccountRegistered, PriceChanged, StockChanged, etc.
 - **Factories**: ProductFactory, EnrichedCartFactory, CheckoutCartFactory
-- **Specifications**: ProductAvailabilitySpecification, CartSpecification (with Visitor pattern: ActiveCart, HasMinTotal, HasAnyAvailableItem, LastUpdatedBefore, CustomerAllowsMarketing)
+- **Specifications**: CartSpecification (with Visitor pattern: ActiveCart, HasMinTotal, HasAnyAvailableItem, LastUpdatedBefore, CustomerAllowsMarketing)
 
 ### Clean Architecture
 
@@ -133,13 +134,10 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── ProductName.java
 │   │   │   ├── ProductDescription.java
 │   │   │   ├── ProductArticle.java
-│   │   │   ├── ProductStock.java
 │   │   │   ├── EnrichedProduct.java      # Enriched read model
 │   │   │   ├── Category.java
 │   │   │   ├── ImageUrl.java
 │   │   │   └── ProductFactory.java       # Factory
-│   │   ├── specification/                # Specifications
-│   │   │   └── ProductAvailabilitySpecification.java
 │   │   ├── service/                      # Domain services
 │   │   │   └── PricingService.java
 │   │   └── event/                        # Domain events
@@ -163,11 +161,6 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── GetProductByIdUseCase.java
 │   │   │   ├── GetProductByIdQuery.java
 │   │   │   └── GetProductByIdResult.java
-│   │   ├── reduceproductstock/           # Use case: Reduce Product Stock
-│   │   │   ├── ReduceProductStockInputPort.java
-│   │   │   ├── ReduceProductStockUseCase.java
-│   │   │   ├── ReduceProductStockCommand.java
-│   │   │   └── ReduceProductStockResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── ProductRepository.java
 │   │       ├── PricingDataPort.java      # Port for pricing data from Pricing context
@@ -188,9 +181,7 @@ src/main/java/de/sample/aiarchitecture/
 │       │   │   ├── ProductCatalogPageViewModel.java
 │       │   │   └── ProductDetailPageViewModel.java
 │       │   └── event/
-│       │       ├── ProductEventConsumer.java
-│       │       └── acl/
-│       │           └── CheckoutEventTranslator.java  # Anti-corruption layer
+│       │       └── ProductEventConsumer.java
 │       └── outgoing/                     # Outgoing adapters (secondary)
 │           ├── event/
 │           │   └── ProductCreatedEventPublisher.java
@@ -302,8 +293,7 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   └── RecoverCartOnLoginResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── ShoppingCartRepository.java
-│   │       ├── ArticleDataPort.java      # Port for article data (prices + stock)
-│   │       └── ProductDataPort.java      # Port for product data from other context
+│   │       └── ArticleDataPort.java      # Port for article data (prices + stock)
 │   ├── infrastructure/                   # Per-context infrastructure
 │   │   └── CartDomainConfiguration.java
 │   └── adapter/                          # Adapters
@@ -482,8 +472,11 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── Account.java              # Aggregate Root
 │   │   │   ├── AccountId.java            # Value Objects
 │   │   │   ├── Email.java
+│   │   │   ├── Owner.java               # Name (fixed) + date of birth
 │   │   │   ├── HashedPassword.java
 │   │   │   └── AccountStatus.java
+│   │   ├── specification/                # Domain specifications
+│   │   │   └── UsableDateOfBirth.java    # Known, not in the future
 │   │   ├── service/                      # Domain services
 │   │   │   └── PasswordHasher.java       # Interface for password hashing
 │   │   └── event/                        # Domain events
@@ -491,6 +484,8 @@ src/main/java/de/sample/aiarchitecture/
 │   │       ├── AccountLinkedToIdentity.java
 │   │       ├── AccountLoggedIn.java
 │   │       ├── AccountPasswordChanged.java
+│   │       ├── AccountEmailChanged.java
+│   │       ├── AccountOwnerDateOfBirthChanged.java
 │   │       ├── AccountSuspended.java
 │   │       ├── AccountReactivated.java
 │   │       └── AccountClosed.java
@@ -505,6 +500,26 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   ├── AuthenticateAccountUseCase.java
 │   │   │   ├── AuthenticateAccountCommand.java
 │   │   │   └── AuthenticateAccountResult.java
+│   │   ├── getaccountoverview/           # Use case: Get Account Overview (read)
+│   │   │   ├── GetAccountOverviewInputPort.java
+│   │   │   ├── GetAccountOverviewUseCase.java
+│   │   │   ├── GetAccountOverviewQuery.java
+│   │   │   └── GetAccountOverviewResult.java
+│   │   ├── changepassword/               # Use case: Change Password
+│   │   │   ├── ChangePasswordInputPort.java
+│   │   │   ├── ChangePasswordUseCase.java
+│   │   │   ├── ChangePasswordCommand.java
+│   │   │   └── ChangePasswordResult.java
+│   │   ├── getprofile/                   # Use case: Get Profile (read, /account/profile)
+│   │   │   ├── GetProfileInputPort.java
+│   │   │   ├── GetProfileUseCase.java
+│   │   │   ├── GetProfileQuery.java
+│   │   │   └── GetProfileResult.java
+│   │   ├── changeprofile/                # Use case: Change Profile (email, date of birth)
+│   │   │   ├── ChangeProfileInputPort.java
+│   │   │   ├── ChangeProfileUseCase.java
+│   │   │   ├── ChangeProfileCommand.java
+│   │   │   └── ChangeProfileResult.java
 │   │   └── shared/                       # Shared output ports
 │   │       ├── AccountRepository.java
 │   │       ├── RegisteredUserValidator.java
@@ -522,10 +537,19 @@ src/main/java/de/sample/aiarchitecture/
 │       │   │   └── RegisterResponse.java
 │       │   └── web/
 │       │       ├── LoginPageController.java
-│       │       └── RegisterPageController.java
+│       │       ├── LogoutPageController.java
+│       │       ├── RegisterPageController.java
+│       │       ├── MyAccountPageController.java
+│       │       ├── MyAccountPageViewModel.java
+│       │       ├── ChangePasswordPageController.java
+│       │       ├── ChangePasswordPageViewModel.java
+│       │       ├── ProfilePageController.java
+│       │       ├── ProfilePageViewModel.java
+│       │       └── AccountNavigation.java
 │       └── outgoing/                     # Outgoing adapters
 │           ├── persistence/
-│           │   └── InMemoryAccountRepository.java
+│           │   ├── JdbcAccountRepository.java     # default (ADR-031)
+│           │   └── InMemoryAccountRepository.java # "inmemory" profile
 │           └── security/
 │               ├── SpringSecurityPasswordHasher.java
 │               ├── AccountBasedRegisteredUserValidator.java
@@ -947,6 +971,14 @@ These tests verify:
 - Email must be unique across all accounts
 - Password is hashed before storage (never stored in plain text)
 - Account status transitions: PENDING → ACTIVE → SUSPENDED/DELETED
+- An account belongs to an `Owner` (first name, last name, date of birth), captured at registration
+- The owner's **name can never be changed**: no operation on the aggregate accepts an `Owner` or
+  mentions a name, so `register` is the only way a name enters the system. The profile page
+  `/account/profile` shows it as text without an input
+- The profile page changes what may change — the email address and the owner's date of birth. The
+  buyer's name in the checkout context is a separate, per-order concept and stays editable there
+- Changing the email also changes the login credential, so the identity token is re-issued and the
+  session stays valid
 
 ## Further Reading
 

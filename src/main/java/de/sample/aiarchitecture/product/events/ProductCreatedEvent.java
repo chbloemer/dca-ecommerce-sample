@@ -3,6 +3,7 @@ package de.sample.aiarchitecture.product.events;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Money;
 import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent;
+import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEventType;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,18 +15,14 @@ import java.util.UUID;
  *
  * <p>Consumers: Pricing context (creates initial price), Inventory context (creates stock level).
  */
+@IntegrationEventType(name = "product-created", version = 1)
 public record ProductCreatedEvent(
-    UUID eventId,
-    ProductId productId,
-    Money initialPrice,
-    int initialStock,
-    Instant occurredOn,
-    int version)
+    UUID eventId, ProductId productId, Money initialPrice, int initialStock, Instant occurredOn)
     implements IntegrationEvent {
 
   /** Creates a new event from product creation data. */
   public static ProductCreatedEvent now(ProductId productId, Money initialPrice, int initialStock) {
     return new ProductCreatedEvent(
-        UUID.randomUUID(), productId, initialPrice, initialStock, Instant.now(), 1);
+        UUID.randomUUID(), productId, initialPrice, initialStock, Instant.now());
   }
 }

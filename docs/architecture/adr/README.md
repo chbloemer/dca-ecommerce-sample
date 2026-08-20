@@ -32,6 +32,12 @@ Architecture Decision Records capture important architectural decisions with con
 | [ADR-023](adr-023-optional-results-not-found.md) | Optional Results for Not-Found Cases | ✅ Accepted |
 | [ADR-024](adr-024-interface-inversion-spring-modulith.md) | Interface Inversion Pattern for Spring Modulith Event Listeners | ✅ Accepted |
 | [ADR-025](adr-025-pattern-selection-per-subdomain.md) | Pattern Selection per Subdomain Type | ✅ Accepted |
+| [ADR-026](adr-026-transactional-outbox-integration-events.md) | Transactional Outbox for Integration Events | ✅ Accepted |
+| [ADR-027](adr-027-integration-event-contract-identity.md) | Integration-Event Contract Identity via @IntegrationEventType | ✅ Accepted |
+| [ADR-028](adr-028-immutable-owner-name.md) | The Account Owner's Name Is Immutable by Type, Not by Rule | ✅ Accepted |
+| [ADR-029](adr-029-expiry-is-not-logout.md) | Session Expiry Ends the Session, Not the Identity | ✅ Accepted |
+| [ADR-030](adr-030-three-cookie-session-design.md) | Separate Cookies for Identity, Session and Renewal | ✅ Accepted (partially implemented) |
+| [ADR-031](adr-031-persistence-adapters-as-the-default.md) | A Repository Hands Out Copies — Real Persistence Is the Default | ✅ Accepted (account and cart converted) |
 
 ### Proposed 🟡
 

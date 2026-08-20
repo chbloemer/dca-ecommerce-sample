@@ -44,13 +44,9 @@ public class CheckoutConfirmedEventPublisher {
             domainEvent.customerId().value(),
             domainEvent.totalAmount(),
             items,
-            domainEvent.occurredOn(),
-            1);
+            domainEvent.occurredOn());
 
-    logger.info(
-        "Publishing CheckoutConfirmedEvent v{} for session: {}",
-        integrationEvent.version(),
-        integrationEvent.sessionId());
+    logger.info("Publishing CheckoutConfirmedEvent for session: {}", integrationEvent.sessionId());
 
     publisher.publishEvent(integrationEvent);
   }

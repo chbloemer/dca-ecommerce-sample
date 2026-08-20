@@ -2,6 +2,7 @@ package de.sample.aiarchitecture.account.domain.model;
 
 import de.sample.aiarchitecture.account.domain.gateway.PasswordHasher;
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.Value;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Value Object representing a securely hashed password.
@@ -33,6 +34,17 @@ public record HashedPassword(String hash) implements Value {
 
   /** Minimum password length requirement. */
   public static final int MIN_LENGTH = 8;
+
+  /**
+   * Maximum password length requirement, in UTF-8 bytes.
+   *
+   * <p>Measured in bytes rather than characters because that is what hashing algorithms bound:
+   * BCrypt silently truncates or rejects input beyond 72 bytes. Keeping the domain limit at that
+   * value means the policy decides which passwords are acceptable and the hashing adapter never has
+   * to — a longer password is rejected here, as a rule, instead of failing inside {@link
+   * PasswordHasher} where it would surface as a fault.
+   */
+  public static final int MAX_BYTE_LENGTH = 72;
 
   public HashedPassword {
     if (hash == null || hash.isBlank()) {
@@ -91,6 +103,7 @@ public record HashedPassword(String hash) implements Value {
    *
    * <ul>
    *   <li>Minimum 8 characters
+   *   <li>At most {@value #MAX_BYTE_LENGTH} bytes when UTF-8 encoded
    *   <li>At least one uppercase letter
    *   <li>At least one lowercase letter
    *   <li>At least one digit
@@ -103,6 +116,10 @@ public record HashedPassword(String hash) implements Value {
     if (plaintext == null || plaintext.length() < MIN_LENGTH) {
       throw new IllegalArgumentException(
           "Password must be at least " + MIN_LENGTH + " characters long");
+    }
+    if (plaintext.getBytes(StandardCharsets.UTF_8).length > MAX_BYTE_LENGTH) {
+      throw new IllegalArgumentException(
+          "Password must not be longer than " + MAX_BYTE_LENGTH + " bytes (UTF-8 encoded)");
     }
 
     boolean hasUpper = false;

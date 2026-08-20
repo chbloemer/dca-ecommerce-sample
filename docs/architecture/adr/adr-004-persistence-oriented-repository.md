@@ -266,7 +266,7 @@ public interface ProductRepository extends Repository<Product, ProductId> {
 ### In-Memory Implementation
 
 ```java
-// portadapter/outgoing/product/InMemoryProductRepository.java
+// product/adapter/outgoing/persistence/InMemoryProductRepository.java
 @Repository
 public class InMemoryProductRepository implements ProductRepository {
 

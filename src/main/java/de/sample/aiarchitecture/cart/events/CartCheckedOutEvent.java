@@ -3,6 +3,7 @@ package de.sample.aiarchitecture.cart.events;
 import de.sample.aiarchitecture.sharedkernel.domain.model.Money;
 import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;
 import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent;
+import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEventType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
  * <p>This event is published for cross-module consumption. Internal domain event {@code
  * CartCheckedOut} is converted to this integration event by {@code CartCheckedOutEventPublisher}.
  */
+@IntegrationEventType(name = "cart-checked-out", version = 1)
 public record CartCheckedOutEvent(
     UUID eventId,
     UUID cartId,
@@ -20,8 +22,7 @@ public record CartCheckedOutEvent(
     Money totalAmount,
     int itemCount,
     List<ItemInfo> items,
-    Instant occurredOn,
-    int version)
+    Instant occurredOn)
     implements IntegrationEvent {
 
   /**

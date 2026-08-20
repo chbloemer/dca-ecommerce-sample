@@ -4131,6 +4131,304 @@
         ]
       },
       "passes": true
+    },
+    {
+      "id": "US-140",
+      "epic": "account-context",
+      "title": "My Account Area with Overview Page and Left Navigation",
+      "description": "Registered users have no self-service area. Add a \"My Account\" area at /account with a personalised welcome page showing the account's email and last login, and a left navigation listing the account pages. Pages that do not exist yet (My Profile, My Orders) are rendered as disabled placeholders. The header link to the area sits left of the quick basket and is only shown to registered users.",
+      "depends_on": [
+        "US-43",
+        "US-137"
+      ],
+      "acceptance_criteria": [
+        "GET /account with a registered identity holding an accessible account renders the overview page",
+        "The page greets the user and shows the account email and the formatted last login (\"Never\" when the account has never logged in)",
+        "The left navigation renders four items in the order Overview, My Profile, Change Password, My Orders",
+        "Overview is an active link to /account; not-yet-implemented items render as non-navigable elements with aria-disabled=\"true\"",
+        "An anonymous visitor is redirected to /login?returnUrl=%2Faccount instead of seeing the page",
+        "A registered identity whose account is missing or cannot log in (SUSPENDED, CLOSED) is redirected instead of throwing",
+        "The header shows a \"My Account\" link left of the quick basket, only for registered users",
+        "Every element the future E2E suite binds to carries a data-test attribute",
+        "Architecture tests pass without violations"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [
+          "application",
+          "adapter"
+        ],
+        "locations": [
+          "account.application.getaccountoverview/GetAccountOverviewInputPort, GetAccountOverviewUseCase, GetAccountOverviewQuery, GetAccountOverviewResult",
+          "account.adapter.incoming.web/MyAccountPageController, MyAccountPageViewModel, AccountNavigation",
+          "src/main/resources/templates/account/overview.pug",
+          "src/main/resources/templates/layout.pug"
+        ],
+        "patterns": [
+          "Use Case with Input Port",
+          "Query/Result (read-only)",
+          "Page Controller",
+          "ViewModel",
+          "Optional Result for not-found (ADR-023)"
+        ],
+        "constraints": [
+          "No domain change needed — Account and AccountRepository already suffice",
+          "The read use case is @Transactional(readOnly = true) and performs no write",
+          "The use case applies the account-lifecycle rule: an account that cannot log in is reported as absent, the same rule the login path enforces",
+          "The Result projects primitives only; no Account aggregate crosses the port boundary",
+          "Formatting and navigation live in the adapter ViewModel, never in the application layer",
+          "The redirect decision belongs to the adapter — the application layer reports state, not HTTP",
+          "Run `./gradlew test-architecture` to verify architectural compliance"
+        ]
+      },
+      "passes": true
+    },
+    {
+      "id": "US-141",
+      "epic": "account-context",
+      "title": "Change Password from the My Account Area",
+      "description": "Registered users cannot change their password. Add a Change Password page in the account area requiring the current password plus a new password and its confirmation, and turn the \"Change Password\" navigation placeholder into a real link.",
+      "depends_on": [
+        "US-140"
+      ],
+      "acceptance_criteria": [
+        "The change-password navigation item is a real link to /account/change-password; My Profile and My Orders stay placeholders",
+        "GET /account/change-password renders the form with current password, new password and confirmation fields in that order",
+        "An anonymous visitor is redirected to /login?returnUrl=%2Faccount%2Fchange-password on both GET and POST, without the use case being invoked",
+        "A wrong current password re-renders the page with an error and changes nothing",
+        "A confirmation mismatch re-renders the page with an error and never reaches the use case",
+        "The mismatch message wins over a wrong current password",
+        "A new password violating the password policy re-renders with the policy's message",
+        "A successful change redirects back to the page with a flash success message",
+        "After a successful change the new password authenticates and the old one no longer does",
+        "An error re-render never puts a submitted password back into the model or the markup",
+        "The use case saves the account, then publishes exactly one AccountPasswordChanged and clears the aggregate's events",
+        "No token is issued and no session is touched by the change — neither TokenService nor IdentitySession is a collaborator",
+        "Architecture tests pass without violations"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [
+          "application",
+          "adapter"
+        ],
+        "locations": [
+          "account.application.changepassword/ChangePasswordInputPort, ChangePasswordUseCase, ChangePasswordCommand, ChangePasswordResult",
+          "account.adapter.incoming.web/ChangePasswordPageController, ChangePasswordPageViewModel, AccountLoginRedirect",
+          "src/main/resources/templates/account/change-password.pug",
+          "src/main/resources/templates/account/_nav.pug"
+        ],
+        "patterns": [
+          "Use Case with Input Port",
+          "Command/Result",
+          "Page Controller",
+          "Redirect-After-POST",
+          "Flash Message",
+          "Outcome enum instead of exceptions for expected business cases"
+        ],
+        "constraints": [
+          "No domain change needed — Account.changePassword and Account.checkPassword already exist",
+          "The current password is verified in the application layer via account.checkPassword, following AuthenticateAccountUseCase",
+          "The use case gates on account.status().canLogin() — Account.changePassword only blocks the terminal status",
+          "Publish domain events after the save, then clear them on the aggregate",
+          "Only a password-policy violation may become NEW_PASSWORD_REJECTED; a hasher failure is a fault and must propagate, because the controller renders the message to the user verbatim",
+          "The account navigation markup is shared between the account pages via a template partial, not copied",
+          "Run `./gradlew test-architecture` to verify architectural compliance"
+        ]
+      },
+      "passes": true
+    },
+    {
+      "id": "US-142",
+      "epic": "account-context",
+      "title": "Password Policy with a Maximum Length",
+      "description": "The password policy had no upper bound, so an over-long password reached BCrypt, which rejects input beyond 72 bytes. The resulting technical message was rendered to the user as if it were a password rule. Give the policy an explicit maximum so it decides which passwords are acceptable and the hashing adapter never has to.",
+      "depends_on": [
+        "US-141"
+      ],
+      "acceptance_criteria": [
+        "A password exactly at the maximum is accepted; one byte over is rejected with a message naming the limit",
+        "The maximum is measured in UTF-8 bytes, so a password under the limit in characters but over it in bytes is rejected",
+        "The length rule is checked before the character-class rules, so an over-long password is not reported as a missing uppercase letter",
+        "Registration and change password both enforce the rule — it lives in one place",
+        "No password can reach the PasswordHasher and be rejected there; a hasher failure surfaces as a fault, not as user-facing password feedback",
+        "The password fields of the registration and change-password forms carry maxlength as a convenience hint",
+        "The policy is named in the account context's Ubiquitous Language glossary",
+        "Architecture tests pass without violations"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [
+          "domain",
+          "application",
+          "adapter"
+        ],
+        "locations": [
+          "account.domain.model/HashedPassword (MAX_BYTE_LENGTH, validatePasswordStrength)",
+          "account.application.changepassword/ChangePasswordUseCase",
+          "src/main/java/de/sample/aiarchitecture/account/domain/glossary.md",
+          "src/main/resources/templates/account/register.pug",
+          "src/main/resources/templates/account/change-password.pug"
+        ],
+        "patterns": [
+          "Value Object invariant",
+          "Domain policy in one place"
+        ],
+        "constraints": [
+          "The rule belongs to the domain, not to the hashing adapter or a controller",
+          "Measure the maximum in bytes, not characters — a character limit still lets multi-byte passwords exceed the hasher's bound",
+          "No Spring annotations in the domain layer",
+          "Narrow the use case's catch to the policy decision, so only a policy violation becomes a user-facing rejection",
+          "Promote the policy to a Specification once a second component needs to evaluate it without creating a password",
+          "Run `./gradlew test-architecture` to verify architectural compliance"
+        ]
+      },
+      "passes": true
+    },
+    {
+      "id": "US-143",
+      "epic": "platform-upgrade",
+      "title": "Upgrade to spring-pug4j 3.7.1 — Fix Record Accessor Memoization",
+      "description": "pug4j 3.0.0 memoised method calls on Java records per compiled template. Every `each` loop over records rendered the first element N times, and the cached value survived across renders — in a Spring singleton engine that means across requests and users. Symptoms: the product catalog showed one product eleven times, the account navigation rendered \"Overview\" four times, and the header showed Login/Register to logged-in users because an earlier anonymous request's identity.isAnonymous() was reused. Upgrade to spring-pug4j 3.7.1, which brings pug4j 3.1.1 with the fix.",
+      "depends_on": [
+        "US-130"
+      ],
+      "acceptance_criteria": [
+        "spring-pug4j 3.7.1 resolves pug4j 3.1.1 transitively; no explicit pug4j pin is needed",
+        "The product catalog renders every product distinctly",
+        "The account navigation renders all four items distinctly, with only the current page active",
+        "A logged-in user sees the My Account link, the greeting and the logout button in the header",
+        "A value read per request is never reused across requests",
+        "Build, unit, architecture and integration tests pass"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [
+          "infrastructure"
+        ],
+        "locations": [
+          "build.gradle",
+          "src/main/java/de/sample/aiarchitecture/infrastructure/config/Pug4jConfiguration.java"
+        ],
+        "patterns": [
+          "Dependency upgrade"
+        ],
+        "constraints": [
+          "Do not work around the bug in templates by replacing method calls with property access — fix the dependency",
+          "A green build does not prove the fix: the defect was invisible to every unit and architecture test. Verify the rendered pages of a running application",
+          "Verify a value is not reused across requests, not only across loop iterations",
+          "Run `./gradlew test-architecture` to verify architectural compliance"
+        ]
+      },
+      "passes": true
+    },
+    {
+      "id": "US-144",
+      "epic": "code-quality",
+      "title": "JavaDoc Convention: Document the Why, Not Every Signature",
+      "description": "The convention required JavaDoc on every public class and method. In a Spring application `public` is not the same as published — most members are public only because Java has no narrower modifier and Spring needs access. The rule produced comments restating the signature, which the project's own Clean Code guidance calls a comment smell. Narrow the rule to published API and non-obvious rules, and add the missing rule that a stale comment is worse than no comment.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        "The convention requires JavaDoc for published API, non-obvious rules, DDD pattern references and architecture decisions",
+        "The convention explicitly exempts self-evident accessors, records with speaking component names, obvious factory methods and internal plumbing",
+        "The convention states that comments in an edited file must be re-verified, in particular claims about coverage elsewhere",
+        "JavaDoc that only restates a signature is removed from the code the change touches",
+        "JavaDoc carrying a why — a justified constant, a lifecycle rule, a contract a caller can violate — is kept"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [],
+        "locations": [
+          "CLAUDE.md (Documentation Requirements / Code Documentation)"
+        ],
+        "patterns": [
+          "Clean Code: comments earn their keep"
+        ],
+        "constraints": [
+          "Change the convention, not just its symptoms — every AI agent reads CLAUDE.md and will otherwise restore the comments",
+          "Existing code still following the old rule is not swept in this story",
+          "Review reports under docs/ are dated snapshots and stay untouched"
+        ]
+      },
+      "passes": true
+    },
+    {
+      "id": "US-145",
+      "epic": "code-quality",
+      "title": "Harden the dca Workflow After Dogfooding Two Runs",
+      "description": "Two real runs of the dca workflow exposed defects in the workflow itself. Stages received only their predecessor's output, so the plan's concrete details were lost after stage 2 and a feature detail was implemented wrongly. The workflow returned the last stage's prose instead of its verdict. A dead review lens would have resolved to null and read as \"reviewed, found nothing\". The simplify stage delegated to a skill, which forks and returns after the caller has finished. Reviewers never saw the acceptance criteria and kept proposing changes that break them. Later rounds reversed earlier rounds' recorded decisions. Committed tests referenced run-local criterion numbers that point at nothing.",
+      "depends_on": [
+        "US-131"
+      ],
+      "acceptance_criteria": [
+        "Every stage receives the original request and the approved plan, not only its predecessor's output",
+        "The workflow returns a structured verdict with status, round count and the plan",
+        "A review lens that returns nothing is retried once and then escalates, instead of counting as a passing review",
+        "Reviews are scoped to the feature change and see the acceptance criteria, so they do not propose changes that break a pinned criterion",
+        "A later simplify round sees what earlier rounds deliberately left unchanged and does not reverse it",
+        "No stage delegates its work to a skill",
+        "Stages state which criterion each artifact covers and name explicitly what is left uncovered",
+        "Run-local identifiers such as criterion numbers never reach a committed artifact",
+        "Throwaway spikes are deleted before a stage finishes"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [],
+        "locations": [
+          ".claude/workflows/dca.js",
+          ".claude/agents/dca-1-plan.md, dca-2-tests.md, dca-3-implement.md, dca-4-simplify.md",
+          ".claude/skills/dca-*/SKILL.md"
+        ],
+        "patterns": [
+          "Staged workflow with gates",
+          "Adversarial review then converge"
+        ],
+        "constraints": [
+          "A silent gate proves nothing — a gate must fail when the stage's real obligation is unmet",
+          "The launcher skill must not override the stage agent's model or effort",
+          "Lift every general lesson into the generator that scaffolds such workflows, so the next one does not repeat the defect",
+          "New agent files do not register mid-session; edits to already registered agents take effect on the next spawn"
+        ]
+      },
+      "passes": true
+    },
+    {
+      "id": "US-146",
+      "epic": "architecture",
+      "title": "Decide the Anti-Corruption Layer's Fate: Demonstrate It or Retire It",
+      "description": "Three contexts consume another context's integration event and translate it inline in the consumer: CartChangeEventConsumer (checkout), StockReductionEventConsumer (inventory) and CartCompletionEventConsumer (cart). No dedicated translator class exists anywhere. The rule \"Anti-Corruption Layer components must be in acl packages\" therefore matches zero classes and, with allowEmptyShould(true), passes in silence — while the generated knowledge catalog reports it as enforced. The only candidate, an empty CheckoutEventTranslator placeholder, has been deleted. The question underneath is real and not merely a coding gap: with Spring Modulith the consumer owns the shared trigger interface (interface inversion, ADR-024), so a foreign event is not foreign in the way the classic ACL literature assumes — the consumer may already *be* the translation boundary. Either demonstrate a real translator and make the rule bite, or retire the acl package and the rule and record why the consumer suffices.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        "A decision is recorded in an ADR: either the ACL is the pattern for consuming a foreign integration event, or the consumer itself is the translation boundary",
+        "If the ACL is kept: at least one of the three consumers delegates to a translator that maps the foreign integration event to a local value object, and the translator lives in {context}.adapter.incoming.event.acl",
+        "If the ACL is kept: the ArchUnit rule matches a non-zero number of classes, proven by breaking it on purpose and observing a failure",
+        "If the ACL is retired: the rule and the acl package convention are removed, and the implementation guide states that the event consumer is the translation boundary",
+        "Either way, no ArchUnit rule reports status enforced in the knowledge catalog while matching zero classes",
+        "The interaction with interface inversion (ADR-024) is addressed explicitly in the decision, not left implicit",
+        "Run ./gradlew test-architecture to verify architectural compliance"
+      ],
+      "architectural_guidance": {
+        "affected_layers": [
+          "adapter",
+          "application"
+        ],
+        "locations": [
+          "{context}.adapter.incoming.event/*EventConsumer",
+          "{context}.adapter.incoming.event.acl/*EventTranslator",
+          "src/test-architecture/groovy/.../DddStrategicPatternsArchUnitTest.groovy",
+          "docs/architecture/adr/",
+          "implementing-domain-centric-architecture/README.md"
+        ],
+        "patterns": [
+          "Anti-Corruption Layer",
+          "Event Consumer",
+          "Interface Inversion",
+          "Published Language"
+        ],
+        "constraints": [
+          "No direct imports from other bounded context domains — a foreign event's payload must not carry the producer's domain types",
+          "Event consumer calls the use case via its InputPort, never the domain directly",
+          "A translator maps to a local value object; it must not hand a foreign type into the application layer",
+          "A rule that cannot be made to fail proves nothing — pin any kept rule with a deliberate break",
+          "No Spring annotations in domain layer",
+          "Run ./gradlew test-architecture to verify architectural compliance"
+        ]
+      },
+      "passes": false
     }
   ]
 }

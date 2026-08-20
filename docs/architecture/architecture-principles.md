@@ -53,9 +53,9 @@ A bounded context is an explicit boundary within which a domain model is defined
    - **Trade-off**: Creates coupling but ensures consistency for universal concepts
 
 2. **Product Catalog Context** (`de.sample.aiarchitecture.product.domain.model`)
-   - Manages products, pricing, inventory
+   - Manages the product catalogue; pricing and stock live in their own contexts
    - Aggregate Root: `Product`
-   - Value Objects: `SKU`, `ProductName`, `ProductDescription`, `ProductStock`, `Category`
+   - Value Objects: `SKU`, `ProductName`, `ProductDescription`, `Category`, `ImageUrl`
    - Depends on: Shared Kernel
 
 3. **Shopping Cart Context** (`de.sample.aiarchitecture.cart.domain.model`)
@@ -100,14 +100,17 @@ public final class Product implements AggregateRoot<Product, ProductId> {
     private final ProductId id;
     private final SKU sku;
     private ProductName name;
-    private Price price;
-    private ProductStock stock;
+    private ProductDescription description;
+    private Category category;
 
-    public void changePrice(Price newPrice) {
-        if (newPrice == null) {
-            throw new IllegalArgumentException("Price cannot be null");
+    // Price and stock are deliberately absent: they belong to the Pricing and
+    // Inventory contexts, and this aggregate references neither.
+    public void updateName(ProductName newName) {
+        if (newName == null) {
+            throw new IllegalArgumentException("Name cannot be null");
         }
-        this.price = newPrice;
+        this.name = newName;
+        registerEvent(ProductNameChanged.now(id, newName));
     }
 }
 ```
@@ -253,41 +256,42 @@ public interface ProductRepository extends Repository<Product, ProductId> {
 }
 ```
 
-**Example: Repository Implementation**
+**A repository hands out copies, not references**
+
+This is where the collection illusion stops (ADR-031). A `Map` returns the instance it holds, so a
+caller who mutates an aggregate has already changed the store and `save` is decoration. A database
+returns a *new* object on every read, so the same code loses the change silently. An adapter that
+behaves like the map hides the bug until the day it is replaced.
+
+Every adapter therefore maps back through the aggregate's `reconstitute` factory — the JDBC one
+because a row leaves it no choice, the in-memory one on purpose:
 
 ```java
-@Repository
-public class InMemoryProductRepository implements ProductRepository {
-    private final ConcurrentHashMap<ProductId, Product> products = new ConcurrentHashMap<>();
+// JdbcAccountRepository — a row becomes a fresh aggregate
+private Account toDomain(final AccountRow row) {
+    return Account.reconstitute(row.id(), row.email(), row.owner(), /* ... */);
+}
 
-    @Override
-    public Optional<Product> findById(ProductId id) {
-        return Optional.ofNullable(products.get(id));
-    }
-
-    @Override
-    public Product save(Product product) {
-        products.put(product.id(), product);
-        return product;
-    }
-
-    @Override
-    public void deleteById(ProductId id) {
-        products.remove(id);
-    }
-
-    // Domain-specific implementations...
+// InMemoryAccountRepository — copies on the way in and on the way out,
+// so that it fails wherever a database would fail
+@Override
+public Optional<Account> findById(final AccountId id) {
+    return Optional.ofNullable(accounts.get(id)).map(InMemoryAccountRepository::copyOf);
 }
 ```
 
+Both adapters run the same `AccountRepositoryContractTest`: the contract belongs to the port, and
+an implementation that cannot satisfy it does not implement the port.
+
 **Rules:**
-1. Interface lives in domain layer
+1. Interface lives in the application layer as an output port (ADR-008)
 2. Implementation lives in infrastructure/adapter layer (secondary adapter)
 3. One repository per aggregate root (not per entity)
 4. Collection-oriented interface (not generic CRUD)
 5. Use ubiquitous language in method names
 6. Return immutable collections when appropriate
 7. Base interface provides common operations (findById, save, deleteById)
+8. Reads return copies — a mutation that was not saved must not be visible (ADR-031)
 
 **Benefits:**
 - DRY principle: Common methods defined once in base interface
@@ -297,9 +301,9 @@ public class InMemoryProductRepository implements ProductRepository {
 - Fluent API: save() returning aggregate enables method chaining
 
 **Implementation:**
-- Base Interface: `de.sample.aiarchitecture.sharedkernel.application.port.Repository`
+- Base Interface: `de.sample.aiarchitecture.sharedkernel.marker.port.out.Repository`
 - Domain Interfaces: `ProductRepository`, `ShoppingCartRepository`
-- Implementations: `InMemoryProductRepository`, `InMemoryShoppingCartRepository` (in `portadapter.outgoing`)
+- Implementations: `InMemoryProductRepository`, `JpaShoppingCartRepository` (in `adapter.outgoing.persistence`)
 
 #### Store
 
@@ -334,8 +338,8 @@ public interface Store extends OutputPort {}
 ```java
 public interface LoginProtectionStore extends Store {
     void record(LoginAttempt attempt);
-    int  countRecentFailures(BaseStore baseStore, Email email, Duration window);
-    boolean isLoginBlocked(BaseStore baseStore, Email email);
+    int  countRecentFailures(Email email, Duration window);
+    boolean isLoginBlocked(Email email);
 }
 ```
 
@@ -358,6 +362,21 @@ public interface LoginProtectionStore extends Store {
 
 **Naming as Ubiquitous Language:**
 A reader should know from the interface name alone whether they're dealing with a managed aggregate (Repository) or recorded data (Store) — without opening the implementation.
+
+**Enforced by `DddTacticalPatternsArchUnitTest`:**
+
+1. *Store interfaces must extend the Store marker, not Repository* — an interface named `*Store`
+   that carries the `Repository` marker promises identity-based load/save it does not offer.
+2. *Store interfaces must reside in the application layer's shared output-port package* — same
+   placement as Repository: the contract belongs to the application layer, the implementation to an
+   adapter.
+3. *Store implementations must reside in the `adapter.outgoing` package*.
+4. *Store interfaces must not declare `findById` or `save` methods* — those are Repository
+   semantics. A Store with them is a Repository under the wrong name, and its stored object should
+   then be an Aggregate Root.
+
+Until these rules existed the Repository/Store distinction was documented doctrine only: nothing
+made `./gradlew test-architecture` fail when a Store took on aggregate-lifecycle methods.
 
 > **Note on `EventStore` (Event Sourcing):** The `EventStore` from Event Sourcing is a *specialization* of Store — one specifically for Domain Events that supports aggregate reconstruction. The general `Store` is the broader pattern.
 
@@ -470,6 +489,15 @@ Product product = productRepository.save(product);
 eventPublisher.publishAndClearEvents(product);
 ```
 
+**Every use case that saves an aggregate must publish — unconditionally.** Not only where an event
+is expected: whether an action raised one is the aggregate's business, and a use case that publishes
+"only when needed" breaks silently the day that action starts raising an event. An aggregate saved
+while still holding its events loses them; worse, with the in-memory repository the same instance
+stays in the map, so a later use case can publish them out of context. A repository must not clear
+events either — on the load path it would swallow what a use case still owes.
+Enforced by `UseCasePatternsArchUnitTest` → *"Use cases that save an aggregate must publish its
+domain events"*.
+
 **Event Handling:**
 
 ```java
@@ -544,7 +572,7 @@ Integration Events are **adapter-layer DTOs** published across bounded context b
 | **Layer** | Domain (`domain.event`) | Adapter (`adapter.outgoing.event`) |
 | **Interface** | `DomainEvent` | `IntegrationEvent` (separate hierarchy) |
 | **Naming** | No suffix (`CartCheckedOut`) | `Event` suffix (`CartCheckedOutEvent`) |
-| **Versioning** | None — can change freely | `int version()` for backward compatibility |
+| **Versioning** | None — can change freely | `@IntegrationEventType(name, version)` as a class property, not a data field (ADR-027) |
 | **Creation** | Raised by aggregates | Created by outgoing event adapters via `from()` factory |
 | **Consumption** | Within same context | By incoming event adapters in other contexts |
 
@@ -584,6 +612,8 @@ public record CartCheckedOut(
 
 ```java
 // cart/adapter/outgoing/event/CartCheckedOutEvent.java — versioned public contract
+// The schema version is a class property (@IntegrationEventType), never a data field (ADR-027).
+@IntegrationEventType(name = "cart-checked-out", version = 1)
 public record CartCheckedOutEvent(
     UUID eventId,
     CartId cartId,
@@ -591,8 +621,7 @@ public record CartCheckedOutEvent(
     Money totalAmount,
     int itemCount,
     List<ItemInfo> items,
-    Instant occurredOn,
-    int version
+    Instant occurredOn
 ) implements IntegrationEvent {
 
     public record ItemInfo(ProductId productId, int quantity) {}
@@ -603,7 +632,7 @@ public record CartCheckedOutEvent(
             .toList();
         return new CartCheckedOutEvent(
             domainEvent.eventId(), domainEvent.cartId(), ...,
-            items, domainEvent.occurredOn(), 1);
+            items, domainEvent.occurredOn());
     }
 }
 ```
@@ -743,22 +772,23 @@ A factory encapsulates complex object creation logic.
 
 ```java
 public class ProductFactory implements Factory {
-    private final ProductIdGenerator idGenerator;
-
-    public ProductFactory(final ProductIdGenerator idGenerator) {
-        this.idGenerator = idGenerator;
-    }
 
     public Product createProduct(
         final SKU sku,
         final ProductName name,
         final ProductDescription description,
-        final Price price,
-        final ProductStock initialStock,
-        final Category category
+        final Category category,
+        final ImageUrl imageUrl,
+        final Money initialPrice,
+        final int initialStock
     ) {
-        final ProductId id = idGenerator.nextId();
-        return new Product(id, sku, name, description, price, initialStock, category);
+        final ProductId id = ProductId.generate();
+        final Product product = new Product(id, sku, name, description, category, imageUrl);
+
+        // Price and stock are not the product's state — they are carried out on the
+        // creation event, so Pricing and Inventory can seed their own aggregates.
+        product.registerEvent(ProductCreated.now(id, sku, name, initialPrice, initialStock));
+        return product;
     }
 }
 ```
@@ -1327,6 +1357,14 @@ Commands modify system state and publish domain events.
 - `UpdateProductPriceUseCase` - Changes product price
 - `AddItemToCartUseCase` - Adds item to cart
 - `CheckoutCartUseCase` - Completes cart checkout
+- `ChangePasswordUseCase` - Replaces an account's password; a wrong current password or a rejected
+  new one is reported as an outcome of `ChangePasswordResult`, not as an exception crossing the port
+- `ChangeProfileUseCase` (`account.application.changeprofile`) - Changes the basic information of
+  an account behind `/account/profile`: its email address and the date of birth of its `Owner`. All
+  submitted values are validated before the aggregate is mutated, so a rejected value leaves the
+  whole profile untouched; the uniqueness check skips the caller's own address. The owner's **name
+  is not changeable**: the command carries no name component and the aggregate offers no operation
+  that would accept one
 
 **Characteristics:**
 - Transactional (`@Transactional`)
@@ -1343,6 +1381,9 @@ Queries retrieve data without modifying state.
 - `GetProductByIdUseCase` - Retrieves a product
 - `GetAllProductsUseCase` - Lists all products
 - `GetCartByIdUseCase` - Retrieves a cart
+- `GetProfileUseCase` (`account.application.getprofile`) - Projects the profile fields the
+  `/account/profile` page renders — the owner's name for display, the email and date of birth for
+  editing; an account that cannot log in is reported as absent
 
 **Characteristics:**
 - Read-only (`@Transactional(readOnly = true)`)
@@ -1583,11 +1624,11 @@ Adapters are implementations that connect external systems to the ports.
 
 **Primary Adapters (Driving / Incoming):**
 - REST Controllers, Web MVC, MCP Server
-- Location: `de.sample.aiarchitecture.portadapter.incoming`
+- Location: `de.sample.aiarchitecture.{boundedcontext}.adapter.incoming`
 
 **Secondary Adapters (Driven / Outgoing):**
 - Repository implementations
-- Location: `de.sample.aiarchitecture.portadapter.outgoing`
+- Location: `de.sample.aiarchitecture.{boundedcontext}.adapter.outgoing`
 
 ### Example: Product Management Flow
 
@@ -1867,7 +1908,7 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 ```
 ┌─────────────────────────────────────┐
 │  Infrastructure & Adapters          │  ← Outermost layer
-│  (portadapter, infrastructure)      │
+│  (adapter, infrastructure)          │
 ├─────────────────────────────────────┤
 │  Application Services                │  ← Use cases
 │  (application)                       │
@@ -1912,8 +1953,8 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 #### Infrastructure & Adapters
 
 **Location:**
-- `de.sample.aiarchitecture.portadapter.incoming` (REST, Web, MCP adapters)
-- `de.sample.aiarchitecture.portadapter.outgoing` (Repository implementations)
+- `de.sample.aiarchitecture.{boundedcontext}.adapter.incoming` (REST, Web, MCP, event adapters)
+- `de.sample.aiarchitecture.{boundedcontext}.adapter.outgoing` (Repository implementations)
 - `de.sample.aiarchitecture.infrastructure` (Spring configuration)
 
 **Contains:**
@@ -2019,105 +2060,45 @@ Secondary Adapters (Persistence)
 
 ## Package Structure
 
+The top level is organised by bounded context, not by layer — each context carries its own
+domain, application and adapter layers:
+
 ```
 de.sample.aiarchitecture
-├── application                          # Application Layer (Use Cases)
-│   ├── UseCase                          # Base use case interface
-│   │
-│   ├── product/                         # Product Bounded Context Use Cases
-│   │   ├── CreateProductUseCase
-│   │   ├── CreateProductInput
-│   │   ├── CreateProductOutput
-│   │   ├── UpdateProductPriceUseCase
-│   │   ├── UpdateProductPriceInput
-│   │   ├── UpdateProductPriceOutput
-│   │   ├── GetProductByIdUseCase
-│   │   ├── GetProductByIdInput
-│   │   ├── GetProductByIdOutput
-│   │   ├── GetAllProductsUseCase
-│   │   ├── GetAllProductsInput
-│   │   └── GetAllProductsOutput
-│   │
-│   ├── cart/                            # Shopping Cart Bounded Context Use Cases
-│   │   ├── CreateCartUseCase
-│   │   ├── CreateCartInput
-│   │   ├── CreateCartOutput
-│   │   ├── AddItemToCartUseCase
-│   │   ├── AddItemToCartInput
-│   │   ├── AddItemToCartOutput
-│   │   ├── CheckoutCartUseCase
-│   │   ├── CheckoutCartInput
-│   │   ├── CheckoutCartOutput
-│   │   ├── GetCartByIdUseCase
-│   │   ├── GetCartByIdInput
-│   │   └── GetCartByIdOutput
-│
-├── domain                               # Domain Layer (Core Business Logic)
-│   └── model
-│       ├── ddd                          # DDD Marker Interfaces
-│       │   ├── AggregateRoot
-│       │   ├── Entity
-│       │   ├── Value
-│       │   ├── Repository
-│       │   ├── DomainService
-│       │   ├── DomainEvent
-│       │   ├── Factory
-│       │   └── Specification
-│       │
-│       ├── shared                       # Shared Kernel (Strategic DDD Pattern)
-│       │   ├── Money                    # Value Object (universal)
-│       │   ├── ProductId                # Value Object (cross-context identifier)
-│       │   └── Price                    # Value Object (wraps Money)
-│       │
-│       ├── product                      # Product Bounded Context
-│       │   ├── Product                  # Aggregate Root
-│       │   ├── SKU                      # Value Object
-│       │   ├── ProductName              # Value Object
-│       │   ├── ProductRepository        # Repository Interface
-│       │   └── ProductFactory           # Factory
-│       │
-│       └── cart                         # Shopping Cart Bounded Context
-│           ├── ShoppingCart             # Aggregate Root
-│           ├── CartItem                 # Entity
-│           ├── CartId                   # Value Object
-│           ├── Quantity                 # Value Object
-│           ├── CartRepository           # Repository Interface
-│           └── CartTotalCalculator      # Domain Service
-│
-├── infrastructure                       # Infrastructure Configuration (cross-cutting)
-│   ├── config                           # Spring @Configuration classes
-│   │   ├── SecurityConfiguration
-│   │   ├── TransactionConfiguration
-│   │   └── AsyncConfiguration
-│   ├── support                          # Framework support components
-│   │   └── AsyncInitializationProcessor
-│   └── security                         # Security infrastructure
-│       └── jwt/                         # JWT authentication
-│
-└── portadapter                          # Adapters (Hexagonal Architecture)
-    ├── incoming                         # Incoming Adapters (Primary/Driving)
-    │   ├── api                          # REST API (JSON/XML)
-    │   │   ├── product
-    │   │   │   ├── ProductResource      # REST Controller
-    │   │   │   ├── ProductDto           # DTO
-    │   │   │   └── ProductDtoConverter  # Converter
-    │   │   └── cart
-    │   │       ├── ShoppingCartResource
-    │   │       ├── ShoppingCartDto
-    │   │       └── ShoppingCartDtoConverter
-    │   ├── mcp                          # MCP Server (AI interface)
-    │   │   └── ProductCatalogMcpTools
-    │   └── web                          # Web MVC (HTML)
-    │       └── product
-    │           └── ProductPageController
-    │
-    └── outgoing                         # Outgoing Adapters (Secondary/Driven)
-        ├── product
-        │   ├── InMemoryProductRepository  # Repository Implementation
-        │   └── SampleDataInitializer      # Sample Data
-        └── cart
-            └── InMemoryShoppingCartRepository  # Repository Implementation
+├── sharedkernel/            # Markers, universal value objects, shared adapters
+├── {boundedcontext}/        # product, cart, checkout, account, portal,
+│   ├── domain/              # inventory, pricing, backoffice
+│   ├── application/
+│   └── adapter/
+│       ├── incoming/
+│       └── outgoing/
+└── infrastructure/          # Global, cross-cutting framework configuration
 ```
+
+Inside a context:
+
+```
+{boundedcontext}/
+├── domain/
+│   ├── model/               # Aggregates, entities, value objects, enriched models
+│   ├── readmodel/           # Optional: read model types
+│   ├── specification/       # Optional: specifications
+│   ├── service/             # Domain services
+│   └── event/               # Domain events
+├── application/
+│   ├── {usecasename}/       # One folder per use case (lowercase)
+│   │   ├── *InputPort.java
+│   │   ├── *UseCase.java
+│   │   ├── *Command.java / *Query.java
+│   │   └── *Result.java
+│   └── shared/              # Shared output ports (repositories, stores, data ports)
+└── adapter/
+    ├── incoming/            # api/, web/, mcp/, openhost/, event/
+    └── outgoing/            # persistence/, event/, client/
+```
+
+See [package-structure.md](package-structure.md) for the full tree, the per-context breakdown and
+the file-location quick reference.
 
 ---
 
@@ -2156,7 +2137,6 @@ de.sample.aiarchitecture
 - `SKU` - stock keeping unit
 - `ProductName` - product name
 - `ProductDescription` - product description
-- `ProductStock` - inventory levels
 - `Category` - product category
 
 **Dependencies:**
@@ -2212,11 +2192,24 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 
 #### DDD Strategic Patterns (Bounded Contexts)
 
-1. **Shared Kernel must be context-independent** - no dependencies on Product or Cart contexts
-2. **Product Context must not access Cart Context** - enforces bounded context isolation
-3. **Cart Context must not access Product Context** - cart references products by ID only
-4. **Both contexts may access Shared Kernel** - for universal value objects
-5. **Shared Kernel must be minimal** - only universal concepts with consistent meaning
+These rules discover contexts dynamically from `@BoundedContext`, so a context added tomorrow is
+covered without being registered anywhere. No rule names a context.
+
+1. **Shared Kernel must be context-independent** - no dependencies on any bounded context
+2. **No context's domain layer may reach another context** - not even the other context's `api/`;
+   translating an Open Host Service is the application layer's or an adapter's job
+3. **No context's application layer may reach another context directly** - define output ports and
+   use adapters
+4. **Outgoing adapters may only use another context's `api/` or `events/`** - never its domain or
+   application layer
+5. **Every context may access the Shared Kernel** - it carries `@SharedKernel`, not
+   `@BoundedContext`, so it never appears among a rule's forbidden targets
+6. **Shared Kernel must be minimal** - only universal concepts with consistent meaning
+
+All of these use `dependOnClassesThat`, not `accessClassesThat`. ArchUnit counts an *access* as a
+method call or field access, so a field, parameter or record component of a foreign type is not an
+access — it is a dependency. An isolation rule written with `accessClassesThat` stays green while a
+class holds the forbidden type outright.
 
 #### DDD Tactical Patterns
 
@@ -2229,11 +2222,15 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 7. **Aggregates reference other aggregates by ID only** (Vernon's Rule #2)
 8. **Aggregates must not hold references to repositories or output ports** - dependencies are passed as method parameters
 9. **Domain model classes must not have public setters** - state changes go through intention-revealing methods
+10. **Repository methods must not expose a non-root Entity** - checked recursively through type
+    arguments, so `Optional<CartItem>` and `List<CartItem>` fail too. Deliberately a prohibition:
+    a boolean, a count, a `PageResult` or an Enriched Domain Model (ADR-021) are legitimate returns
+11. **Stores** must extend the `Store` marker (not `Repository`), live in `application.shared`, keep their implementation in `adapter.outgoing`, and must not declare `findById`/`save`
 
 #### Domain Layer Rules
 
 1. Domain must NOT depend on infrastructure
-2. Domain must NOT depend on portadapters
+2. Domain must NOT depend on adapters
 3. Domain must NOT use Spring annotations
 4. Domain must NOT use JPA annotations
 5. Domain must be framework-independent
@@ -2242,7 +2239,7 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 
 1. Use Cases (InputPort implementations) must end with "UseCase"
 2. Use Cases must be annotated with `@Service`
-3. Application layer must NOT depend on portadapters
+3. Application layer must NOT depend on adapters
 4. Application layer may only use ports (not infrastructure implementations)
 
 #### Clean Architecture (Use Case) Rules
@@ -2262,7 +2259,7 @@ All architectural rules are automatically tested and enforced using ArchUnit.
 1. Primary adapters may only call application services
 2. Secondary adapters implement domain repository interfaces
 3. Adapters must NOT communicate directly with each other
-4. Repository implementations must be in `portadapter.outgoing`
+4. Repository implementations must be in `adapter.outgoing`
 5. Controllers and Resources must never access repositories directly - they drive the application through input ports only
 
 #### Onion Architecture Rules

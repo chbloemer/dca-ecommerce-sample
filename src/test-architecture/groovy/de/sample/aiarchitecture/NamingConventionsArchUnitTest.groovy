@@ -3,6 +3,7 @@ package de.sample.aiarchitecture
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 
+import de.sample.aiarchitecture.sharedkernel.marker.port.in.InputPort
 import de.sample.aiarchitecture.sharedkernel.marker.port.in.UseCase
 import org.springframework.stereotype.Service
 import org.springframework.stereotype.Controller
@@ -49,9 +50,14 @@ class NamingConventionsArchUnitTest extends BaseArchUnitTest {
 
   def "InputPort interfaces must end with 'InputPort'"() {
     expect:
+    // Matched by marker, not by package: DCA places each input port in its own use-case folder,
+    // so there is no single ..application.port.in.. package to point at.
     classes()
-      .that().resideInAPackage("..application.port.in..")
+      .that().resideInAPackage(APPLICATION_PACKAGE)
       .and().areInterfaces()
+      .and().areAssignableTo(InputPort.class)
+      .and().doNotHaveSimpleName("InputPort")
+      .and().doNotHaveSimpleName("UseCase")
       .should().haveSimpleNameEndingWith("InputPort")
       .because("Input port interfaces should follow consistent naming conventions (Hexagonal Architecture)")
       .allowEmptyShould(true)
@@ -92,7 +98,7 @@ class NamingConventionsArchUnitTest extends BaseArchUnitTest {
       .check(allClasses)
   }
 
-  def "DTOs must reside in portadapter package (not in domain or application)"() {
+  def "DTOs must reside in the adapter layer, not in domain or application"() {
     expect:
     classes()
       .that().haveSimpleNameEndingWith("Dto")
@@ -103,7 +109,7 @@ class NamingConventionsArchUnitTest extends BaseArchUnitTest {
       .check(allClasses)
   }
 
-  def "Converters must reside in portadapter package"() {
+  def "Converters must reside in the adapter layer"() {
     expect:
     classes()
       .that().haveSimpleNameEndingWith("Converter")
@@ -131,7 +137,7 @@ class NamingConventionsArchUnitTest extends BaseArchUnitTest {
     // Domain concepts carry ubiquitous-language names. 'Manager'/'Helper'/'Util' signal
     // a missing domain concept; 'Impl' signals naming by pattern instead of by specialty.
     noClasses()
-      .that().resideInAnyPackage(allDomainPatternsWithSharedKernel())
+      .that().resideInAPackage(DOMAIN_PACKAGE)
       .should().haveSimpleNameEndingWith("Manager")
       .orShould().haveSimpleNameEndingWith("Helper")
       .orShould().haveSimpleNameEndingWith("Util")

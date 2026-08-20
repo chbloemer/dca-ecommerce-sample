@@ -1,0 +1,39 @@
+extends ../layout
+
+block content
+  .account(data-test="profile-page")
+    .account__header
+      h2.account__title(data-test="profile-title") My Profile
+
+    .account__layout
+      - var navItems = profilePage.navItems()
+      include _nav.pug
+
+      .account__content
+        if profilePage.successMessage()
+          .alert.alert--success(data-test="profile-success-message")= profilePage.successMessage()
+
+        if profilePage.errorMessage()
+          .alert.alert--error(data-test="profile-error-message")= profilePage.errorMessage()
+
+        .card
+          .card__header
+            h3.card__header-title Basic Information
+          .card__body
+            .form__group
+              span.form__label Name
+              p(data-test="profile-owner-name")= profilePage.fullName()
+              p.form__hint(data-test="profile-name-note") Your name was set when you created your account and cannot be changed.
+
+            form.form(method="POST" action="/account/profile" data-test="profile-form")
+              .form__group
+                label.form__label(for="email") Email
+                input.form__input#email(type="email" name="email" required autofocus placeholder="you@example.com" value=profilePage.email() data-test="profile-email-input")
+                p.form__hint This address is also your login
+
+              .form__group
+                label.form__label(for="dateOfBirth") Date of Birth
+                input.form__input#dateOfBirth(type="date" name="dateOfBirth" required value=profilePage.dateOfBirth() data-test="profile-date-of-birth-input")
+
+              .form__actions
+                button.btn.btn--primary(type="submit" data-test="profile-submit-button") Save Changes
