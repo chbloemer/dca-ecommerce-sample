@@ -7,6 +7,50 @@
 @BoundedContext(
     name = "Checkout",
     description = "Checkout process, order placement, and payment orchestration")
+@Upstream(
+    context = "product",
+    translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
+    via = Upstream.Consumes.API,
+    rationale = "Product data is translated into checkout's own article and product info types")
+@Upstream(
+    context = "pricing",
+    translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
+    via = Upstream.Consumes.API,
+    rationale = "Prices are translated into checkout's own line item amounts")
+@Upstream(
+    context = "inventory",
+    translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
+    via = Upstream.Consumes.API,
+    rationale = "Stock availability is translated into checkout's own article data")
+@Upstream(
+    context = "inventory",
+    translation = Upstream.Translation.CONFORMIST,
+    via = Upstream.Consumes.EVENTS,
+    rationale =
+        "CheckoutConfirmedEvent implements inventory's consumer-defined StockReductionTrigger"
+            + " contract as-is")
+@Upstream(
+    context = "cart",
+    translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
+    via = Upstream.Consumes.API,
+    rationale = "Cart snapshots are translated into checkout's own CartData")
+@Upstream(
+    context = "cart",
+    translation = Upstream.Translation.CONFORMIST,
+    via = Upstream.Consumes.EVENTS,
+    rationale =
+        "CheckoutConfirmedEvent implements cart's consumer-defined CartCompletionTrigger contract"
+            + " as-is; cart change events are consumed directly")
+@Partnership(
+    context = "cart",
+    rationale =
+        "Checkout implements cart's consumer-defined CartCompletionTrigger contract; both contexts"
+            + " evolve it together")
+@Partnership(
+    context = "inventory",
+    rationale =
+        "Checkout implements inventory's consumer-defined StockReductionTrigger contract; both"
+            + " contexts evolve it together")
 @ApplicationModule(
     allowedDependencies = {
       "sharedkernel",
@@ -21,5 +65,7 @@
 package de.sample.aiarchitecture.checkout;
 
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.BoundedContext;
+import de.sample.aiarchitecture.sharedkernel.marker.strategic.Partnership;
+import de.sample.aiarchitecture.sharedkernel.marker.strategic.Upstream;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;

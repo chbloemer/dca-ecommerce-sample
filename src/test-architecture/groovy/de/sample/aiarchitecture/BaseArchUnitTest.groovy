@@ -236,6 +236,22 @@ abstract class BaseArchUnitTest extends Specification {
   }
 
   /**
+   * Gets all instances of a repeatable annotation from a package's package-info class.
+   *
+   * @param packageName the package name
+   * @param annotationType the repeatable annotation type to retrieve
+   * @return the annotations, or an empty list if the package has none
+   */
+  protected <T extends java.lang.annotation.Annotation> List<T> getPackageAnnotations(String packageName, Class<T> annotationType) {
+    try {
+      Class<?> packageInfoClass = Class.forName(packageName + ".package-info")
+      return packageInfoClass.getAnnotationsByType(annotationType) as List<T>
+    } catch (ClassNotFoundException ignored) {
+      return []
+    }
+  }
+
+  /**
    * Extracts the root bounded context package from a full package name.
    * E.g., "de.sample.aiarchitecture.product.domain.model" -> "de.sample.aiarchitecture.product"
    *
