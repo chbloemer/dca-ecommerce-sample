@@ -11,6 +11,18 @@ symmetrically on both contexts. Organizational patterns such as Customer–Suppl
 machine-classified; Separate Ways is the absence of any declaration. Non-context modules
 (e.g. backoffice) and the shared kernel are intentionally not part of this map.
 
+## Bounded Contexts
+
+| Module | Name | Description | Published interfaces |
+|---|---|---|---|
+| account | Account | User account management, authentication, and profile handling | — |
+| cart | Shopping Cart | Cart management, item additions/removals, and cart lifecycle | api, events |
+| checkout | Checkout | Checkout process, order placement, and payment orchestration | events |
+| inventory | Inventory | Stock level management and inventory tracking | api, events |
+| portal | Portal | Web portal, user interface composition, and cross-context views | — |
+| pricing | Pricing | Product pricing management and price change tracking | api |
+| product | Product Catalog | Product management, catalog browsing, and inventory tracking | api, events |
+
 ## Diagram
 
 ```mermaid

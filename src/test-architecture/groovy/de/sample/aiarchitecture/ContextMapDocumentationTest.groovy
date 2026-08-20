@@ -50,7 +50,14 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     md << "machine-classified; Separate Ways is the absence of any declaration. Non-context modules\n"
     md << "(e.g. backoffice) and the shared kernel are intentionally not part of this map.\n\n"
 
-    md << "## Diagram\n\n"
+    md << "## Bounded Contexts\n\n"
+    md << "| Module | Name | Description | Published interfaces |\n"
+    md << "|---|---|---|---|\n"
+    packages.each { pkg ->
+      List<String> published = publishedInterfaces(pkg)
+      md << "| ${shortName(pkg)} | ${contexts[pkg].name()} | ${contexts[pkg].description()} | ${published ? published.join(', ') : '—'} |\n"
+    }
+    md << "\n## Diagram\n\n"
     md << "```mermaid\ngraph LR\n"
     packages.each { pkg ->
       md << "  ${shortName(pkg)}[\"${contexts[pkg].name()}${publishedBadge(pkg)}\"]\n"
@@ -115,11 +122,16 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     return pairs
   }
 
-  /** Published interfaces of a context, shown as a node badge ("api", "events"). */
-  private String publishedBadge(String contextPackage) {
-    List<String> published = ["api", "events"].findAll { channel ->
+  /** Published interfaces ("api", "events") a context actually contains classes for. */
+  private List<String> publishedInterfaces(String contextPackage) {
+    return ["api", "events"].findAll { channel ->
       allClasses.any { it.getPackageName().startsWith("${contextPackage}.${channel}") }
     }
+  }
+
+  /** Published interfaces of a context, shown as a node badge ("api", "events"). */
+  private String publishedBadge(String contextPackage) {
+    List<String> published = publishedInterfaces(contextPackage)
     return published ? "<br/><i>${published.join(' · ')}</i>" : ""
   }
 
