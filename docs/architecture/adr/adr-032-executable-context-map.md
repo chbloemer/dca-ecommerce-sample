@@ -60,7 +60,9 @@ annotation.
 - declarations only on bounded contexts; targets exist; no self-reference; `via` non-empty;
   `(context, via)` unique
 - `@Upstream` edges and `allowedDependencies` named-interface entries agree **in both
-  directions** — neither side may know more than the other
+  directions** — neither side may know more than the other (this rule loads `ApplicationModule`
+  reflectively and is skipped when Spring Modulith is not on the classpath, keeping the test
+  class usable in non-Modulith projects)
 - `ANTI_CORRUPTION_LAYER` + `API`: upstream contract types only in `adapter.outgoing..`
 - `ANTI_CORRUPTION_LAYER` + `EVENTS`: upstream contract types only in `adapter.incoming..`
   (the edge of a consumed event is the incoming side)

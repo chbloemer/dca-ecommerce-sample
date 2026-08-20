@@ -3,7 +3,7 @@ package de.sample.aiarchitecture
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.BoundedContext
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Partnership
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Upstream
-import org.springframework.modulith.ApplicationModule
+import spock.lang.Requires
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 
@@ -29,8 +29,23 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
  *
  * Organizational patterns (Customer–Supplier etc.) are deliberately not machine-classified —
  * they live in the rationale() texts. Separate Ways is the absence of any declaration.
+ *
+ * The Spring Modulith agreement rule is the only Modulith-specific rule; it loads
+ * ApplicationModule reflectively and is skipped when Modulith is not on the classpath, so this
+ * test class works unchanged in non-Modulith projects.
  */
 class ContextMapArchUnitTest extends BaseArchUnitTest {
+
+  private static final String APPLICATION_MODULE_ANNOTATION = "org.springframework.modulith.ApplicationModule"
+
+  static boolean springModulithPresent() {
+    try {
+      Class.forName(APPLICATION_MODULE_ANNOTATION)
+      return true
+    } catch (ClassNotFoundException ignored) {
+      return false
+    }
+  }
 
   // ============================================================================
   // DECLARATION WELL-FORMEDNESS
@@ -90,11 +105,17 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
   }
 
   // ============================================================================
-  // CONSISTENCY WITH SPRING MODULITH
+  // CONSISTENCY WITH SPRING MODULITH (skipped when Modulith is not on the classpath)
   // ============================================================================
 
+  @Requires({ ContextMapArchUnitTest.springModulithPresent() })
   def "Upstream declarations and Spring Modulith allowedDependencies must agree"() {
     given:
+    // Loaded reflectively so this test class compiles and runs in projects without Spring
+    // Modulith — there the rule is skipped and the remaining rules still bind the declarations
+    // to the code itself.
+    Class<? extends java.lang.annotation.Annotation> applicationModule =
+      Class.forName(APPLICATION_MODULE_ANNOTATION) as Class<? extends java.lang.annotation.Annotation>
     Map<String, BoundedContext> contexts = discoverBoundedContextPackages()
     Set<String> moduleNames = contexts.keySet().collect { shortName(it) } as Set
 
@@ -103,7 +124,7 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
       String source = shortName(pkg)
       Set<String> declared = declaredEdges(pkg)
 
-      ApplicationModule module = getPackageAnnotation(pkg, ApplicationModule)
+      def module = getPackageAnnotation(pkg, applicationModule)
       Set<String> allowed = (module == null ? [] : module.allowedDependencies().toList())
         .collect { it.replaceAll(/\s*::\s*/, ' :: ').trim() }
         .findAll { it.contains(' :: ') }
