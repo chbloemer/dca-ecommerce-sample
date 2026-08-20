@@ -404,7 +404,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
 
   def "Value Objects must be records or immutable classes with attribute equality"() {
     when:
-    // Records are the preferred implementation (ADR-009): the compiler grants final fields,
+    // Records are the preferred implementation: the compiler grants final fields,
     // no setters and attribute-based equality. A hand-written class is a permitted
     // alternative — the immutability rules above (final class, final fields, no setters)
     // apply to it unchanged. What they cannot check is the one thing a record gives for
@@ -432,7 +432,7 @@ class DddTacticalPatternsArchUnitTest extends BaseArchUnitTest {
     then:
     if (!violations.isEmpty()) {
       throw new AssertionError(
-      "Value Objects are records by preference (ADR-009); an immutable class is allowed, "
+      "Value Objects are records by preference; an immutable class is allowed, "
       + "but it must implement attribute equality itself.\n"
       + "Violations found:\n" + violations.join("\n"))
     }

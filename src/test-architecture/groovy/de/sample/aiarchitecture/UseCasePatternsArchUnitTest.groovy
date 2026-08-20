@@ -100,7 +100,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
   }
 
   // ============================================================================
-  // USE CASE RESULT MODEL PATTERN (ADR-020)
+  // USE CASE RESULT MODEL PATTERN
   // Application layer uses *Result, Adapter layer uses *Response
   // ============================================================================
 
@@ -111,7 +111,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
       .and().resideInAnyPackage(BASE_PACKAGE + "..")
       .and().doNotImplement(de.sample.aiarchitecture.sharedkernel.marker.tactical.Value.class)
       .should().resideInAnyPackage(APPLICATION_PACKAGE)
-      .because("Use case result models should be in application layer (ADR-020: Application layer uses *Result). Domain Value Objects with 'Result' in name are allowed in domain layer.")
+      .because("Use case result models should be in application layer. Domain Value Objects with 'Result' in name are allowed in domain layer.")
       .allowEmptyShould(true)
       .check(allClasses)
   }
@@ -139,7 +139,7 @@ class UseCasePatternsArchUnitTest extends BaseArchUnitTest {
       .that().haveSimpleNameEndingWith("Response")
       .and().resideInAnyPackage(BASE_PACKAGE + "..")
       .should().resideInAPackage(INCOMING_ADAPTER_PACKAGE)
-      .because("HTTP response models should be in adapter incoming layer (ADR-020: Adapter layer uses *Response)")
+      .because("HTTP response models should be in adapter incoming layer")
       .allowEmptyShould(true)
       .check(allClasses)
   }
