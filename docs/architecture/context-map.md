@@ -1,15 +1,18 @@
 # Context Map
 
-> **Generated file — do not edit.** Derived from the `@BoundedContext`, `@Upstream`, and
-> `@Partnership` package annotations by `ContextMapDocumentationTest`. After changing a
+> **Generated file — do not edit.** Derived from the `@BoundedContext`, `@Upstream`,
+> `@ExternalUpstream`, and `@Partnership` package annotations by
+> `ContextMapDocumentationTest`. After changing a
 > declaration, rerun `./gradlew test-architecture` and commit the regenerated file.
 
 Each side declares only what it controls: the downstream declares its consumed upstreams
 (`@Upstream`: translation strategy and channel), the upstream publishes its contract
 (`api`/`events` named interfaces, `@OpenHostService`), and partnerships are declared
 symmetrically on both contexts. Organizational patterns such as Customer–Supplier are not
-machine-classified; Separate Ways is the absence of any declaration. Non-context modules
-(e.g. backoffice) and the shared kernel are intentionally not part of this map.
+machine-classified; Separate Ways is the absence of any declaration. External systems
+appear via `@ExternalUpstream` on their consuming context — the model dependency always
+points to the external system, regardless of who initiates the exchange. Non-context
+modules (e.g. backoffice) and the shared kernel are intentionally not part of this map.
 
 ## Bounded Contexts
 
@@ -46,13 +49,17 @@ graph LR
   checkout -.->|"Conformist / events"| cart
   product -->|"ACL / api"| pricing
   product -->|"ACL / api"| inventory
+  ext_payment_service_provider[["Payment Service Provider"]]
+  checkout -->|"ACL / outbound"| ext_payment_service_provider
+  checkout -.->|"ACL / inbound"| ext_payment_service_provider
   cart ---|"Partnership"| checkout
   checkout ---|"Partnership"| inventory
 ```
 
-Arrows point from downstream to upstream (dependency direction). Solid arrows are
-synchronous `api` consumption, dotted arrows are `events` consumption, plain lines are
-partnerships. Node badges list the context's published interfaces.
+Arrows point from downstream to upstream (dependency direction, never call direction).
+Solid arrows are synchronous consumption (`api` / external `outbound`), dotted arrows are
+asynchronous consumption (`events` / external `inbound`), plain lines are partnerships.
+Double-framed nodes are external systems. Node badges list published interfaces.
 
 ## Upstream relationships
 
@@ -69,6 +76,13 @@ partnerships. Node badges list the context's published interfaces.
 | checkout | cart | events | Conformist | CheckoutConfirmedEvent implements cart's consumer-defined CartCompletionTrigger contract as-is; cart change events are consumed directly |
 | product | pricing | api | ACL | Prices are translated into the catalog's own product presentation data |
 | product | inventory | api | ACL | Stock levels are translated into the catalog's own availability data |
+
+## External systems
+
+| Consumer | External system | Interaction | Translation | Rationale |
+|---|---|---|---|---|
+| checkout | Payment Service Provider | outbound | ACL | Synchronous payment operations (initiate, confirm, refund) behind the caller-owned PaymentProvider port; the sample ships a mock adapter in place of a real gateway |
+| checkout | Payment Service Provider | inbound | ACL | Asynchronous payment-confirmation webhook that triggers order fulfillment; the payload is the provider's contract and is translated into a local command at the incoming adapter |
 
 ## Partnerships
 

@@ -41,6 +41,21 @@
     rationale =
         "CheckoutConfirmedEvent implements cart's consumer-defined CartCompletionTrigger contract"
             + " as-is; cart change events are consumed directly")
+@ExternalUpstream(
+    name = "Payment Service Provider",
+    translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
+    interaction = ExternalUpstream.Interaction.OUTBOUND,
+    rationale =
+        "Synchronous payment operations (initiate, confirm, refund) behind the caller-owned"
+            + " PaymentProvider port; the sample ships a mock adapter in place of a real gateway")
+@ExternalUpstream(
+    name = "Payment Service Provider",
+    translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
+    interaction = ExternalUpstream.Interaction.INBOUND,
+    rationale =
+        "Asynchronous payment-confirmation webhook that triggers order fulfillment; the payload is"
+            + " the provider's contract and is translated into a local command at the incoming"
+            + " adapter")
 @Partnership(
     context = "cart",
     rationale =
@@ -65,6 +80,7 @@
 package de.sample.aiarchitecture.checkout;
 
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.BoundedContext;
+import de.sample.aiarchitecture.sharedkernel.marker.strategic.ExternalUpstream;
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Partnership;
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Upstream;
 import org.jspecify.annotations.NullMarked;

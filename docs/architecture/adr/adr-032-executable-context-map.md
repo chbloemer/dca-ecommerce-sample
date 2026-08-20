@@ -31,6 +31,7 @@ The declaration vocabulary (all in `sharedkernel/marker/strategic/`):
 | Annotation | Side | Declares |
 |---|---|---|
 | `@Upstream(context, translation, via, rationale)` | downstream | the directed dependency: translation strategy (`ANTI_CORRUPTION_LAYER` or `CONFORMIST`) and consumed channel (`API`, `EVENTS`) |
+| `@ExternalUpstream(name, translation, interaction, contractPackages, rationale)` | downstream | dependency on a system outside this codebase; `interaction` names who initiates (`OUTBOUND`/`INBOUND`) and thereby the adapter side of the edge |
 | `@Partnership(context, rationale)` | both (symmetric) | shared governance of a co-evolved contract; grants **no** dependency permission |
 | `@NamedInterface("api"/"events")`, `@OpenHostService` | upstream | the published contract |
 | `@ApplicationModule.allowedDependencies` | downstream | the enforced package boundary (Spring Modulith) |
@@ -50,7 +51,18 @@ Deliberate omissions:
 - **Non-context modules (backoffice) declare nothing.** `@Upstream`/`@Partnership` are only legal
   on `@BoundedContext` packages; plain modules are governed by Spring Modulith alone.
 
-The identity of an `@Upstream` declaration is `(context, via)`. A downstream may choose different
+External systems have no side in this codebase, so only the downstream view exists. The model
+dependency always points to the external system regardless of who initiates the exchange — a
+webhook the provider calls is still *its* contract. `interaction` is deliberately direction-based
+(`OUTBOUND` = we initiate: API call, polling, file upload; `INBOUND` = they initiate: webhook,
+queue message, file drop) rather than protocol-based, because the adapter side is what ArchUnit
+can see; protocol details belong in `rationale`. With `contractPackages` (a vendor SDK) the
+translation rules become checkable — ACL confines SDK types to the matching adapter side,
+Conformist keeps them out of the domain; without it the declaration documents the relationship
+and feeds the generated map.
+
+The identity of an `@Upstream` declaration is `(context, via)`; of an `@ExternalUpstream`
+declaration, `(name, interaction)`. A downstream may choose different
 translation strategies per channel — checkout translates cart's synchronous API behind an ACL but
 conforms to cart's consumer-defined `CartCompletionTrigger` event contract — by repeating the
 annotation.

@@ -1,6 +1,7 @@
 package de.sample.aiarchitecture
 
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.BoundedContext
+import de.sample.aiarchitecture.sharedkernel.marker.strategic.ExternalUpstream
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Partnership
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Upstream
 
@@ -40,15 +41,18 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
 
     StringBuilder md = new StringBuilder()
     md << "# Context Map\n\n"
-    md << "> **Generated file — do not edit.** Derived from the `@BoundedContext`, `@Upstream`, and\n"
-    md << "> `@Partnership` package annotations by `ContextMapDocumentationTest`. After changing a\n"
+    md << "> **Generated file — do not edit.** Derived from the `@BoundedContext`, `@Upstream`,\n"
+    md << "> `@ExternalUpstream`, and `@Partnership` package annotations by\n"
+    md << "> `ContextMapDocumentationTest`. After changing a\n"
     md << "> declaration, rerun `./gradlew test-architecture` and commit the regenerated file.\n\n"
     md << "Each side declares only what it controls: the downstream declares its consumed upstreams\n"
     md << "(`@Upstream`: translation strategy and channel), the upstream publishes its contract\n"
     md << "(`api`/`events` named interfaces, `@OpenHostService`), and partnerships are declared\n"
     md << "symmetrically on both contexts. Organizational patterns such as Customer–Supplier are not\n"
-    md << "machine-classified; Separate Ways is the absence of any declaration. Non-context modules\n"
-    md << "(e.g. backoffice) and the shared kernel are intentionally not part of this map.\n\n"
+    md << "machine-classified; Separate Ways is the absence of any declaration. External systems\n"
+    md << "appear via `@ExternalUpstream` on their consuming context — the model dependency always\n"
+    md << "points to the external system, regardless of who initiates the exchange. Non-context\n"
+    md << "modules (e.g. backoffice) and the shared kernel are intentionally not part of this map.\n\n"
 
     md << "## Bounded Contexts\n\n"
     md << "| Module | Name | Description | Published interfaces |\n"
@@ -73,13 +77,25 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
         }
       }
     }
+    externalSystems(contexts).each { name ->
+      md << "  ${externalId(name)}[[\"${name}\"]]\n"
+    }
+    packages.each { pkg ->
+      String source = shortName(pkg)
+      getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
+        String label = "${translationLabel(e.translation())} / ${interactionName(e.interaction())}"
+        String arrow = e.interaction() == ExternalUpstream.Interaction.OUTBOUND ? "-->" : "-.->"
+        md << "  ${source} ${arrow}|\"${label}\"| ${externalId(e.name())}\n"
+      }
+    }
     partnershipPairs(contexts).each { pair, rationales ->
       md << "  ${pair[0]} ---|\"Partnership\"| ${pair[1]}\n"
     }
     md << "```\n\n"
-    md << "Arrows point from downstream to upstream (dependency direction). Solid arrows are\n"
-    md << "synchronous `api` consumption, dotted arrows are `events` consumption, plain lines are\n"
-    md << "partnerships. Node badges list the context's published interfaces.\n\n"
+    md << "Arrows point from downstream to upstream (dependency direction, never call direction).\n"
+    md << "Solid arrows are synchronous consumption (`api` / external `outbound`), dotted arrows are\n"
+    md << "asynchronous consumption (`events` / external `inbound`), plain lines are partnerships.\n"
+    md << "Double-framed nodes are external systems. Node badges list published interfaces.\n\n"
 
     md << "## Upstream relationships\n\n"
     md << "| Downstream | Upstream | Channel | Translation | Rationale |\n"
@@ -89,6 +105,20 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
       getPackageAnnotations(pkg, Upstream).each { Upstream u ->
         u.via().each { channel ->
           md << "| ${source} | ${u.context()} | ${channelName(channel)} | ${translationLabel(u.translation())} | ${u.rationale()} |\n"
+        }
+      }
+    }
+    md << "\n## External systems\n\n"
+    boolean anyExternal = packages.any { !getPackageAnnotations(it, ExternalUpstream).isEmpty() }
+    if (!anyExternal) {
+      md << "None declared.\n"
+    } else {
+      md << "| Consumer | External system | Interaction | Translation | Rationale |\n"
+      md << "|---|---|---|---|---|\n"
+      packages.each { pkg ->
+        String source = shortName(pkg)
+        getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
+          md << "| ${source} | ${e.name()} | ${interactionName(e.interaction())} | ${translationLabel(e.translation())} | ${e.rationale()} |\n"
         }
       }
     }
@@ -133,6 +163,24 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
   private String publishedBadge(String contextPackage) {
     List<String> published = publishedInterfaces(contextPackage)
     return published ? "<br/><i>${published.join(' · ')}</i>" : ""
+  }
+
+  /** All declared external system names, sorted for deterministic output. */
+  private List<String> externalSystems(Map<String, BoundedContext> contexts) {
+    Set<String> names = [] as Set
+    contexts.keySet().each { pkg ->
+      getPackageAnnotations(pkg, ExternalUpstream).each { names << it.name() }
+    }
+    return names.sort()
+  }
+
+  /** Deterministic mermaid node id for an external system name. */
+  private static String externalId(String name) {
+    return "ext_" + name.toLowerCase().replaceAll(/[^a-z0-9]+/, "_")
+  }
+
+  private static String interactionName(ExternalUpstream.Interaction interaction) {
+    return interaction == ExternalUpstream.Interaction.OUTBOUND ? "outbound" : "inbound"
   }
 
   private static String translationLabel(Upstream.Translation translation) {

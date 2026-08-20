@@ -1,6 +1,7 @@
 package de.sample.aiarchitecture
 
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.BoundedContext
+import de.sample.aiarchitecture.sharedkernel.marker.strategic.ExternalUpstream
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Partnership
 import de.sample.aiarchitecture.sharedkernel.marker.strategic.Upstream
 import spock.lang.Requires
@@ -13,6 +14,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
  * The context map is declared as package annotations, each side declaring only what it controls:
  * - @Upstream (downstream side): the directed dependency, its translation strategy, and the
  *   consumed channel (api/events)
+ * - @ExternalUpstream (downstream side): dependency on a system outside this codebase, with
+ *   translation strategy and interaction direction (who initiates: OUTBOUND/INBOUND)
  * - @Partnership (both sides): symmetric governance relationship, no dependency permission
  * - @NamedInterface("api"/"events") + @OpenHostService (upstream side): the published contract
  * - @ApplicationModule.allowedDependencies: the enforced package boundary (Spring Modulith)
@@ -51,7 +54,7 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
   // DECLARATION WELL-FORMEDNESS
   // ============================================================================
 
-  def "Upstream and Partnership may only be declared on bounded context packages"() {
+  def "Upstream, ExternalUpstream, and Partnership may only be declared on bounded context packages"() {
     given:
     Set<String> roots = allRootPackages()
 
@@ -60,8 +63,32 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
       if (getPackageAnnotation(pkg, BoundedContext) == null) {
         assert getPackageAnnotations(pkg, Upstream).isEmpty() :
         "Package '${pkg}' declares @Upstream but is not a @BoundedContext — context map declarations are reserved for bounded contexts"
+        assert getPackageAnnotations(pkg, ExternalUpstream).isEmpty() :
+        "Package '${pkg}' declares @ExternalUpstream but is not a @BoundedContext — context map declarations are reserved for bounded contexts"
         assert getPackageAnnotations(pkg, Partnership).isEmpty() :
         "Package '${pkg}' declares @Partnership but is not a @BoundedContext — context map declarations are reserved for bounded contexts"
+      }
+    }
+  }
+
+  def "ExternalUpstream declarations must be well-formed and unique per name and interaction"() {
+    given:
+    Map<String, BoundedContext> contexts = discoverBoundedContextPackages()
+    Set<String> moduleNames = contexts.keySet().collect { shortName(it) } as Set
+
+    expect:
+    contexts.each { pkg, bc ->
+      String source = shortName(pkg)
+      List<String> edges = []
+      getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
+        assert !e.name().isBlank() :
+        "Context '${source}' declares an @ExternalUpstream with a blank name"
+        assert !moduleNames.contains(e.name()) :
+        "Context '${source}' declares external system '${e.name()}', which is an internal bounded context module — use @Upstream for internal contexts"
+        String edge = "${e.name()} :: ${e.interaction()}"
+        assert !edges.contains(edge) :
+        "Context '${source}' declares external system edge '${edge}' more than once — the identity of an @ExternalUpstream declaration is (name, interaction)"
+        edges << edge
       }
     }
   }
@@ -197,6 +224,46 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
     }
   }
 
+  def "External system contract types must respect the declared translation and interaction"() {
+    given:
+    Map<String, BoundedContext> contexts = discoverBoundedContextPackages()
+
+    expect:
+    // Without contractPackages (wire-level contract, no vendor SDK) there is nothing to check —
+    // the declaration then only documents the relationship and feeds the generated context map.
+    contexts.each { pkg, bc ->
+      String source = shortName(pkg)
+      getPackageAnnotations(pkg, ExternalUpstream)
+        .findAll { it.contractPackages().length > 0 }
+        .each { ExternalUpstream e ->
+          if (e.translation() == Upstream.Translation.ANTI_CORRUPTION_LAYER) {
+            // The ACL sits where the exchange crosses the boundary: outgoing adapters when this
+            // context initiates, incoming adapters when the external system does.
+            String allowedAdapter = e.interaction() == ExternalUpstream.Interaction.OUTBOUND
+              ? "${pkg}.adapter.outgoing.."
+              : "${pkg}.adapter.incoming.."
+
+            noClasses()
+              .that().resideInAPackage("${pkg}..")
+              .and().resideOutsideOfPackage(allowedAdapter)
+              .should().dependOnClassesThat()
+              .resideInAnyPackage(e.contractPackages())
+              .allowEmptyShould(true)
+              .because("Context '${source}' declares ANTI_CORRUPTION_LAYER towards external system '${e.name()}' (${e.interaction()}) — its contract types (${e.contractPackages().join(', ')}) must not leave ${allowedAdapter}")
+              .check(allClasses)
+          } else {
+            noClasses()
+              .that().resideInAPackage("${pkg}.domain..")
+              .should().dependOnClassesThat()
+              .resideInAnyPackage(e.contractPackages())
+              .allowEmptyShould(true)
+              .because("Context '${source}' conforms to external system '${e.name()}', but conformism does not suspend domain purity — the domain layer stays free of its contract types")
+              .check(allClasses)
+          }
+        }
+    }
+  }
+
   def "Cross-context dependencies on published interfaces require an Upstream declaration"() {
     given:
     Map<String, BoundedContext> contexts = discoverBoundedContextPackages()
@@ -266,6 +333,9 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
         u.via().each { channel ->
           println "  ${source} --[${u.translation()} / ${channelName(channel)}]--> ${u.context()}"
         }
+      }
+      getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
+        println "  ${source} --[${e.translation()} / ${e.interaction()}]--> (external) ${e.name()}"
       }
       getPackageAnnotations(pkg, Partnership).each { Partnership p ->
         println "  ${source} <--[PARTNERSHIP]--> ${p.context()}"
