@@ -52,10 +52,11 @@
     name = "Payment Service Provider",
     translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
     interaction = ExternalUpstream.Interaction.INBOUND,
+    status = Upstream.Status.PLANNED,
     rationale =
-        "Asynchronous payment-confirmation webhook that triggers order fulfillment; the payload is"
-            + " the provider's contract and is translated into a local command at the incoming"
-            + " adapter")
+        "Asynchronous payment-confirmation webhook that will trigger order fulfillment; the"
+            + " payload is the provider's contract, to be translated into a local command at the"
+            + " incoming adapter — no webhook adapter exists yet")
 @Partnership(
     context = "cart",
     rationale =

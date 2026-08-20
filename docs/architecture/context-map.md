@@ -51,7 +51,7 @@ graph LR
   product -->|"ACL / api"| inventory
   ext_payment_service_provider[["Payment Service Provider"]]
   checkout -->|"ACL / outbound"| ext_payment_service_provider
-  checkout -.->|"ACL / inbound"| ext_payment_service_provider
+  checkout -.->|"ACL / inbound / planned"| ext_payment_service_provider
   cart ---|"Partnership"| checkout
   checkout ---|"Partnership"| inventory
 ```
@@ -60,29 +60,30 @@ Arrows point from downstream to upstream (dependency direction, never call direc
 Solid arrows are synchronous consumption (`api` / external `outbound`), dotted arrows are
 asynchronous consumption (`events` / external `inbound`), plain lines are partnerships.
 Double-framed nodes are external systems. Node badges list published interfaces.
+Edges labeled `planned` are declared intent without a code dependency yet.
 
 ## Upstream relationships
 
-| Downstream | Upstream | Channel | Translation | Rationale |
-|---|---|---|---|---|
-| cart | product | api | ACL | Cart works with its own article snapshot; the catalog model must not leak into cart invariants |
-| cart | pricing | api | ACL | Price lookups are translated into the cart's own price representation |
-| cart | inventory | api | ACL | Stock availability is translated into the cart's own article data |
-| checkout | product | api | ACL | Product data is translated into checkout's own article and product info types |
-| checkout | pricing | api | ACL | Prices are translated into checkout's own line item amounts |
-| checkout | inventory | api | ACL | Stock availability is translated into checkout's own article data |
-| checkout | inventory | events | Conformist | CheckoutConfirmedEvent implements inventory's consumer-defined StockReductionTrigger contract as-is |
-| checkout | cart | api | ACL | Cart snapshots are translated into checkout's own CartData |
-| checkout | cart | events | Conformist | CheckoutConfirmedEvent implements cart's consumer-defined CartCompletionTrigger contract as-is; cart change events are consumed directly |
-| product | pricing | api | ACL | Prices are translated into the catalog's own product presentation data |
-| product | inventory | api | ACL | Stock levels are translated into the catalog's own availability data |
+| Downstream | Upstream | Channel | Translation | Status | Rationale |
+|---|---|---|---|---|---|
+| cart | product | api | ACL | implemented | Cart works with its own article snapshot; the catalog model must not leak into cart invariants |
+| cart | pricing | api | ACL | implemented | Price lookups are translated into the cart's own price representation |
+| cart | inventory | api | ACL | implemented | Stock availability is translated into the cart's own article data |
+| checkout | product | api | ACL | implemented | Product data is translated into checkout's own article and product info types |
+| checkout | pricing | api | ACL | implemented | Prices are translated into checkout's own line item amounts |
+| checkout | inventory | api | ACL | implemented | Stock availability is translated into checkout's own article data |
+| checkout | inventory | events | Conformist | implemented | CheckoutConfirmedEvent implements inventory's consumer-defined StockReductionTrigger contract as-is |
+| checkout | cart | api | ACL | implemented | Cart snapshots are translated into checkout's own CartData |
+| checkout | cart | events | Conformist | implemented | CheckoutConfirmedEvent implements cart's consumer-defined CartCompletionTrigger contract as-is; cart change events are consumed directly |
+| product | pricing | api | ACL | implemented | Prices are translated into the catalog's own product presentation data |
+| product | inventory | api | ACL | implemented | Stock levels are translated into the catalog's own availability data |
 
 ## External systems
 
-| Consumer | External system | Interaction | Translation | Rationale |
-|---|---|---|---|---|
-| checkout | Payment Service Provider | outbound | ACL | Synchronous payment operations (initiate, confirm, refund) behind the caller-owned PaymentProvider port; the sample ships a mock adapter in place of a real gateway |
-| checkout | Payment Service Provider | inbound | ACL | Asynchronous payment-confirmation webhook that triggers order fulfillment; the payload is the provider's contract and is translated into a local command at the incoming adapter |
+| Consumer | External system | Interaction | Translation | Status | Rationale |
+|---|---|---|---|---|---|
+| checkout | Payment Service Provider | outbound | ACL | implemented | Synchronous payment operations (initiate, confirm, refund) behind the caller-owned PaymentProvider port; the sample ships a mock adapter in place of a real gateway |
+| checkout | Payment Service Provider | inbound | ACL | planned | Asynchronous payment-confirmation webhook that will trigger order fulfillment; the payload is the provider's contract, to be translated into a local command at the incoming adapter — no webhook adapter exists yet |
 
 ## Partnerships
 

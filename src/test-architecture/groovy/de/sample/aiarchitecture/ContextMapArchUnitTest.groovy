@@ -24,6 +24,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
  * - declarations only on @BoundedContext packages, targets exist, no self-reference
  * - (context, channel) unique per declaring context, via never empty
  * - @Upstream declarations and allowedDependencies named-interface entries agree (both ways)
+ * - every IMPLEMENTED @Upstream edge is backed by an actual code dependency (PLANNED is exempt)
  * - ANTI_CORRUPTION_LAYER + API: upstream contract types only in outgoing adapters
  * - ANTI_CORRUPTION_LAYER + EVENTS: upstream contract types only in incoming adapters
  * - CONFORMIST: upstream contract types never in the domain layer
@@ -89,6 +90,25 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
         assert !edges.contains(edge) :
         "Context '${source}' declares external system edge '${edge}' more than once — the identity of an @ExternalUpstream declaration is (name, interaction)"
         edges << edge
+      }
+    }
+  }
+
+  def "Distinct external system names must not collide after mermaid id normalization"() {
+    given:
+    Map<String, BoundedContext> contexts = discoverBoundedContextPackages()
+
+    expect:
+    // The generated context map renders one mermaid node per external system, identified by the
+    // normalized name. Two spellings of the same system ("Payment-Service", "Payment Service")
+    // would silently merge into one node while the tables list them as two systems.
+    Map<String, String> idToName = [:]
+    contexts.each { pkg, bc ->
+      getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
+        String id = normalizedExternalId(e.name())
+        assert idToName.getOrDefault(id, e.name()) == e.name() :
+        "External system names '${idToName[id]}' and '${e.name()}' normalize to the same mermaid node id '${id}' — use one canonical spelling"
+        idToName[id] = e.name()
       }
     }
   }
@@ -160,6 +180,41 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
 
       assert declared == allowed :
       "Context '${source}': @Upstream declarations ${declared.sort()} and @ApplicationModule.allowedDependencies named-interface entries ${allowed.sort()} must describe the same edges — neither side may know more than the other"
+    }
+  }
+
+  // ============================================================================
+  // CONSISTENCY WITH THE CODE
+  // ============================================================================
+
+  def "Implemented Upstream declarations must be backed by an actual code dependency"() {
+    given:
+    Map<String, BoundedContext> contexts = discoverBoundedContextPackages()
+    Map<String, String> packagesByName = contexts.keySet().collectEntries { [(shortName(it)): it] }
+
+    expect:
+    // The completeness rule proves actual dependency -> declaration; this rule proves the
+    // reverse: a declared IMPLEMENTED edge without any real dependency is stale (or premature —
+    // then it is PLANNED) and would otherwise pass forever alongside an equally stale
+    // allowedDependencies entry.
+    contexts.each { pkg, bc ->
+      String source = shortName(pkg)
+      getPackageAnnotations(pkg, Upstream)
+        .findAll { it.status() == Upstream.Status.IMPLEMENTED }
+        .each { Upstream u ->
+          String targetPkg = packagesByName[u.context()]
+          u.via().each { Upstream.Consumes channel ->
+            String channelPkg = "${targetPkg}.${channelName(channel)}"
+            boolean exists = allClasses.any { javaClass ->
+              inPackageTree(javaClass.getPackageName(), pkg) &&
+                javaClass.getDirectDependenciesFromSelf().any { dep ->
+                  inPackageTree(dep.getTargetClass().getPackageName(), channelPkg)
+                }
+            }
+            assert exists :
+            "Context '${source}' declares @Upstream(context = \"${u.context()}\", via = ${channelName(channel)}) as IMPLEMENTED, but no class in '${pkg}' depends on '${channelPkg}..' — implement the dependency, mark the declaration status = PLANNED, or remove it"
+          }
+        }
     }
   }
 
@@ -373,6 +428,16 @@ class ContextMapArchUnitTest extends BaseArchUnitTest {
 
   private static String channelName(Upstream.Consumes channel) {
     return channel == Upstream.Consumes.API ? "api" : "events"
+  }
+
+  /** True when packageName is root itself or a subpackage of root (exact segment boundary). */
+  private static boolean inPackageTree(String packageName, String root) {
+    return packageName == root || packageName.startsWith(root + ".")
+  }
+
+  /** Mirrors ContextMapDocumentationTest#externalId — the mermaid node id of an external system. */
+  private static String normalizedExternalId(String name) {
+    return "ext_" + name.toLowerCase().replaceAll(/[^a-z0-9]+/, "_")
   }
 
   private String shortName(String packagePath) {

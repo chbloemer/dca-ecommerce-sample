@@ -75,6 +75,14 @@ public @interface ExternalUpstream {
   /** Why this relationship exists, which protocol it uses, and why this translation was chosen. */
   String rationale() default "";
 
+  /**
+   * Whether the integration exists in code or is only intended. An external system's wire-level
+   * contract leaves no checkable edge, so {@code IMPLEMENTED} is not machine-verified here — but
+   * {@code PLANNED} keeps the generated context map honest: the relationship is rendered as
+   * planned instead of posing as an existing integration.
+   */
+  Upstream.Status status() default Upstream.Status.IMPLEMENTED;
+
   /** Who initiates the exchange with the external system. */
   enum Interaction {
     /**

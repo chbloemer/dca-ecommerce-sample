@@ -43,6 +43,9 @@ import java.lang.annotation.Target;
  *   <li>{@code (context, via)} must be unique across all declarations of one context
  *   <li>Every declaration must match a {@code "{context} :: api"} or {@code "{context} :: events"}
  *       entry in {@code @ApplicationModule.allowedDependencies} — and vice versa
+ *   <li>Every {@code IMPLEMENTED} declaration must be backed by at least one actual code
+ *       dependency on the declared channel package — a declaration without code is only legal as
+ *       {@code PLANNED}
  *   <li>{@code ANTI_CORRUPTION_LAYER} + {@code API}: upstream contract types appear only in the
  *       downstream's outgoing adapters
  *   <li>{@code ANTI_CORRUPTION_LAYER} + {@code EVENTS}: upstream contract types appear only in the
@@ -75,6 +78,22 @@ public @interface Upstream {
 
   /** Why this relationship exists and why this translation was chosen. */
   String rationale() default "";
+
+  /**
+   * Whether the relationship exists in code or is only intended. {@code IMPLEMENTED} declarations
+   * must be backed by an actual dependency on the declared channel package (enforced); {@code
+   * PLANNED} declarations document intent, appear as such in the generated context map, and are
+   * exempt from the existence rule.
+   */
+  Status status() default Status.IMPLEMENTED;
+
+  /** Implementation status of a declared relationship. */
+  enum Status {
+    /** The dependency exists in code; ArchUnit requires at least one real edge. */
+    IMPLEMENTED,
+    /** The relationship is intended but has no code edge yet; rendered as planned in the map. */
+    PLANNED
+  }
 
   /** Translation strategy of the downstream context. */
   enum Translation {

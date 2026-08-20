@@ -67,6 +67,16 @@ translation strategies per channel — checkout translates cart's synchronous AP
 conforms to cart's consumer-defined `CartCompletionTrigger` event contract — by repeating the
 annotation.
 
+Every declaration carries a `status` (`IMPLEMENTED` by default, `PLANNED` for declared intent).
+An `IMPLEMENTED` `@Upstream` edge must be backed by at least one actual code dependency on the
+declared channel package — without that rule, a stale annotation plus a stale
+`allowedDependencies` entry would agree with each other forever while describing nothing. A
+`PLANNED` edge is exempt from the existence rule and rendered as `planned` in the generated map,
+so the map never presents an intended integration as an existing one. For `@ExternalUpstream`
+the wire-level contract leaves no checkable edge, so `status` there is documentation that keeps
+the map honest (checkout's payment-confirmation webhook is `PLANNED` until the incoming adapter
+exists).
+
 `ContextMapArchUnitTest` enforces, per declaration:
 
 - declarations only on bounded contexts; targets exist; no self-reference; `via` non-empty;
@@ -75,6 +85,10 @@ annotation.
   directions** — neither side may know more than the other (this rule loads `ApplicationModule`
   reflectively and is skipped when Spring Modulith is not on the classpath, keeping the test
   class usable in non-Modulith projects)
+- every `IMPLEMENTED` `@Upstream` edge is backed by an actual code dependency on the declared
+  channel package (`PLANNED` edges are exempt)
+- distinct external system names must not collide after mermaid-id normalization (two spellings
+  of one system would silently merge into a single diagram node)
 - `ANTI_CORRUPTION_LAYER` + `API`: upstream contract types only in `adapter.outgoing..`
 - `ANTI_CORRUPTION_LAYER` + `EVENTS`: upstream contract types only in `adapter.incoming..`
   (the edge of a consumed event is the incoming side)

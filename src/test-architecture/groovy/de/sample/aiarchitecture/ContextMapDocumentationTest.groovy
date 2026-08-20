@@ -71,7 +71,7 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
       String source = shortName(pkg)
       getPackageAnnotations(pkg, Upstream).each { Upstream u ->
         u.via().each { channel ->
-          String label = "${translationLabel(u.translation())} / ${channelName(channel)}"
+          String label = "${translationLabel(u.translation())} / ${channelName(channel)}${statusSuffix(u.status())}"
           String arrow = channel == Upstream.Consumes.API ? "-->" : "-.->"
           md << "  ${source} ${arrow}|\"${label}\"| ${u.context()}\n"
         }
@@ -83,7 +83,7 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     packages.each { pkg ->
       String source = shortName(pkg)
       getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
-        String label = "${translationLabel(e.translation())} / ${interactionName(e.interaction())}"
+        String label = "${translationLabel(e.translation())} / ${interactionName(e.interaction())}${statusSuffix(e.status())}"
         String arrow = e.interaction() == ExternalUpstream.Interaction.OUTBOUND ? "-->" : "-.->"
         md << "  ${source} ${arrow}|\"${label}\"| ${externalId(e.name())}\n"
       }
@@ -95,16 +95,17 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     md << "Arrows point from downstream to upstream (dependency direction, never call direction).\n"
     md << "Solid arrows are synchronous consumption (`api` / external `outbound`), dotted arrows are\n"
     md << "asynchronous consumption (`events` / external `inbound`), plain lines are partnerships.\n"
-    md << "Double-framed nodes are external systems. Node badges list published interfaces.\n\n"
+    md << "Double-framed nodes are external systems. Node badges list published interfaces.\n"
+    md << "Edges labeled `planned` are declared intent without a code dependency yet.\n\n"
 
     md << "## Upstream relationships\n\n"
-    md << "| Downstream | Upstream | Channel | Translation | Rationale |\n"
-    md << "|---|---|---|---|---|\n"
+    md << "| Downstream | Upstream | Channel | Translation | Status | Rationale |\n"
+    md << "|---|---|---|---|---|---|\n"
     packages.each { pkg ->
       String source = shortName(pkg)
       getPackageAnnotations(pkg, Upstream).each { Upstream u ->
         u.via().each { channel ->
-          md << "| ${source} | ${u.context()} | ${channelName(channel)} | ${translationLabel(u.translation())} | ${u.rationale()} |\n"
+          md << "| ${source} | ${u.context()} | ${channelName(channel)} | ${translationLabel(u.translation())} | ${statusName(u.status())} | ${u.rationale()} |\n"
         }
       }
     }
@@ -113,12 +114,12 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     if (!anyExternal) {
       md << "None declared.\n"
     } else {
-      md << "| Consumer | External system | Interaction | Translation | Rationale |\n"
-      md << "|---|---|---|---|---|\n"
+      md << "| Consumer | External system | Interaction | Translation | Status | Rationale |\n"
+      md << "|---|---|---|---|---|---|\n"
       packages.each { pkg ->
         String source = shortName(pkg)
         getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
-          md << "| ${source} | ${e.name()} | ${interactionName(e.interaction())} | ${translationLabel(e.translation())} | ${e.rationale()} |\n"
+          md << "| ${source} | ${e.name()} | ${interactionName(e.interaction())} | ${translationLabel(e.translation())} | ${statusName(e.status())} | ${e.rationale()} |\n"
         }
       }
     }
@@ -152,11 +153,40 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     return pairs
   }
 
-  /** Published interfaces ("api", "events") a context actually contains classes for. */
+  private static final String NAMED_INTERFACE_ANNOTATION = "org.springframework.modulith.NamedInterface"
+
+  /**
+   * Published interfaces ("api", "events") of a context. Published means declared: the channel
+   * package carries classes AND its package-info declares @NamedInterface with the channel name —
+   * a package that merely happens to be called "api" is not a published contract. Without Spring
+   * Modulith on the classpath, class presence stands alone.
+   */
   private List<String> publishedInterfaces(String contextPackage) {
     return ["api", "events"].findAll { channel ->
-      allClasses.any { it.getPackageName().startsWith("${contextPackage}.${channel}") }
+      // Exact package-segment boundary — a plain prefix would also match "apiary"/"eventsourcing".
+      String root = "${contextPackage}.${channel}"
+      boolean hasClasses =
+        allClasses.any { it.getPackageName() == root || it.getPackageName().startsWith("${root}.") }
+      hasClasses && declaredAsNamedInterface(root, channel)
     }
+  }
+
+  private boolean declaredAsNamedInterface(String channelPackage, String channel) {
+    Class<? extends java.lang.annotation.Annotation> namedInterface
+    try {
+      // Loaded reflectively so this test class works unchanged in non-Modulith projects.
+      namedInterface = Class.forName(NAMED_INTERFACE_ANNOTATION) as Class<? extends java.lang.annotation.Annotation>
+    } catch (ClassNotFoundException ignored) {
+      return true
+    }
+    def annotation = getPackageAnnotation(channelPackage, namedInterface)
+    if (annotation == null) {
+      return false
+    }
+    // Raw reflection sees the attribute that was actually written; Spring's @AliasFor bridging
+    // between value() and name() only applies through Spring's own annotation utilities.
+    List<String> names = annotation.value().toList() + annotation.name().toList()
+    return names.contains(channel)
   }
 
   /** Published interfaces of a context, shown as a node badge ("api", "events"). */
@@ -185,6 +215,15 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
 
   private static String translationLabel(Upstream.Translation translation) {
     return translation == Upstream.Translation.ANTI_CORRUPTION_LAYER ? "ACL" : "Conformist"
+  }
+
+  private static String statusName(Upstream.Status status) {
+    return status == Upstream.Status.PLANNED ? "planned" : "implemented"
+  }
+
+  /** Edge-label suffix marking planned relationships; empty for implemented ones. */
+  private static String statusSuffix(Upstream.Status status) {
+    return status == Upstream.Status.PLANNED ? " / planned" : ""
   }
 
   private static String channelName(Upstream.Consumes channel) {
