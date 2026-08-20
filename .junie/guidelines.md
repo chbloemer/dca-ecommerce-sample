@@ -4,7 +4,7 @@ Audience: Senior engineers working on this repository. This document captures pr
 
 1. Build and Configuration
 - Java/Gradle
-  - Requires Java 21 (Gradle toolchain is configured; Gradle 9 wrapper included).
+  - Requires Java 25 (Gradle toolchain is configured; Gradle 9 wrapper included).
   - Build without tests: ./gradlew -x test build
   - Package is disabled (jar.enabled = false). Use bootRun for local app startup.
 - Spring Boot

@@ -40,8 +40,8 @@ Three complementary patterns working together:
 
 ## Tech Stack
 
-- Java 21 with Records
-- Spring Boot 3.5.6
+- Java 25 with Records
+- Spring Boot 4.0.2
 - Gradle 9.1
 - ArchUnit for architecture testing
 
