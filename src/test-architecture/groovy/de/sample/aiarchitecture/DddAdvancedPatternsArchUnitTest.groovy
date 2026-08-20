@@ -88,7 +88,7 @@ class DddAdvancedPatternsArchUnitTest extends BaseArchUnitTest {
   def "Integration Events must be annotated with IntegrationEventType"() {
     expect:
     // The annotation carries the stable logical name + schema version as a class property —
-    // the single source of truth for an event's contract identity (see ADR-027).
+    // the single source of truth for an event's contract identity.
     classes()
       .that().areAssignableTo(IntegrationEvent.class)
       .and().areNotInterfaces()
