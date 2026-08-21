@@ -50,8 +50,8 @@ graph LR
   product -->|"ACL / api"| pricing
   product -->|"ACL / api"| inventory
   ext_payment_service_provider[["Payment Service Provider"]]
-  checkout -->|"ACL / outbound"| ext_payment_service_provider
-  checkout -.->|"ACL / inbound / planned"| ext_payment_service_provider
+  checkout -->|"ACL / REST"| ext_payment_service_provider
+  checkout -.->|"ACL / webhook / planned"| ext_payment_service_provider
   cart ---|"Partnership"| checkout
   checkout ---|"Partnership"| inventory
 ```
@@ -80,10 +80,10 @@ Edges labeled `planned` are declared intent without a code dependency yet.
 
 ## External systems
 
-| Consumer | External system | Interaction | Translation | Status | Rationale |
-|---|---|---|---|---|---|
-| checkout | Payment Service Provider | outbound | ACL | implemented | Synchronous payment operations (initiate, confirm, refund) behind the caller-owned PaymentProvider port; the sample ships a mock adapter in place of a real gateway |
-| checkout | Payment Service Provider | inbound | ACL | planned | Asynchronous payment-confirmation webhook that will trigger order fulfillment; the payload is the provider's contract, to be translated into a local command at the incoming adapter — no webhook adapter exists yet |
+| Consumer | External system | Interaction | Protocol | Exchanges | Translation | Status | Rationale |
+|---|---|---|---|---|---|---|---|
+| checkout | Payment Service Provider | outbound | REST | payment operations (initiate, confirm, refund) | ACL | implemented | Behind the caller-owned PaymentProvider port; the sample ships a mock adapter in place of a real gateway |
+| checkout | Payment Service Provider | inbound | webhook | payment confirmation (payment id, status) | ACL | planned | Will trigger order fulfillment; the payload is the provider's contract, to be translated into a local command at the incoming adapter — no webhook adapter exists yet |
 
 ## Partnerships
 

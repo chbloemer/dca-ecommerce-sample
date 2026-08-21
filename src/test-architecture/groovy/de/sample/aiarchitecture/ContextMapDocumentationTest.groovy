@@ -83,7 +83,10 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     packages.each { pkg ->
       String source = shortName(pkg)
       getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
-        String label = "${translationLabel(e.translation())} / ${interactionName(e.interaction())}${statusSuffix(e.status())}"
+        // The one-word protocol replaces the generic inbound/outbound in the label — the arrow
+        // style already encodes the direction. The full exchanges text lives in the table only.
+        String kind = e.protocol() ?: interactionName(e.interaction())
+        String label = "${translationLabel(e.translation())} / ${kind}${statusSuffix(e.status())}"
         String arrow = e.interaction() == ExternalUpstream.Interaction.OUTBOUND ? "-->" : "-.->"
         md << "  ${source} ${arrow}|\"${label}\"| ${externalId(e.name())}\n"
       }
@@ -114,12 +117,12 @@ class ContextMapDocumentationTest extends BaseArchUnitTest {
     if (!anyExternal) {
       md << "None declared.\n"
     } else {
-      md << "| Consumer | External system | Interaction | Translation | Status | Rationale |\n"
-      md << "|---|---|---|---|---|---|\n"
+      md << "| Consumer | External system | Interaction | Protocol | Exchanges | Translation | Status | Rationale |\n"
+      md << "|---|---|---|---|---|---|---|---|\n"
       packages.each { pkg ->
         String source = shortName(pkg)
         getPackageAnnotations(pkg, ExternalUpstream).each { ExternalUpstream e ->
-          md << "| ${source} | ${e.name()} | ${interactionName(e.interaction())} | ${translationLabel(e.translation())} | ${statusName(e.status())} | ${e.rationale()} |\n"
+          md << "| ${source} | ${e.name()} | ${interactionName(e.interaction())} | ${e.protocol() ?: '—'} | ${e.exchanges() ?: '—'} | ${translationLabel(e.translation())} | ${statusName(e.status())} | ${e.rationale()} |\n"
         }
       }
     }

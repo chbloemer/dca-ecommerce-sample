@@ -43,9 +43,9 @@ import java.lang.annotation.Target;
  *   <li>{@code (context, via)} must be unique across all declarations of one context
  *   <li>Every declaration must match a {@code "{context} :: api"} or {@code "{context} :: events"}
  *       entry in {@code @ApplicationModule.allowedDependencies} — and vice versa
- *   <li>Every {@code IMPLEMENTED} declaration must be backed by at least one actual code
- *       dependency on the declared channel package — a declaration without code is only legal as
- *       {@code PLANNED}
+ *   <li>Every {@code IMPLEMENTED} declaration must be backed by at least one actual code dependency
+ *       on the declared channel package — a declaration without code is only legal as {@code
+ *       PLANNED}
  *   <li>{@code ANTI_CORRUPTION_LAYER} + {@code API}: upstream contract types appear only in the
  *       downstream's outgoing adapters
  *   <li>{@code ANTI_CORRUPTION_LAYER} + {@code EVENTS}: upstream contract types appear only in the

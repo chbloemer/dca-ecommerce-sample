@@ -72,14 +72,31 @@ public @interface ExternalUpstream {
    */
   String[] contractPackages() default {};
 
+  /**
+   * The exchange mechanism as a single word — e.g. {@code "webhook"}, {@code "REST"}, {@code
+   * "queue"}, {@code "SFTP"}. Shown in the context map diagram's edge label, where {@code
+   * inbound}/{@code outbound} alone says little about the kind of interaction.
+   */
+  String protocol() default "";
+
+  /**
+   * What flows over this edge, as a one-line naming of operations, event types, or payload — e.g.
+   * {@code "payment operations (initiate, confirm, refund)"}. Rendered in the generated context
+   * map's tables (the diagram carries only {@link #protocol()} to keep edge labels short). Unlike
+   * an internal upstream, an external system has no code in this codebase that could say this. Keep
+   * it a naming, not a schema — a vendor SDK belongs in {@link #contractPackages()}, a full
+   * contract in a schema artifact.
+   */
+  String exchanges() default "";
+
   /** Why this relationship exists, which protocol it uses, and why this translation was chosen. */
   String rationale() default "";
 
   /**
    * Whether the integration exists in code or is only intended. An external system's wire-level
    * contract leaves no checkable edge, so {@code IMPLEMENTED} is not machine-verified here — but
-   * {@code PLANNED} keeps the generated context map honest: the relationship is rendered as
-   * planned instead of posing as an existing integration.
+   * {@code PLANNED} keeps the generated context map honest: the relationship is rendered as planned
+   * instead of posing as an existing integration.
    */
   Upstream.Status status() default Upstream.Status.IMPLEMENTED;
 

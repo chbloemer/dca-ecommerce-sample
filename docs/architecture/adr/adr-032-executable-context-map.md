@@ -31,7 +31,7 @@ The declaration vocabulary (all in `sharedkernel/marker/strategic/`):
 | Annotation | Side | Declares |
 |---|---|---|
 | `@Upstream(context, translation, via, rationale)` | downstream | the directed dependency: translation strategy (`ANTI_CORRUPTION_LAYER` or `CONFORMIST`) and consumed channel (`API`, `EVENTS`) |
-| `@ExternalUpstream(name, translation, interaction, contractPackages, rationale)` | downstream | dependency on a system outside this codebase; `interaction` names who initiates (`OUTBOUND`/`INBOUND`) and thereby the adapter side of the edge |
+| `@ExternalUpstream(name, translation, interaction, protocol, exchanges, contractPackages, rationale)` | downstream | dependency on a system outside this codebase; `interaction` names who initiates (`OUTBOUND`/`INBOUND`) and thereby the adapter side of the edge; `protocol` is the one-word mechanism shown in the diagram (`webhook`, `REST`, `queue`); `exchanges` names what flows over it, shown in the tables (an internal upstream's flow is visible in code, an external one's is not) |
 | `@Partnership(context, rationale)` | both (symmetric) | shared governance of a co-evolved contract; grants **no** dependency permission |
 | `@NamedInterface("api"/"events")`, `@OpenHostService` | upstream | the published contract |
 | `@ApplicationModule.allowedDependencies` | downstream | the enforced package boundary (Spring Modulith) |

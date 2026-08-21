@@ -45,18 +45,21 @@
     name = "Payment Service Provider",
     translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
     interaction = ExternalUpstream.Interaction.OUTBOUND,
+    protocol = "REST",
+    exchanges = "payment operations (initiate, confirm, refund)",
     rationale =
-        "Synchronous payment operations (initiate, confirm, refund) behind the caller-owned"
-            + " PaymentProvider port; the sample ships a mock adapter in place of a real gateway")
+        "Behind the caller-owned PaymentProvider port; the sample ships a mock adapter in place"
+            + " of a real gateway")
 @ExternalUpstream(
     name = "Payment Service Provider",
     translation = Upstream.Translation.ANTI_CORRUPTION_LAYER,
     interaction = ExternalUpstream.Interaction.INBOUND,
     status = Upstream.Status.PLANNED,
+    protocol = "webhook",
+    exchanges = "payment confirmation (payment id, status)",
     rationale =
-        "Asynchronous payment-confirmation webhook that will trigger order fulfillment; the"
-            + " payload is the provider's contract, to be translated into a local command at the"
-            + " incoming adapter — no webhook adapter exists yet")
+        "Will trigger order fulfillment; the payload is the provider's contract, to be translated"
+            + " into a local command at the incoming adapter — no webhook adapter exists yet")
 @Partnership(
     context = "cart",
     rationale =
