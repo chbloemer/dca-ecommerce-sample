@@ -6,7 +6,7 @@ import de.sample.aiarchitecture.account.application.registeraccount.RegisterAcco
 import de.sample.aiarchitecture.account.application.shared.IdentitySession;
 import de.sample.aiarchitecture.account.application.shared.TokenService;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;

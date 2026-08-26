@@ -3,7 +3,7 @@ package de.sample.aiarchitecture.account.adapter.outgoing.security;
 import de.sample.aiarchitecture.account.adapter.outgoing.security.JwtTokenService.TokenValidation;
 import de.sample.aiarchitecture.account.application.shared.RegisteredUserValidator;
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

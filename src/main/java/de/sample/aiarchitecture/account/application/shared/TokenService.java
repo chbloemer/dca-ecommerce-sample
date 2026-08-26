@@ -32,7 +32,7 @@ import java.util.Set;
  * <p><b>Implementation:</b> The infrastructure layer provides the concrete implementation (e.g.,
  * JwtTokenService) that handles the actual token generation using the chosen token technology.
  *
- * @see de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider for reading identity
+ * @see de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider for reading identity
  * @see IdentitySession for managing identity cookies/sessions
  */
 public interface TokenService extends OutputPort {

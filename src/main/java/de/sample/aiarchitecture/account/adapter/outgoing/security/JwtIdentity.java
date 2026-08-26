@@ -1,7 +1,7 @@
 package de.sample.aiarchitecture.account.adapter.outgoing.security;
 
 import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
 import java.util.Optional;
 import java.util.Set;
 

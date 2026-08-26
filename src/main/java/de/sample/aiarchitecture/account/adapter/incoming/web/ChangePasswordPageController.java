@@ -5,8 +5,8 @@ import de.sample.aiarchitecture.account.application.changepassword.ChangePasswor
 import de.sample.aiarchitecture.account.application.changepassword.ChangePasswordResult;
 import de.sample.aiarchitecture.account.application.getaccountoverview.GetAccountOverviewInputPort;
 import de.sample.aiarchitecture.account.application.getaccountoverview.GetAccountOverviewQuery;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider.Identity;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider.Identity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -99,10 +99,12 @@ src/main/java/de/sample/aiarchitecture/
 │   │   │   └── out/                      # Output ports (driven)
 │   │   │       ├── OutputPort.java
 │   │   │       ├── Repository.java
-│   │   │       ├── DomainEventPublisher.java
-│   │   │       └── IdentityProvider.java
+│   │   │       └── DomainEventPublisher.java
 │   │   └── infrastructure/               # Framework integration markers
 │   │       └── AsyncInitialize.java
+│   ├── application/
+│   │   └── shared/                       # App-specific ports shared by several contexts
+│   │       └── IdentityProvider.java     # Current caller's identity (not a generic marker)
 │   ├── domain/
 │   │   ├── model/                        # Shared value objects
 │   │   │   ├── ProductId.java            # Cross-context ID
@@ -876,8 +878,9 @@ For comprehensive architecture documentation, see:
 - `sharedkernel.marker.tactical` - DDD tactical patterns (Entity, Value, AggregateRoot, DomainEvent, etc.)
 - `sharedkernel.marker.strategic` - DDD strategic patterns (BoundedContext, SharedKernel, OpenHostService)
 - `sharedkernel.marker.port.in` - Input ports (UseCase, InputPort)
-- `sharedkernel.marker.port.out` - Output ports (Repository, DomainEventPublisher, IdentityProvider)
+- `sharedkernel.marker.port.out` - Output port markers (OutputPort, Repository, DomainEventPublisher)
 - `sharedkernel.marker.infrastructure` - Framework integration markers (AsyncInitialize)
+- `sharedkernel.application.shared` - Application-specific ports shared across contexts (IdentityProvider) — not part of the generic marker set
 - `sharedkernel.domain.model` - Shared value objects (Money, Price, ProductId, UserId, PageResult, PagingRequest)
 - `sharedkernel.domain.specification` - Composable specification pattern
 - `sharedkernel.adapter.outgoing.event` - Shared outgoing adapters (SpringDomainEventPublisher)

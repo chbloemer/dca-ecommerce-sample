@@ -18,9 +18,11 @@ de.sample.aiarchitecture
 │   │   │   └── BoundedContext, SharedKernel, OpenHostService
 │   │   ├── port/                  # Port Markers
 │   │   │   ├── in/                # Input Ports (InputPort, UseCase)
-│   │   │   └── out/               # Output Ports (OutputPort, Repository, DomainEventPublisher, IdentityProvider)
+│   │   │   └── out/               # Output Port Markers (OutputPort, Repository, DomainEventPublisher)
 │   │   └── infrastructure/        # Infrastructure Markers
 │   │       └── AsyncInitialize
+│   ├── application/
+│   │   └── shared/                # App-specific ports shared by several contexts (IdentityProvider)
 │   ├── domain/
 │   │   ├── model/                 # Shared Value Objects
 │   │   │   └── Money, Price, ProductId, UserId

@@ -7,7 +7,7 @@ import de.sample.aiarchitecture.cart.application.mergecarts.CartMergeStrategy;
 import de.sample.aiarchitecture.cart.application.mergecarts.MergeCartsCommand;
 import de.sample.aiarchitecture.cart.application.mergecarts.MergeCartsInputPort;
 import de.sample.aiarchitecture.cart.application.mergecarts.MergeCartsResult;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

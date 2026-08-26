@@ -41,7 +41,7 @@ import de.sample.aiarchitecture.sharedkernel.marker.port.out.OutputPort;
  * the current HTTP response to set cookies.
  *
  * @see TokenService for generating tokens
- * @see de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider for reading identity
+ * @see de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider for reading identity
  */
 public interface IdentitySession extends OutputPort {
 

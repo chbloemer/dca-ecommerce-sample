@@ -9,7 +9,7 @@ import de.sample.aiarchitecture.cart.application.getorcreateactivecart.GetOrCrea
 import de.sample.aiarchitecture.cart.domain.model.CustomerId;
 import de.sample.aiarchitecture.cart.domain.model.EnrichedCart;
 import de.sample.aiarchitecture.cart.domain.model.EnrichedCartItem;
-import de.sample.aiarchitecture.sharedkernel.marker.port.out.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
