@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.pricing.api;
 
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.OpenHostService;
 import dev.domaincentric.sample.ecommerce.pricing.application.getpricesforproducts.GetPricesForProductsInputPort;
 import dev.domaincentric.sample.ecommerce.pricing.application.getpricesforproducts.GetPricesForProductsQuery;
 import dev.domaincentric.sample.ecommerce.pricing.application.getpricesforproducts.GetPricesForProductsResult;
@@ -7,7 +8,6 @@ import dev.domaincentric.sample.ecommerce.pricing.application.setproductprice.Se
 import dev.domaincentric.sample.ecommerce.pricing.application.setproductprice.SetProductPriceInputPort;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.OpenHostService;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;

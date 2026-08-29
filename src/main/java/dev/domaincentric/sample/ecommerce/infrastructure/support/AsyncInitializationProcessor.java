@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.infrastructure.support;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure.AsyncInitialize;
+import dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure.AsyncInitialize;
 import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * <p><b>Separation of Concerns:</b>
  *
  * <ul>
- *   <li>Annotation definition: {@code sharedkernel.marker.infrastructure} (pure Java)
+ *   <li>Annotation definition: {@code sharedkernel.infrastructure} (pure Java)
  *   <li>Annotation processing: {@code infrastructure.support} (Spring-specific)
  * </ul>
  *

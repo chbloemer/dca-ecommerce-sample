@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.application.getcartmergeoptions;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input Port for checking if cart merge options should be presented.

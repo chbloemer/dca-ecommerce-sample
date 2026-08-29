@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
 import dev.domaincentric.sample.ecommerce.account.domain.event.AccountEmailChanged;
 import dev.domaincentric.sample.ecommerce.account.domain.event.AccountOwnerDateOfBirthChanged;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.UserId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.time.Instant;

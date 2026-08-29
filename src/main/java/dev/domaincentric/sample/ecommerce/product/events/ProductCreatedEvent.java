@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.product.events;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.IntegrationEvent;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.IntegrationEventType;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEvent;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEventType;
 import java.time.Instant;
 import java.util.UUID;
 

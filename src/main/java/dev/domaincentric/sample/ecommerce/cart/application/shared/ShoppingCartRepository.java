@@ -1,12 +1,12 @@
 package dev.domaincentric.sample.ecommerce.cart.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.PageResult;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.PagingRequest;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.specification.CompositeSpecification;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.application.mergecarts;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input Port for merging carts based on user's choice.

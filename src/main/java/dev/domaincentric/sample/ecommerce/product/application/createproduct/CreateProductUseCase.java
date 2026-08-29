@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.product.application.createproduct;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import dev.domaincentric.sample.ecommerce.product.application.shared.ProductRepository;
 import dev.domaincentric.sample.ecommerce.product.domain.model.Category;
 import dev.domaincentric.sample.ecommerce.product.domain.model.ImageUrl;
@@ -9,7 +10,6 @@ import dev.domaincentric.sample.ecommerce.product.domain.model.ProductFactory;
 import dev.domaincentric.sample.ecommerce.product.domain.model.ProductName;
 import dev.domaincentric.sample.ecommerce.product.domain.model.SKU;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher;
 import java.util.Currency;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

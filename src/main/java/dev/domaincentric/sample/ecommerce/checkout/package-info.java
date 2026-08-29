@@ -83,9 +83,9 @@
     })
 package dev.domaincentric.sample.ecommerce.checkout;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.BoundedContext;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.ExternalUpstream;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.Partnership;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.Upstream;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.BoundedContext;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.ExternalUpstream;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.Partnership;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.Upstream;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;

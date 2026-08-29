@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.BaseAggregateRoot;
 import dev.domaincentric.sample.ecommerce.cart.domain.event.CartAbandoned;
 import dev.domaincentric.sample.ecommerce.cart.domain.event.CartCheckedOut;
 import dev.domaincentric.sample.ecommerce.cart.domain.event.CartCleared;
@@ -10,7 +11,6 @@ import dev.domaincentric.sample.ecommerce.cart.domain.event.ProductRemovedFromCa
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Price;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.BaseAggregateRoot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

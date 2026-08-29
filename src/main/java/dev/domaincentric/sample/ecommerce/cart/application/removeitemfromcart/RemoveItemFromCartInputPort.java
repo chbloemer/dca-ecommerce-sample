@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.application.removeitemfromcart;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input Port for removing an item from a shopping cart.

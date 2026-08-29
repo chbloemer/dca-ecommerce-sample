@@ -1,8 +1,8 @@
 package dev.domaincentric.sample.ecommerce.checkout.domain.service;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainService;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutStep;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainService;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 

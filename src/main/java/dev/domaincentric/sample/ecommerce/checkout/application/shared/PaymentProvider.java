@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.OutputPort;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.PaymentProviderId;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.OutputPort;
 
 /**
  * Output port for payment processing operations.

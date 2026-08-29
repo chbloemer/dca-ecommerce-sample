@@ -2,6 +2,9 @@ package dev.domaincentric.sample.ecommerce.cart.application.mergecarts;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.AggregateRoot;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
@@ -10,9 +13,6 @@ import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Price;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.AggregateRoot;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Currency;

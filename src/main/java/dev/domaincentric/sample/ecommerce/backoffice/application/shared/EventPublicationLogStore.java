@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.backoffice.application.shared;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Store;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Store;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

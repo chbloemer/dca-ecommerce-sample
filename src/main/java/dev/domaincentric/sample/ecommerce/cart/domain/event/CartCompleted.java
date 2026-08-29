@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.domain.event;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.time.Instant;
 import java.util.UUID;
 

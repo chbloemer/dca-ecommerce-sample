@@ -1,8 +1,8 @@
 package dev.domaincentric.sample.ecommerce.cart.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Entity;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Price;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Entity;
 
 /**
  * CartItem Entity.

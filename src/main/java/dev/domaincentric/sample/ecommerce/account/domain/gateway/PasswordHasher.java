@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.account.domain.gateway;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainGateway;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainGateway;
 
 /**
  * Domain Gateway for password hashing operations.

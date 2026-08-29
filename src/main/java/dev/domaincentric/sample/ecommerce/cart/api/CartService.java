@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.api;
 
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.OpenHostService;
 import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartCommand;
 import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.completecart.CompleteCartCommand;
@@ -10,7 +11,6 @@ import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartBy
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartStatus;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Price;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.OpenHostService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

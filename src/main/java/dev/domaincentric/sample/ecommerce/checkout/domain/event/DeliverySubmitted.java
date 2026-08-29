@@ -1,10 +1,10 @@
 package dev.domaincentric.sample.ecommerce.checkout.domain.event;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.DeliveryAddress;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.ShippingOption;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.time.Instant;
 import java.util.UUID;
 

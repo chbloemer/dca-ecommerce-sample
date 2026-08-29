@@ -1,10 +1,10 @@
 package dev.domaincentric.sample.ecommerce.account.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository;
 import dev.domaincentric.sample.ecommerce.account.domain.model.Account;
 import dev.domaincentric.sample.ecommerce.account.domain.model.AccountId;
 import dev.domaincentric.sample.ecommerce.account.domain.model.Email;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.UserId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository;
 import java.util.Optional;
 
 /**

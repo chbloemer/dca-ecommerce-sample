@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.application.additemtocart;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input port for adding items to a shopping cart.

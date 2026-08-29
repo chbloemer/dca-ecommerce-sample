@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.account.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import dev.domaincentric.sample.ecommerce.account.domain.gateway.PasswordHasher;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
 import java.nio.charset.StandardCharsets;
 
 /**

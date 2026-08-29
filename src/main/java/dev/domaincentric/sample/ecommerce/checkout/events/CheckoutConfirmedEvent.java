@@ -1,11 +1,11 @@
 package dev.domaincentric.sample.ecommerce.checkout.events;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.IntegrationEvent;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.IntegrationEventType;
 import dev.domaincentric.sample.ecommerce.cart.events.CartCompletionTrigger;
 import dev.domaincentric.sample.ecommerce.inventory.events.StockReductionTrigger;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEvent;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEventType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

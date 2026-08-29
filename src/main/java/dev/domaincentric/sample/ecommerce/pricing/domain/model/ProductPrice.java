@@ -1,10 +1,10 @@
 package dev.domaincentric.sample.ecommerce.pricing.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.BaseAggregateRoot;
 import dev.domaincentric.sample.ecommerce.pricing.domain.event.PriceChanged;
 import dev.domaincentric.sample.ecommerce.pricing.domain.event.PriceCreated;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.BaseAggregateRoot;
 import java.math.BigDecimal;
 import java.time.Instant;
 

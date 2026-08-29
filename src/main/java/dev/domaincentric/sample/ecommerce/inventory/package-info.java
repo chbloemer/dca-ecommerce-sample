@@ -13,7 +13,7 @@
 @ApplicationModule(allowedDependencies = {"sharedkernel", "infrastructure"})
 package dev.domaincentric.sample.ecommerce.inventory;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.BoundedContext;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.Partnership;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.BoundedContext;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.Partnership;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;

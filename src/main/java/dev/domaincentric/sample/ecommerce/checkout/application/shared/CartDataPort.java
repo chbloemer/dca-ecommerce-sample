@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.OutputPort;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CartId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.OutputPort;
 import java.util.Optional;
 
 /**

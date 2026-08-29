@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.product.domain.model;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 
 /**
  * Value Object representing a Stock Keeping Unit (SKU). SKUs are unique identifiers for products in

@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.inventory.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository;
 import dev.domaincentric.sample.ecommerce.inventory.domain.model.StockLevel;
 import dev.domaincentric.sample.ecommerce.inventory.domain.model.StockLevelId;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

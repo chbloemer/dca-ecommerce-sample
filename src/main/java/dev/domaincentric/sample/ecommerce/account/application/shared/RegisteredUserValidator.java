@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.account.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.OutputPort;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.UserId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.OutputPort;
 
 /**
  * Validator for checking if a registered user's account exists.

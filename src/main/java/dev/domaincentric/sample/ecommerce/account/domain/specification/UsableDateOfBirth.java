@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.account.domain.specification;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Specification;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Specification;
 import java.time.LocalDate;
 
 /**

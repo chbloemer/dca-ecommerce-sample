@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.checkout.domain.readmodel;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.BuyerInfo;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
@@ -12,7 +13,6 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.model.DeliveryAddress;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.PaymentSelection;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.ShippingOption;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 

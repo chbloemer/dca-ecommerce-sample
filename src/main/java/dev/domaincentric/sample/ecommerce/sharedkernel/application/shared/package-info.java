@@ -1,10 +1,11 @@
 /**
  * Cross-context output ports of the shared kernel.
  *
- * <p>Unlike {@code sharedkernel.marker.port.out}, which holds the <em>generic</em> port markers
- * ({@code OutputPort}, {@code Repository}, {@code DomainEventPublisher}), this package contains
- * <em>application-specific</em> ports that several bounded contexts of this application share but
- * that are not part of the reusable DCA building blocks.
+ * <p>Unlike {@code dev.domaincentric.dca.buildingblocks.hexagonal.port.out}, which holds the
+ * <em>generic</em> port markers ({@code OutputPort}, {@code Repository}, {@code
+ * DomainEventPublisher}), this package contains <em>application-specific</em> ports that several
+ * bounded contexts of this application share but that are not part of the reusable DCA building
+ * blocks.
  *
  * <p><b>Contents:</b>
  *

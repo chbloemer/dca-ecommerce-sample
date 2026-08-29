@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.account.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.BaseAggregateRoot;
 import dev.domaincentric.sample.ecommerce.account.domain.event.AccountClosed;
 import dev.domaincentric.sample.ecommerce.account.domain.event.AccountEmailChanged;
 import dev.domaincentric.sample.ecommerce.account.domain.event.AccountLinkedToIdentity;
@@ -11,7 +12,6 @@ import dev.domaincentric.sample.ecommerce.account.domain.event.AccountRegistered
 import dev.domaincentric.sample.ecommerce.account.domain.event.AccountSuspended;
 import dev.domaincentric.sample.ecommerce.account.domain.gateway.PasswordHasher;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.UserId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.BaseAggregateRoot;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;

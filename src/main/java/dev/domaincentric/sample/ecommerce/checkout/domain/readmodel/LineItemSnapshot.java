@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.checkout.domain.readmodel;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItemId;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
 import org.jspecify.annotations.Nullable;
 
 /**

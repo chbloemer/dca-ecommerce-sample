@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.sharedkernel.domain.specification;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Specification;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Specification;
 
 /**
  * Generic, framework-agnostic Specification interface for domain use.

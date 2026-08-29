@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.product.domain.model;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 
 /** Value Object representing a Product's description. */
 public record ProductDescription(String value) implements Value {

@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.inventory.application.setstocklevel;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input port for setting or updating stock levels.

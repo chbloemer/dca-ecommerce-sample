@@ -45,11 +45,11 @@ BASE_PACKAGE = "dev.domaincentric.sample.ecommerce"
 
 // Shared Kernel
 SHAREDKERNEL_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.."
-SHAREDKERNEL_MARKER_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.."
-SHAREDKERNEL_MARKER_TACTICAL_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.."
-SHAREDKERNEL_MARKER_STRATEGIC_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.."
-SHAREDKERNEL_MARKER_PORT_IN_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.."
-SHAREDKERNEL_MARKER_PORT_OUT_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.."
+BUILDING_BLOCKS_PACKAGE = "dev.domaincentric.dca.buildingblocks.."  // markers come from dca-building-blocks
+SHAREDKERNEL_MARKER_TACTICAL_PACKAGE = "dev.domaincentric.dca.buildingblocks.ddd.tactical.."
+BUILDING_BLOCKS_STRATEGIC_PACKAGE = "dev.domaincentric.dca.buildingblocks.ddd.strategic.."
+SHAREDKERNEL_MARKER_PORT_IN_PACKAGE = "dev.domaincentric.dca.buildingblocks.hexagonal.port.in.."
+SHAREDKERNEL_MARKER_PORT_OUT_PACKAGE = "dev.domaincentric.dca.buildingblocks.hexagonal.port.out.."
 SHAREDKERNEL_DOMAIN_MODEL_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.."
 
 // Layer patterns (wildcarded for all contexts)

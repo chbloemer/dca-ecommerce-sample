@@ -156,7 +156,7 @@ public final class ShoppingCart extends BaseAggregateRoot<ShoppingCart, CartId> 
 3. Aggregates reference other aggregates by identity only (e.g., ShoppingCart references Product via ProductId)
 4. Aggregates raise domain events for important state changes
 
-**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.AggregateRoot`
+**Implementation:** See `dev.domaincentric.dca.buildingblocks.ddd.tactical.AggregateRoot`
 
 #### Entity
 
@@ -183,7 +183,7 @@ public final class CartItem implements Entity<CartItem, CartItemId> {
 2. Identity remains constant through state changes
 3. Equality based on identity, not attributes
 
-**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Entity`
+**Implementation:** See `dev.domaincentric.dca.buildingblocks.ddd.tactical.Entity`
 
 #### Value Object
 
@@ -218,7 +218,7 @@ public record Money(@NonNull BigDecimal amount, @NonNull Currency currency) impl
 5. Universal value objects belong in Shared Kernel
 
 **Implementation:**
-- Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value`
+- Interface: `dev.domaincentric.dca.buildingblocks.ddd.tactical.Value`
 - Shared Value Objects: `dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money`, `ProductId`, `Price`
 - Context-specific Value Objects: In their respective bounded contexts
 
@@ -307,7 +307,7 @@ an implementation that cannot satisfy it does not implement the port.
 - Fluent API: save() returning aggregate enables method chaining
 
 **Implementation:**
-- Base Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository`
+- Base Interface: `dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository`
 - Domain Interfaces: `ProductRepository`, `ShoppingCartRepository`
 - Implementations: `InMemoryProductRepository`, `JpaShoppingCartRepository` (in `adapter.outgoing.persistence`)
 
@@ -327,7 +327,7 @@ The stored object has no own identity-based lifecycle. You don't load it by ID, 
 A Store extends `OutputPort` directly (not the `Repository` marker):
 
 ```java
-package dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out;
+package dev.domaincentric.dca.buildingblocks.hexagonal.port.out;
 
 /**
  * Marker interface for Stores — output ports that record or query
@@ -413,7 +413,7 @@ public class CartTotalCalculator implements DomainService {
 3. Operates on domain objects
 4. Named after activities, not entities
 
-**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainService`
+**Implementation:** See `dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainService`
 
 #### Domain Event
 
@@ -527,8 +527,8 @@ public class ProductEventConsumer {
 - Time-travel debugging
 
 **Implementation:**
-- Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent`
-- Publisher Interface (SPI): `dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher`
+- Interface: `dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent`
+- Publisher Interface (SPI): `dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher`
 - Publisher Implementation: `dev.domaincentric.sample.ecommerce.sharedkernel.adapter.outgoing.event.SpringDomainEventPublisher`
 - Examples: `ProductCreated`, `ProductPriceChanged`, `CartItemAddedToCart`, `CartCheckedOut`
 
@@ -537,7 +537,7 @@ public class ProductEventConsumer {
 The event publishing infrastructure follows the Dependency Inversion Principle to keep the application layer framework-independent:
 
 ```java
-// Interface (outbound port) in sharedkernel.marker.port.out - application layer depends on this
+// Interface (outbound port) in dev.domaincentric.dca.buildingblocks.hexagonal.port.out - application layer depends on this
 public interface DomainEventPublisher extends OutputPort {
     void publish(DomainEvent event);
     void publishAndClearEvents(AggregateRoot<?, ?> aggregate);
@@ -565,7 +565,7 @@ public class SpringDomainEventPublisher implements DomainEventPublisher {
 - Application layer remains framework-independent (depends on interface, not Spring)
 - Easy to mock for testing
 - Can swap implementations (e.g., message broker, in-memory for tests)
-- Follows Hexagonal Architecture (port defined in sharedkernel.marker.port.out, adapter in sharedkernel.adapter.outgoing.event)
+- Follows Hexagonal Architecture (port defined in dev.domaincentric.dca.buildingblocks.hexagonal.port.out, adapter in sharedkernel.adapter.outgoing.event)
 
 #### Integration Event
 
@@ -685,7 +685,7 @@ public class CheckoutConfirmedEventConsumer {
 6. Use DTOs with Shared Kernel types or primitives only
 
 **Implementation:**
-- Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEvent`
+- Interface: `dev.domaincentric.dca.buildingblocks.ddd.tactical.IntegrationEvent`
 - Example Event: `dev.domaincentric.sample.ecommerce.cart.adapter.outgoing.event.CartCheckedOutEvent`
 - Example Publisher: `dev.domaincentric.sample.ecommerce.cart.adapter.outgoing.event.CartCheckedOutEventPublisher`
 - Example Consumer: `dev.domaincentric.sample.ecommerce.inventory.adapter.incoming.event.CheckoutConfirmedEventConsumer`
@@ -805,7 +805,7 @@ public class ProductFactory implements Factory {
 3. Framework-independent
 4. Stateless
 
-**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Factory`
+**Implementation:** See `dev.domaincentric.dca.buildingblocks.ddd.tactical.Factory`
 
 #### Specification
 
@@ -828,7 +828,7 @@ public class ProductAvailableSpecification implements Specification<Product> {
 3. Framework-independent
 4. Reusable across use cases
 
-**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Specification`
+**Implementation:** See `dev.domaincentric.dca.buildingblocks.ddd.tactical.Specification`
 
 #### Enriched Domain Model Pattern
 
@@ -1223,7 +1223,7 @@ public class InMemoryShoppingCartRepository implements ShoppingCartRepository {
 ```
 
 **Rules:**
-1. Annotation definition in `sharedkernel.marker.infrastructure` (framework-agnostic)
+1. Annotation definition in `sharedkernel.infrastructure` (framework-agnostic)
 2. Processor implementation in `infrastructure.support` (framework-specific)
 3. Pure Java annotation with no Spring dependencies
 4. Method name convention: `asyncInitialize()` annotated with `@Async`
@@ -1237,7 +1237,7 @@ public class InMemoryShoppingCartRepository implements ShoppingCartRepository {
 - Follows Dependency Inversion Principle
 
 **Implementation:**
-- Annotation: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure.AsyncInitialize`
+- Annotation: `dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure.AsyncInitialize`
 - Processor: `dev.domaincentric.sample.ecommerce.infrastructure.support.AsyncInitializationProcessor`
 - Configuration: `dev.domaincentric.sample.ecommerce.infrastructure.config.AsyncConfiguration`
 - Examples: `InMemoryProductRepository`, `InMemoryShoppingCartRepository`
@@ -1511,7 +1511,7 @@ public class UpdateProductPriceUseCase implements UpdateProductPriceInputPort {
 
 ### Implementation
 
-**Base Interface:** `dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase<INPUT, OUTPUT>`
+**Base Interface:** `dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase<INPUT, OUTPUT>`
 
 **Product Use Cases:**
 - Input Port: `CreateProductInputPort extends UseCase<CreateProductCommand, CreateProductResult>`
@@ -1997,7 +1997,7 @@ Application Layer → sharedkernel.application.port (interface) ← infrastructu
 
 **Example:**
 ```java
-// sharedkernel.marker.port.out.DomainEventPublisher (outbound port)
+// dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher (outbound port)
 public interface DomainEventPublisher extends OutputPort {
     void publish(DomainEvent event);
     void publishAndClearEvents(AggregateRoot<?, ?> aggregate);
@@ -2012,10 +2012,10 @@ public class SpringDomainEventPublisher implements DomainEventPublisher {
 ```
 
 **Rules:**
-1. **sharedkernel.marker.port must contain ONLY interfaces** (enforced by ArchUnit)
+1. **dev.domaincentric.dca.buildingblocks.hexagonal.port must contain ONLY interfaces** (enforced by ArchUnit)
 2. No concrete classes, no annotations, no framework dependencies
 3. Implementations reside in `sharedkernel.adapter` or context adapter packages
-4. Application layer may depend on `sharedkernel.marker.port`, never on implementations
+4. Application layer may depend on `dev.domaincentric.dca.buildingblocks.hexagonal.port`, never on implementations
 5. Only ports used by **multiple bounded contexts** belong here (not context-specific ports)
 
 **Benefits:**
@@ -2025,7 +2025,7 @@ public class SpringDomainEventPublisher implements DomainEventPublisher {
 - Supports framework-independent business logic
 - Shared Kernel pattern reduces duplication across bounded contexts
 
-**What Belongs in sharedkernel.marker.port:**
+**What Belongs in dev.domaincentric.dca.buildingblocks.hexagonal.port:**
 - ✅ Base Repository interface (used by all aggregate repositories)
 - ✅ Base UseCase interface (input port marker)
 - ✅ DomainEventPublisher (used by all application services)

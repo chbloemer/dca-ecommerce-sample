@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.account.application.shared;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.OutputPort;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.OutputPort;
 
 /**
  * Port for managing user identity sessions.

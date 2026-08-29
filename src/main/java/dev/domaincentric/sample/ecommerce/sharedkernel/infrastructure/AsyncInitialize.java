@@ -1,4 +1,4 @@
-package dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure;
+package dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * <p><b>Architecture Pattern:</b>
  *
  * <ul>
- *   <li>Annotation definition: {@code sharedkernel.marker.infrastructure} (pure Java)
+ *   <li>Annotation definition: {@code sharedkernel.infrastructure} (pure Java)
  *   <li>Annotation processing: {@code infrastructure.support.AsyncInitializationProcessor}
  *       (Spring-specific)
  *   <li>Async configuration: {@code infrastructure.config.AsyncConfiguration} (Spring-specific)

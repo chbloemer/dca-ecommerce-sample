@@ -76,32 +76,10 @@ Layers (from innermost to outermost):
 ```
 src/main/java/dev/domaincentric/sample/ecommerce/
 ├── sharedkernel/                         # Shared Kernel (cross-context)
-│   ├── marker/                           # Architectural markers
-│   │   ├── tactical/                     # DDD tactical patterns
-│   │   │   ├── Id.java                   # Identity marker
-│   │   │   ├── Entity.java
-│   │   │   ├── Value.java
-│   │   │   ├── AggregateRoot.java
-│   │   │   ├── BaseAggregateRoot.java
-│   │   │   ├── DomainEvent.java
-│   │   │   ├── IntegrationEvent.java
-│   │   │   ├── DomainService.java
-│   │   │   ├── Factory.java
-│   │   │   └── Specification.java
-│   │   ├── strategic/                    # DDD strategic patterns
-│   │   │   ├── BoundedContext.java
-│   │   │   ├── SharedKernel.java
-│   │   │   └── OpenHostService.java
-│   │   ├── port/                         # Hexagonal Architecture ports
-│   │   │   ├── in/                       # Input ports (driving)
-│   │   │   │   ├── InputPort.java
-│   │   │   │   └── UseCase.java
-│   │   │   └── out/                      # Output ports (driven)
-│   │   │       ├── OutputPort.java
-│   │   │       ├── Repository.java
-│   │   │       └── DomainEventPublisher.java
-│   │   └── infrastructure/               # Framework integration markers
-│   │       └── AsyncInitialize.java
+│   │                                     # (architectural markers come from dev.domaincentric:dca-building-blocks —
+│   │                                     #  ddd.tactical, ddd.strategic[.relationships], hexagonal.port.in/out)
+│   ├── infrastructure/
+│   │   └── AsyncInitialize.java          # Sample-specific framework marker (not a DCA building block)
 │   ├── application/
 │   │   └── shared/                       # App-specific ports shared by several contexts
 │   │       └── IdentityProvider.java     # Current caller's identity (not a generic marker)
@@ -875,11 +853,11 @@ For comprehensive architecture documentation, see:
 - Separate from internal domain events in `domain.event`
 
 **Shared Kernel** - Cross-context shared concepts
-- `sharedkernel.marker.tactical` - DDD tactical patterns (Entity, Value, AggregateRoot, DomainEvent, etc.)
-- `sharedkernel.marker.strategic` - DDD strategic patterns (BoundedContext, SharedKernel, OpenHostService)
-- `sharedkernel.marker.port.in` - Input ports (UseCase, InputPort)
-- `sharedkernel.marker.port.out` - Output port markers (OutputPort, Repository, DomainEventPublisher)
-- `sharedkernel.marker.infrastructure` - Framework integration markers (AsyncInitialize)
+- Architectural markers come from the library `dev.domaincentric:dca-building-blocks` (`dev.domaincentric.dca.buildingblocks`):
+  `ddd.tactical` (Entity, Value, AggregateRoot, DomainEvent, …), `ddd.strategic` (BoundedContext),
+  `ddd.strategic.relationships` (SharedKernel, OpenHostService, Upstream, ExternalUpstream, Partnership),
+  `hexagonal.port.in` (InputPort, UseCase), `hexagonal.port.out` (OutputPort, Repository, Store, DomainEventPublisher, IntegrationEventPublisher)
+- `sharedkernel.infrastructure` - Sample-specific framework marker (AsyncInitialize)
 - `sharedkernel.application.shared` - Application-specific ports shared across contexts (IdentityProvider) — not part of the generic marker set
 - `sharedkernel.domain.model` - Shared value objects (Money, Price, ProductId, UserId, PageResult, PagingRequest)
 - `sharedkernel.domain.specification` - Composable specification pattern

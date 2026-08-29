@@ -2,8 +2,7 @@
 
 > **Generated file — do not edit.** Derived from the `@BoundedContext`, `@Upstream`,
 > `@ExternalUpstream`, and `@Partnership` package annotations by
-> `ContextMapDocumentationTest`. After changing a
-> declaration, rerun `./gradlew test-architecture` and commit the regenerated file.
+> `ContextMapRenderer`. After changing a declaration, regenerate and commit this file.
 
 Each side declares only what it controls: the downstream declares its consumed upstreams
 (`@Upstream`: translation strategy and channel), the upstream publishes its contract
@@ -12,7 +11,7 @@ symmetrically on both contexts. Organizational patterns such as Customer–Suppl
 machine-classified; Separate Ways is the absence of any declaration. External systems
 appear via `@ExternalUpstream` on their consuming context — the model dependency always
 points to the external system, regardless of who initiates the exchange. Non-context
-modules (e.g. backoffice) and the shared kernel are intentionally not part of this map.
+modules and the shared kernel are intentionally not part of this map.
 
 ## Bounded Contexts
 

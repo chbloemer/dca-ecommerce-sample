@@ -15,4 +15,4 @@
  * annotations lives in the infrastructure layer (e.g., AsyncInitializationProcessor), but the
  * annotation definitions themselves are shared.
  */
-package dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure;
+package dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure;

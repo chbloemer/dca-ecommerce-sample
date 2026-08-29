@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.inventory.application.setstocklevel;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import dev.domaincentric.sample.ecommerce.inventory.application.shared.StockLevelRepository;
 import dev.domaincentric.sample.ecommerce.inventory.domain.model.StockLevel;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

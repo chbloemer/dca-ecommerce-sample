@@ -5,7 +5,7 @@ import dev.domaincentric.sample.ecommerce.product.domain.model.Category;
 import dev.domaincentric.sample.ecommerce.product.domain.model.Product;
 import dev.domaincentric.sample.ecommerce.product.domain.model.SKU;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure.AsyncInitialize;
+import dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure.AsyncInitialize;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;

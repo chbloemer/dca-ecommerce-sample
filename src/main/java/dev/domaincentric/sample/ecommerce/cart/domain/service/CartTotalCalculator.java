@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.domain.service;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainService;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 

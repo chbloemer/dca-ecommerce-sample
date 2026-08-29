@@ -23,6 +23,6 @@
 @ApplicationModule(type = ApplicationModule.Type.OPEN)
 package dev.domaincentric.sample.ecommerce.sharedkernel;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.SharedKernel;
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.SharedKernel;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;

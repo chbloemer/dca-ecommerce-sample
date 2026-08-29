@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.account.domain.model;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import java.util.regex.Pattern;
 
 /**

@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

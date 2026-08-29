@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.inventory.domain.model;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 
 public record StockQuantity(int value) implements Value {
 

@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.pricing.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository;
 import dev.domaincentric.sample.ecommerce.pricing.domain.model.PriceId;
 import dev.domaincentric.sample.ecommerce.pricing.domain.model.ProductPrice;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

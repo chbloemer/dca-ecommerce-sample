@@ -1,10 +1,10 @@
 package dev.domaincentric.sample.ecommerce.product.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository;
 import dev.domaincentric.sample.ecommerce.product.domain.model.Category;
 import dev.domaincentric.sample.ecommerce.product.domain.model.Product;
 import dev.domaincentric.sample.ecommerce.product.domain.model.SKU;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository;
 import java.util.List;
 import java.util.Optional;
 

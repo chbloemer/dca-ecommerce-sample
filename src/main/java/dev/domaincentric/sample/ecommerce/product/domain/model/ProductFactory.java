@@ -1,9 +1,9 @@
 package dev.domaincentric.sample.ecommerce.product.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Factory;
 import dev.domaincentric.sample.ecommerce.product.domain.event.ProductCreated;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Factory;
 
 /**
  * Factory for creating Product aggregates.

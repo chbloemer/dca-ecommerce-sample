@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 import dev.domaincentric.sample.ecommerce.account.application.changepassword.ChangePasswordResult.Outcome;
 import dev.domaincentric.sample.ecommerce.account.application.changepassword.ChangePasswordTestFixtures.TestAccountRepository;
 import dev.domaincentric.sample.ecommerce.account.application.changepassword.ChangePasswordTestFixtures.TestDomainEventPublisher;
@@ -19,8 +21,6 @@ import dev.domaincentric.sample.ecommerce.account.domain.event.AccountPasswordCh
 import dev.domaincentric.sample.ecommerce.account.domain.model.Account;
 import dev.domaincentric.sample.ecommerce.account.domain.model.AccountStatus;
 import dev.domaincentric.sample.ecommerce.account.domain.model.HashedPassword;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;

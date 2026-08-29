@@ -1,5 +1,8 @@
 package dev.domaincentric.sample.ecommerce.account.application.changepassword;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.AggregateRoot;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import dev.domaincentric.sample.ecommerce.account.application.shared.AccountRepository;
 import dev.domaincentric.sample.ecommerce.account.domain.gateway.PasswordHasher;
 import dev.domaincentric.sample.ecommerce.account.domain.model.Account;
@@ -9,9 +12,6 @@ import dev.domaincentric.sample.ecommerce.account.domain.model.Email;
 import dev.domaincentric.sample.ecommerce.account.domain.model.HashedPassword;
 import dev.domaincentric.sample.ecommerce.account.domain.model.Owner;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.UserId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.AggregateRoot;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;

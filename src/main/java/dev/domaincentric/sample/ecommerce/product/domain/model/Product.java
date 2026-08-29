@@ -1,10 +1,10 @@
 package dev.domaincentric.sample.ecommerce.product.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.BaseAggregateRoot;
 import dev.domaincentric.sample.ecommerce.product.domain.event.ProductCategoryChanged;
 import dev.domaincentric.sample.ecommerce.product.domain.event.ProductDescriptionChanged;
 import dev.domaincentric.sample.ecommerce.product.domain.event.ProductNameChanged;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.BaseAggregateRoot;
 
 /**
  * Product Aggregate Root.

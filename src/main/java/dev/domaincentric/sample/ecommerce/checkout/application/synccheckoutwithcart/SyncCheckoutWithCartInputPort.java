@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.synccheckoutwithcart;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input port for synchronizing a checkout session with current cart state.

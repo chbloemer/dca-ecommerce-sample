@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
 import dev.domaincentric.sample.ecommerce.account.application.changeprofile.ChangeProfileResult.Outcome;
 import dev.domaincentric.sample.ecommerce.account.application.changeprofile.ChangeProfileTestFixtures.TestAccountRepository;
 import dev.domaincentric.sample.ecommerce.account.application.changeprofile.ChangeProfileTestFixtures.TestDomainEventPublisher;
@@ -24,7 +25,6 @@ import dev.domaincentric.sample.ecommerce.account.domain.model.Account;
 import dev.domaincentric.sample.ecommerce.account.domain.model.AccountId;
 import dev.domaincentric.sample.ecommerce.account.domain.model.AccountStatus;
 import dev.domaincentric.sample.ecommerce.account.domain.model.Email;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;

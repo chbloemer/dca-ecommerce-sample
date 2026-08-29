@@ -1,7 +1,6 @@
 sourceSets {
   testArchitecture {
     java.srcDir file("src/test-architecture/java")
-    groovy.srcDir file("src/test-architecture/groovy")
     resources.srcDir file("src/test-architecture/resources")
   }
 }
@@ -15,7 +14,8 @@ addCommonTestDependencies('testArchitectureImplementation')
 
 dependencies {
   testArchitectureImplementation sourceSets.main.output
-  testArchitectureImplementation("com.tngtech.archunit:archunit:${archunitVersion}")
+  // DCA governance rules (brings ArchUnit transitively)
+  testArchitectureImplementation("dev.domaincentric:dca-archunit:0.1.0-SNAPSHOT")
   testArchitectureImplementation("org.springframework.modulith:spring-modulith-starter-test")
 }
 

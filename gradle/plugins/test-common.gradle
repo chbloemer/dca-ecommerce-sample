@@ -1,21 +1,14 @@
 // Common test configuration and versions
 ext {
-  groovyVersion = '5.0.4'
   springBootVersion = '4.0.2'
-  spockVersion = '2.4-groovy-5.0'
-  archunitVersion = '1.4.1'
   byteBuddyVersion = '1.18.4'
 }
 
 // Common test dependencies closure
 ext.addCommonTestDependencies = { configurationName ->
   dependencies {
-    "${configurationName}"("org.apache.groovy:groovy-all:${groovyVersion}")
     "${configurationName}"("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
       exclude(module: 'commons-logging')
-    }
-    "${configurationName}"("org.spockframework:spock-core:${spockVersion}") {
-      exclude(module: 'groovy-all')
     }
   }
 }
@@ -39,7 +32,7 @@ ext.configureTestTask = { testTask, outputDir = null ->
       exceptionFormat = 'full'
       showExceptions = true
       showStandardStreams = false
-      stackTraceFilters 'TRUNCATE', 'GROOVY', 'ENTRY_POINT'
+      stackTraceFilters 'TRUNCATE', 'ENTRY_POINT'
     }
     // Output directory
     if (outputDir) {
@@ -48,10 +41,3 @@ ext.configureTestTask = { testTask, outputDir = null ->
   }
 }
 
-// Common Groovy compilation configuration
-ext.configureGroovyCompilation = {
-  tasks.withType(GroovyCompile).configureEach {
-    options.encoding = 'UTF-8'
-    groovyOptions.forkOptions.memoryMaximumSize = "2g"
-  }
-}

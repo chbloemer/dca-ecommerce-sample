@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.product.api;
 
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.OpenHostService;
 import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductCommand;
 import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductResult;
@@ -9,7 +10,6 @@ import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.Get
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdResult;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.OpenHostService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;

@@ -1,8 +1,8 @@
 package dev.domaincentric.sample.ecommerce.sharedkernel.adapter.outgoing.event;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.AggregateRoot;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.AggregateRoot;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainEvent;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;

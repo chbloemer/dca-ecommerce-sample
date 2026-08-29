@@ -102,7 +102,7 @@ dev.domaincentric.sample.ecommerce/
 package dev.domaincentric.sample.ecommerce.cart.domain.model;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;     // ✅
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId; // ✅
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Entity;    // ✅
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Entity;    // ✅
 
 // ❌ FORBIDDEN: Direct access between contexts
 import dev.domaincentric.sample.ecommerce.product.domain.model.Product;  // ❌

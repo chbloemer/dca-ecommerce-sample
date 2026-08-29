@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.inventory.domain.model;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Id;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Id;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import java.util.UUID;
 
 public record StockLevelId(String value) implements Id, Value {

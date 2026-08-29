@@ -1,10 +1,10 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.Repository;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CustomerId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository;
 import java.util.List;
 import java.util.Optional;
 

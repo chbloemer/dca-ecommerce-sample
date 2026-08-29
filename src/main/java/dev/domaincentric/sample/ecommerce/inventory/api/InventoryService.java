@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.inventory.api;
 
+import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.OpenHostService;
 import dev.domaincentric.sample.ecommerce.inventory.application.getstockforproducts.GetStockForProductsInputPort;
 import dev.domaincentric.sample.ecommerce.inventory.application.getstockforproducts.GetStockForProductsQuery;
 import dev.domaincentric.sample.ecommerce.inventory.application.getstockforproducts.GetStockForProductsResult;
@@ -8,7 +9,6 @@ import dev.domaincentric.sample.ecommerce.inventory.application.reducestock.Redu
 import dev.domaincentric.sample.ecommerce.inventory.application.setstocklevel.SetStockLevelCommand;
 import dev.domaincentric.sample.ecommerce.inventory.application.setstocklevel.SetStockLevelInputPort;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.OpenHostService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;

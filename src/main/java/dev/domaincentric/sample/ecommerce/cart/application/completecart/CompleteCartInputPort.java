@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.application.completecart;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input port for completing a shopping cart after checkout confirmation.

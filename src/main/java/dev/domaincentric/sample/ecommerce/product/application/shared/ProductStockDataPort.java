@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.product.application.shared;
 
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.OutputPort;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.OutputPort;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;

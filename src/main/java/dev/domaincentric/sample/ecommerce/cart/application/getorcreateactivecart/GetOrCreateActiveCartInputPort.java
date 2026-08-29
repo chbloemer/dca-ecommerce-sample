@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input Port for getting or creating an active cart for a customer.

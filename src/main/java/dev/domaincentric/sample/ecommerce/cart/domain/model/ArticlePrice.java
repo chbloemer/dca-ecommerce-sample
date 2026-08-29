@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
 
 /**
  * Value Object representing current pricing and availability information for an article.

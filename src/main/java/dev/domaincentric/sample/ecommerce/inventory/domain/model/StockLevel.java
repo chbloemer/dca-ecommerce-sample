@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.inventory.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.BaseAggregateRoot;
 import dev.domaincentric.sample.ecommerce.inventory.domain.event.StockChanged;
 import dev.domaincentric.sample.ecommerce.inventory.domain.event.StockDecreased;
 import dev.domaincentric.sample.ecommerce.inventory.domain.event.StockIncreased;
@@ -7,7 +8,6 @@ import dev.domaincentric.sample.ecommerce.inventory.domain.event.StockLevelCreat
 import dev.domaincentric.sample.ecommerce.inventory.domain.event.StockReleased;
 import dev.domaincentric.sample.ecommerce.inventory.domain.event.StockReserved;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.BaseAggregateRoot;
 
 /**
  * StockLevel Aggregate Root.

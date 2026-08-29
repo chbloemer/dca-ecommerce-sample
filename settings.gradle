@@ -1,1 +1,8 @@
 rootProject.name = 'dca-ecommerce-sample-java'
+
+// Local development against the sibling dca-java build: Gradle substitutes
+// dev.domaincentric:dca-building-blocks / dca-archunit with ../dca-java.
+// Remove once the artifacts are published to Maven Central.
+if (file('../dca-java').exists()) {
+  includeBuild('../dca-java')
+}

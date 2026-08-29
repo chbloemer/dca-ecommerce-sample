@@ -76,7 +76,7 @@ dev.domaincentric.sample.ecommerce.{context}/
 
 ## DDD Markers (Shared Kernel)
 
-All domain objects implement marker interfaces from `sharedkernel.marker`:
+All domain objects implement marker interfaces from `dev.domaincentric.dca.buildingblocks` (library `dca-building-blocks`):
 - `AggregateRoot` / `BaseAggregateRoot<T, ID>` — aggregate roots
 - `Entity` — entities
 - `Value` — value objects (use Java records)

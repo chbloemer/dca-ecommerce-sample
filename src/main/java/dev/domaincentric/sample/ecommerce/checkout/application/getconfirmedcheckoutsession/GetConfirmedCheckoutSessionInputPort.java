@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.getconfirmedcheckoutsession;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
 
 /**
  * Input Port for getting a confirmed or completed checkout session for a customer.

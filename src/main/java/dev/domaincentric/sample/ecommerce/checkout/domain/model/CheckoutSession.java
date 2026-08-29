@@ -1,5 +1,6 @@
 package dev.domaincentric.sample.ecommerce.checkout.domain.model;
 
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.BaseAggregateRoot;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.BuyerInfoSubmitted;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.CheckoutAbandoned;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.CheckoutCompleted;
@@ -10,7 +11,6 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.event.DeliverySubmitte
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.PaymentSubmitted;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutValidationResult.ValidationError;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.BaseAggregateRoot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

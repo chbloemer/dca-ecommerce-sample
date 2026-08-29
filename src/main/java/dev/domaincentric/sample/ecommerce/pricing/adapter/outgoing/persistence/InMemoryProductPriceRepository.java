@@ -4,7 +4,7 @@ import dev.domaincentric.sample.ecommerce.pricing.application.shared.ProductPric
 import dev.domaincentric.sample.ecommerce.pricing.domain.model.PriceId;
 import dev.domaincentric.sample.ecommerce.pricing.domain.model.ProductPrice;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure.AsyncInitialize;
+import dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure.AsyncInitialize;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

@@ -1,6 +1,6 @@
 package dev.domaincentric.sample.ecommerce.checkout.domain.model;
 
-import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import dev.domaincentric.dca.buildingblocks.ddd.tactical.Value;
 import org.jspecify.annotations.Nullable;
 
 /** Value Object representing a delivery address for checkout. */

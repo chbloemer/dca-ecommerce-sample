@@ -25,7 +25,7 @@ Conversational replies to the user may follow the user's language preference, bu
 ./gradlew test --tests "*ProductTest*"       # Run specific test class
 ./gradlew test -Pfilter=Cart                 # Filter tests by name substring
 ./gradlew test-architecture                  # Run ArchUnit architecture tests
-./gradlew test-architecture --tests "*HexagonalArchitectureArchUnitTest*"  # Run specific arch test
+./gradlew test-architecture --tests "*ArchitectureRulesTest*"  # DCA rule catalog only
 
 # Run Application
 ./gradlew bootRun                            # Start app (JDWP debug on port 5005)
@@ -55,8 +55,9 @@ This is a **sample e-commerce application** demonstrating best practices for:
 - Gradle 9.3.1
 - Spring Modulith 2.0.3
 - Spring AI 2.0.0-M2 (milestone)
-- ArchUnit for architecture testing
-- Spock/Groovy for architecture tests
+- `dev.domaincentric:dca-building-blocks` — architectural markers (DDD tactical/strategic, hexagonal ports)
+- `dev.domaincentric:dca-archunit` — the DCA governance rules (ArchUnit), run via JUnit 5
+- Until the artifacts are published, `settings.gradle` includes the sibling build `../dca-java` (Gradle composite build)
 - JSpecify for nullability annotations
 
 **Purpose:**
@@ -250,7 +251,7 @@ If architecture tests fail:
 ```
 dev.domaincentric.sample.ecommerce
 ├── sharedkernel/             # Shared Kernel (cross-context)
-│   ├── marker/               # Architectural markers (tactical, strategic, port)
+│   ├── infrastructure/       # Sample-specific marker (AsyncInitialize); DCA markers come from dca-building-blocks
 │   ├── domain/               # Shared value objects and specifications
 │   └── adapter/outgoing/     # Shared adapters (e.g., SpringDomainEventPublisher)
 ├── {boundedcontext}/         # Each bounded context (product, cart, checkout, account, portal, inventory, pricing, backoffice)
@@ -279,17 +280,18 @@ dev.domaincentric.sample.ecommerce
 
 ### Architecture Tests (ArchUnit)
 
-Location: `src/test-architecture/groovy/dev/domaincentric/sample/ecommerce/`
+Location: `src/test-architecture/java/dev/domaincentric/sample/ecommerce/`
 
-**Test Categories:**
-- `DddTacticalPatternsArchUnitTest` - Aggregate, Entity, Value Object, Repository patterns
-- `DddAdvancedPatternsArchUnitTest` - Domain Events, Services, Factories, Specifications
-- `DddStrategicPatternsArchUnitTest` - Bounded Context isolation
-- `HexagonalArchitectureArchUnitTest` - Ports and Adapters rules
-- `OnionArchitectureArchUnitTest` - Dependency flow rules
-- `LayeredArchitectureArchUnitTest` - Layer access rules
-- `NamingConventionsArchUnitTest` - Naming standards
-- `PackageCyclesArchUnitTest` - Circular dependency detection
+The rules themselves live in the library `dev.domaincentric:dca-archunit` (107 rules in 10 sets, ids
+`DCA-<SET>-<NNN>`: LAY, ONI, HEX, TAC, STR, MAP, ADV, USE, NAM, CYC). This project only *runs* them:
+
+- `ArchitectureRulesTest` — extends `DcaArchitectureTest`, one dynamic test per rule; excludes nothing.
+- `ContextMapDocumentationTest` — renders `docs/architecture/context-map.md` via `ContextMapRenderer`
+  and fails when the committed file was stale (fix: commit the regenerated file).
+- `SpringModulithVerificationTest` — Spring Modulith module boundaries (sample-specific, not a DCA rule).
+
+To switch a rule off, override `excludedRuleIds()` in `ArchitectureRulesTest` and record why in an ADR.
+Rule changes belong in `dca-java`, not here.
 
 **Run architecture tests:**
 ```bash
@@ -321,7 +323,7 @@ JavaDoc that restates the signature is a comment smell and gets deleted on sight
 **JavaDoc is required for:**
 
 1. **Published API** — types and methods other bounded contexts or external callers depend on:
-   `api/` (Open Host Services), `events/` (integration events), `sharedkernel/marker/**`, ports
+   `api/` (Open Host Services), `events/` (integration events), ports
    (`*InputPort`, output ports in `application/shared/`). Document purpose, parameters, return
    values, exceptions, and domain events raised.
 2. **Non-obvious rules** — an invariant, a constraint, a deliberate tradeoff, or a value whose
