@@ -72,6 +72,12 @@ A bounded context is an explicit boundary within which a domain model is defined
 - Both contexts may access Shared Kernel
 - No direct aggregate-to-aggregate references
 
+**Executable Context Map:** Cross-context relationships are declared as package annotations —
+`@Upstream` (downstream side: translation strategy and consumed channel) and `@Partnership`
+(symmetric governance) — and enforced by `ContextMapArchUnitTest` against the code and Spring
+Modulith's `allowedDependencies`. [context-map.md](context-map.md) is generated from these
+declarations. See [ADR-032](adr/adr-032-executable-context-map.md).
+
 **Why Shared Kernel?**
 - **Consistency**: Single definition of `Money` prevents currency handling bugs
 - **Reduces Duplication**: Avoid reimplementing universal concepts

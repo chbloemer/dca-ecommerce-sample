@@ -6,8 +6,8 @@ import de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent;
  * Outbound port for publishing integration events across bounded-context boundaries.
  *
  * <p>Use cases publish boundary-crossing facts through this port; the implementation (e.g. a
- * transactional-outbox adapter) decides how the event becomes durable and reaches
- * external consumers. This keeps the application layer free of delivery concerns.
+ * transactional-outbox adapter) decides how the event becomes durable and reaches external
+ * consumers. This keeps the application layer free of delivery concerns.
  *
  * <p>Distinct from {@link DomainEventPublisher}: that port publishes in-context {@code
  * DomainEvent}s after persistence; this one publishes the versioned, serializable {@link

@@ -1,0 +1,126 @@
+# ADR-032: The Context Map Is Declared in Code and Enforced
+
+**Date**: August 20, 2026
+**Status**: ✅ Accepted
+**Deciders**: Architecture Team
+
+---
+
+## Context
+
+Cross-context relationships were described in three unconnected places: prose documentation, the
+`@ApplicationModule.allowedDependencies` declarations that Spring Modulith enforces, and the code
+itself (caller-owned ports, outgoing adapters, consumer-defined trigger interfaces). Nothing tied
+them together. The documentation could drift silently, and the *strategic intent* of an edge — is
+this an Anti-Corruption Layer or does the downstream deliberately conform to the upstream's
+published language? — existed nowhere a machine could check it.
+
+A single all-encompassing `@ContextRelationship(target, pattern, integration)` annotation was
+considered and rejected: it mixes dimensions that are separate in DDD (organizational relationship,
+translation policy, transport), and it forces the downstream to declare properties it does not
+control, such as whether the upstream is an Open Host Service.
+
+## Decision
+
+**Each side of a relationship declares only what it controls, as package annotations. ArchUnit
+proves the declarations consistent with each other, with Spring Modulith, and with the code. The
+context map document is generated from the declarations.**
+
+The declaration vocabulary (all in `sharedkernel/marker/strategic/`):
+
+| Annotation | Side | Declares |
+|---|---|---|
+| `@Upstream(context, translation, via, rationale)` | downstream | the directed dependency: translation strategy (`ANTI_CORRUPTION_LAYER` or `CONFORMIST`) and consumed channel (`API`, `EVENTS`) |
+| `@ExternalUpstream(name, translation, interaction, protocol, exchanges, contractPackages, rationale)` | downstream | dependency on a system outside this codebase; `interaction` names who initiates (`OUTBOUND`/`INBOUND`) and thereby the adapter side of the edge; `protocol` is the one-word mechanism shown in the diagram (`webhook`, `REST`, `queue`); `exchanges` names what flows over it, shown in the tables (an internal upstream's flow is visible in code, an external one's is not) |
+| `@Partnership(context, rationale)` | both (symmetric) | shared governance of a co-evolved contract; grants **no** dependency permission |
+| `@NamedInterface("api"/"events")`, `@OpenHostService` | upstream | the published contract |
+| `@ApplicationModule.allowedDependencies` | downstream | the enforced package boundary (Spring Modulith) |
+
+Deliberate omissions:
+
+- **Customer–Supplier is not machine-classified.** It is an organizational statement about whose
+  needs drive the upstream's roadmap; ArchUnit cannot verify it. It belongs in `rationale`.
+- **Separate Ways is the absence of a declaration.** The completeness rule (every actual
+  dependency on a foreign `api`/`events` package requires an `@Upstream`) makes it checkable
+  without an enum value.
+- **Shared Kernel is not a relationship value.** It is the `sharedkernel` package, already
+  governed by its own rules.
+- **No `@PublishedLanguage` annotation.** The `api`/`events` named interfaces plus
+  `@OpenHostService`/`IntegrationEvent` already carry that statement; an annotation would add no
+  checkable claim.
+- **Non-context modules (backoffice) declare nothing.** `@Upstream`/`@Partnership` are only legal
+  on `@BoundedContext` packages; plain modules are governed by Spring Modulith alone.
+
+External systems have no side in this codebase, so only the downstream view exists. The model
+dependency always points to the external system regardless of who initiates the exchange — a
+webhook the provider calls is still *its* contract. `interaction` is deliberately direction-based
+(`OUTBOUND` = we initiate: API call, polling, file upload; `INBOUND` = they initiate: webhook,
+queue message, file drop) rather than protocol-based, because the adapter side is what ArchUnit
+can see; protocol details belong in `rationale`. With `contractPackages` (a vendor SDK) the
+translation rules become checkable — ACL confines SDK types to the matching adapter side,
+Conformist keeps them out of the domain; without it the declaration documents the relationship
+and feeds the generated map.
+
+The identity of an `@Upstream` declaration is `(context, via)`; of an `@ExternalUpstream`
+declaration, `(name, interaction)`. A downstream may choose different
+translation strategies per channel — checkout translates cart's synchronous API behind an ACL but
+conforms to cart's consumer-defined `CartCompletionTrigger` event contract — by repeating the
+annotation.
+
+Every declaration carries a `status` (`IMPLEMENTED` by default, `PLANNED` for declared intent).
+An `IMPLEMENTED` `@Upstream` edge must be backed by at least one actual code dependency on the
+declared channel package — without that rule, a stale annotation plus a stale
+`allowedDependencies` entry would agree with each other forever while describing nothing. A
+`PLANNED` edge is exempt from the existence rule and rendered as `planned` in the generated map,
+so the map never presents an intended integration as an existing one. For `@ExternalUpstream`
+the wire-level contract leaves no checkable edge, so `status` there is documentation that keeps
+the map honest (checkout's payment-confirmation webhook is `PLANNED` until the incoming adapter
+exists).
+
+`ContextMapArchUnitTest` enforces, per declaration:
+
+- declarations only on bounded contexts; targets exist; no self-reference; `via` non-empty;
+  `(context, via)` unique
+- `@Upstream` edges and `allowedDependencies` named-interface entries agree **in both
+  directions** — neither side may know more than the other (this rule loads `ApplicationModule`
+  reflectively and is skipped when Spring Modulith is not on the classpath, keeping the test
+  class usable in non-Modulith projects)
+- every `IMPLEMENTED` `@Upstream` edge is backed by an actual code dependency on the declared
+  channel package (`PLANNED` edges are exempt)
+- distinct external system names must not collide after mermaid-id normalization (two spellings
+  of one system would silently merge into a single diagram node)
+- `ANTI_CORRUPTION_LAYER` + `API`: upstream contract types only in `adapter.outgoing..`
+- `ANTI_CORRUPTION_LAYER` + `EVENTS`: upstream contract types only in `adapter.incoming..`
+  (the edge of a consumed event is the incoming side)
+- `CONFORMIST`: upstream contract types may appear outside adapters but never in `domain..` —
+  conformism does not suspend domain purity
+- every actual dependency on a foreign `api`/`events` package has a declaration
+- `@Partnership` is symmetric
+
+`ContextMapDocumentationTest` regenerates [docs/architecture/context-map.md](../context-map.md)
+from the annotations on every run and fails when the committed file is stale, so the diagram and
+tables are a fully derived view — one source (annotations), one enforcement (Modulith + ArchUnit),
+one generated document.
+
+## Consequences
+
+**Easier:**
+
+- The context map cannot drift from the code; CI fails on divergence in either direction.
+- Strategic intent is reviewable in the same diff as the code that implements it.
+- Translation-strategy violations (an upstream DTO leaking out of an adapter) fail the build with
+  a message naming the declared relationship.
+
+**Harder:**
+
+- Adding a cross-context dependency now requires three consistent edits (annotation,
+  `allowedDependencies`, the adapter itself) — intentional friction that makes new coupling a
+  conscious decision.
+- The duplication between `@Upstream` and `allowedDependencies` is accepted rather than derived,
+  because Spring Modulith must read its own annotation natively; the ArchUnit agreement rule keeps
+  the two honest.
+
+**Related:** [ADR-024](adr-024-interface-inversion-spring-modulith.md) (consumer-defined trigger
+contracts — the partnership examples), [ADR-026](adr-026-transactional-outbox-integration-events.md)
+(integration events), [ADR-027](adr-027-integration-event-contract-identity.md) (event contract
+identity).

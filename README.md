@@ -32,9 +32,9 @@ This project showcases best practices for structuring a Spring Boot application 
 ### Domain-Driven Design (DDD)
 
 **Strategic Patterns:**
-- **Bounded Contexts**: Product Catalog, Shopping Cart, Checkout, Account, Portal, Inventory, Pricing, Backoffice
+- **Bounded Contexts**: Product Catalog, Shopping Cart, Checkout, Account, Portal, Inventory, Pricing (Backoffice is a plain operational module, not a bounded context)
 - **Shared Kernel**: Cross-context value objects (Money, Price, ProductId, UserId)
-- **Context Mapping**: Contexts communicate via shared kernel, domain events, and integration events
+- **Context Mapping**: Declared as `@Upstream`/`@Partnership` package annotations, enforced by ArchUnit, and rendered as a generated [context map](docs/architecture/context-map.md) (see [ADR-032](docs/architecture/adr/adr-032-executable-context-map.md))
 - **Open Host Service**: ProductCatalogService, InventoryService, PricingService, and CartService provide cross-context APIs
 
 **Tactical Patterns:**
@@ -640,7 +640,7 @@ src/main/java/de/sample/aiarchitecture/
 │           └── web/
 │               └── HomePageController.java
 │
-├── backoffice/                           # Backoffice bounded context
+├── backoffice/                           # Backoffice module (operational, not a bounded context)
 │   ├── application/
 │   │   ├── geteventpublications/         # Use case: Get Event Publications
 │   │   │   ├── GetEventPublicationsInputPort.java
