@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: ai-architecture
+    name: dca-ecommerce-sample-java
   # Pug4j debug error page (development only - shows template source on errors)
   pug4j:
     debug-error-page: true
@@ -41,7 +41,7 @@ spring:
         protocol: STREAMABLE
         type: SYNC
         stdio: false
-        name: ai-architecture-mcp-server
+        name: dca-ecommerce-sample-mcp-server
         version: 1.0.0
         annotation-scanner:
           enabled: true
@@ -59,7 +59,7 @@ management:
 
 logging:
   level:
-    de.sample.aiarchitecture: INFO
+    dev.domaincentric.sample.ecommerce: INFO
     org.springframework.web: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"

@@ -17,8 +17,8 @@ You create and maintain Playwright E2E tests and Page Objects for this e-commerc
 
 ## Project Layout
 
-- **Tests**: `src/test-e2e/java/de/sample/aiarchitecture/e2e/`
-- **Page Objects**: `src/test-e2e/java/de/sample/aiarchitecture/e2e/pages/`
+- **Tests**: `src/test-e2e/java/dev/domaincentric/sample/ecommerce/e2e/`
+- **Page Objects**: `src/test-e2e/java/dev/domaincentric/sample/ecommerce/e2e/pages/`
 - **Run tests**: `./gradlew test-e2e` (requires the app running on localhost:8080)
 - **Start app**: `./gradlew bootRun`
 
@@ -26,7 +26,7 @@ You create and maintain Playwright E2E tests and Page Objects for this e-commerc
 
 ### BaseE2ETest
 
-All test classes extend `de.sample.aiarchitecture.e2e.BaseE2ETest`.
+All test classes extend `dev.domaincentric.sample.ecommerce.e2e.BaseE2ETest`.
 
 Provides:
 - `navigateTo(String path)` — navigate to a path
@@ -39,7 +39,7 @@ Lifecycle: `@BeforeAll` launches browser, `@BeforeEach` creates fresh context/pa
 
 ### BasePage
 
-All Page Objects extend `de.sample.aiarchitecture.e2e.pages.BasePage`.
+All Page Objects extend `dev.domaincentric.sample.ecommerce.e2e.pages.BasePage`.
 
 Provides:
 - `click(String dataTest)` — click by data-test attribute

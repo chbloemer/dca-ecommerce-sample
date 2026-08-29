@@ -1,4 +1,4 @@
-Project Guidelines for ai-architecture
+Project Guidelines for dca-ecommerce-sample-java
 
 Audience: Senior engineers working on this repository. This document captures project-specific practices that aren’t obvious from conventional Spring/Gradle setups.
 
@@ -8,7 +8,7 @@ Audience: Senior engineers working on this repository. This document captures pr
   - Build without tests: ./gradlew -x test build
   - Package is disabled (jar.enabled = false). Use bootRun for local app startup.
 - Spring Boot
-  - Main class: de.sample.aiarchitecture.AiArchitectureApplication
+  - Main class: dev.domaincentric.sample.ecommerce.EcommerceSampleApplication
   - Run the app: ./gradlew bootRun
     - Remote debug: ./gradlew bootRun — runs with JDWP enabled at address=5005
     - Extra Boot debug logs: ./gradlew -Plog-debug bootRun (adds --debug to args)
@@ -82,7 +82,7 @@ There are two distinct test setups: conventional unit/integration tests (JUnit P
   - Aggregates reference other aggregates by ID only; see ADR-003 and ArchUnit tests.
   - Repositories are declared in the domain layer as interfaces (ADR-008), implemented in port adapters.
 - DDD building blocks
-  - Value objects are implemented as Java records (ADR-009) and are immutable; see de.sample.aiarchitecture.domain.model.ddd.Value and shared types (Price, Money, ProductId, etc.).
+  - Value objects are implemented as Java records (ADR-009) and are immutable; see dev.domaincentric.sample.ecommerce.domain.model.ddd.Value and shared types (Price, Money, ProductId, etc.).
   - Domain events are immutable records (ADR-006) and are published via infrastructure.api.DomainEventPublisher; aggregates accumulate and clear events.
 - Application layer
   - Application services orchestrate domain logic and publish domain events after repository operations (see ProductApplicationService.updateProductPrice for the canonical flow).

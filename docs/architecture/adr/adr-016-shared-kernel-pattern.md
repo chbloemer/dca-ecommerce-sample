@@ -23,12 +23,12 @@ Without a clear strategy for sharing domain concepts, we face several issues:
 **Example of the Problem**:
 ```java
 // ❌ BEFORE: Money in product package
-package de.sample.aiarchitecture.product.domain.model;
+package dev.domaincentric.sample.ecommerce.product.domain.model;
 public record Money(...) { }
 
 // Cart had to import from product package (wrong!)
-package de.sample.aiarchitecture.cart.domain.model;
-import de.sample.aiarchitecture.product.domain.model.Money;  // ❌ Cross-context coupling!
+package dev.domaincentric.sample.ecommerce.cart.domain.model;
+import dev.domaincentric.sample.ecommerce.product.domain.model.Money;  // ❌ Cross-context coupling!
 
 public class ShoppingCart {
     public Money calculateTotal() { ... }
@@ -58,7 +58,7 @@ public class ShoppingCart {
 ### Package Structure
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── sharedkernel/                    ← SHARED KERNEL
 │   ├── domain/
 │   │   ├── marker/                  (DDD marker interfaces)
@@ -99,13 +99,13 @@ de.sample.aiarchitecture/
 
 ```java
 // ✅ ALLOWED: Both contexts access Shared Kernel
-package de.sample.aiarchitecture.cart.domain.model;
-import de.sample.aiarchitecture.sharedkernel.domain.model.Money;     // ✅
-import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId; // ✅
-import de.sample.aiarchitecture.sharedkernel.marker.tactical.Entity;    // ✅
+package dev.domaincentric.sample.ecommerce.cart.domain.model;
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;     // ✅
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId; // ✅
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Entity;    // ✅
 
 // ❌ FORBIDDEN: Direct access between contexts
-import de.sample.aiarchitecture.product.domain.model.Product;  // ❌
+import dev.domaincentric.sample.ecommerce.product.domain.model.Product;  // ❌
 ```
 
 ### ArchUnit Enforcement
@@ -259,7 +259,7 @@ Shared Kernel becomes a versioned library.
 
 **1. Money** - Universal monetary value
 ```java
-package de.sample.aiarchitecture.sharedkernel.domain.model;
+package dev.domaincentric.sample.ecommerce.sharedkernel.domain.model;
 
 public record Money(@NonNull BigDecimal amount, @NonNull Currency currency) implements Value {
     // Universal monetary concept
@@ -269,7 +269,7 @@ public record Money(@NonNull BigDecimal amount, @NonNull Currency currency) impl
 
 **2. ProductId** - Cross-context identifier
 ```java
-package de.sample.aiarchitecture.sharedkernel.domain.model;
+package dev.domaincentric.sample.ecommerce.sharedkernel.domain.model;
 
 public record ProductId(@NonNull String value) implements Id, Value {
     // Product identifier
@@ -279,7 +279,7 @@ public record ProductId(@NonNull String value) implements Id, Value {
 
 **3. Price** - Domain-specific monetary wrapper
 ```java
-package de.sample.aiarchitecture.sharedkernel.domain.model;
+package dev.domaincentric.sample.ecommerce.sharedkernel.domain.model;
 
 public record Price(@NonNull Money value) implements Value {
     // Wraps Money with "price must be > 0" validation
@@ -305,12 +305,12 @@ public record Price(@NonNull Money value) implements Value {
 
 ```diff
 // BEFORE: Cart imported from Product (coupling!)
-- import de.sample.aiarchitecture.product.domain.model.Money;
-- import de.sample.aiarchitecture.product.domain.model.ProductId;
+- import dev.domaincentric.sample.ecommerce.product.domain.model.Money;
+- import dev.domaincentric.sample.ecommerce.product.domain.model.ProductId;
 
 // AFTER: Cart imports from Shared Kernel (explicit)
-+ import de.sample.aiarchitecture.sharedkernel.domain.model.Money;
-+ import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;
++ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
++ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 ```
 
 ### Verification

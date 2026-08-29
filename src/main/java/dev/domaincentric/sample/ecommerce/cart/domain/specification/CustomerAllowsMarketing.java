@@ -1,0 +1,31 @@
+package dev.domaincentric.sample.ecommerce.cart.domain.specification;
+
+import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.specification.AndSpecification;
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.specification.SpecificationVisitor;
+
+/**
+ * Customer owning the cart has opted-in to receive marketing communication.
+ *
+ * <p>Domain aggregate doesn't expose customer preferences; in-memory evaluation is neutral (true).
+ * Persistence adapters can push this to the DB if a customer read-model exists; otherwise it can be
+ * a no-op predicate.
+ */
+public record CustomerAllowsMarketing() implements CartSpecification {
+
+  @Override
+  public boolean isSatisfiedBy(ShoppingCart candidate) {
+    // No visibility into customer preferences at domain aggregate level.
+    return true;
+  }
+
+  @Override
+  public <R> R accept(SpecificationVisitor<ShoppingCart, R> visitor) {
+    if (visitor instanceof CartSpecificationVisitor<?> v) {
+      @SuppressWarnings("unchecked")
+      final CartSpecificationVisitor<R> cv = (CartSpecificationVisitor<R>) v;
+      return cv.visit(this);
+    }
+    return visitor.visit(new AndSpecification<>(this, this));
+  }
+}

@@ -46,19 +46,19 @@ Domain-Driven Design is an approach to software development that centers the dev
 
 A bounded context is an explicit boundary within which a domain model is defined and applicable. Our e-commerce application has two bounded contexts plus a shared kernel:
 
-1. **Shared Kernel** (`de.sample.aiarchitecture.sharedkernel.domain.model`)
+1. **Shared Kernel** (`dev.domaincentric.sample.ecommerce.sharedkernel.domain.model`)
    - Small, carefully curated domain model shared across contexts
    - Value Objects: `Money`, `ProductId`, `Price`
    - **Pattern**: Shared Kernel (Eric Evans, DDD Chapter 14)
    - **Trade-off**: Creates coupling but ensures consistency for universal concepts
 
-2. **Product Catalog Context** (`de.sample.aiarchitecture.product.domain.model`)
+2. **Product Catalog Context** (`dev.domaincentric.sample.ecommerce.product.domain.model`)
    - Manages the product catalogue; pricing and stock live in their own contexts
    - Aggregate Root: `Product`
    - Value Objects: `SKU`, `ProductName`, `ProductDescription`, `Category`, `ImageUrl`
    - Depends on: Shared Kernel
 
-3. **Shopping Cart Context** (`de.sample.aiarchitecture.cart.domain.model`)
+3. **Shopping Cart Context** (`dev.domaincentric.sample.ecommerce.cart.domain.model`)
    - Manages shopping carts and checkout
    - Aggregate Root: `ShoppingCart`
    - Entity: `CartItem`
@@ -156,7 +156,7 @@ public final class ShoppingCart extends BaseAggregateRoot<ShoppingCart, CartId> 
 3. Aggregates reference other aggregates by identity only (e.g., ShoppingCart references Product via ProductId)
 4. Aggregates raise domain events for important state changes
 
-**Implementation:** See `de.sample.aiarchitecture.sharedkernel.marker.tactical.AggregateRoot`
+**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.AggregateRoot`
 
 #### Entity
 
@@ -183,7 +183,7 @@ public final class CartItem implements Entity<CartItem, CartItemId> {
 2. Identity remains constant through state changes
 3. Equality based on identity, not attributes
 
-**Implementation:** See `de.sample.aiarchitecture.sharedkernel.marker.tactical.Entity`
+**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Entity`
 
 #### Value Object
 
@@ -218,8 +218,8 @@ public record Money(@NonNull BigDecimal amount, @NonNull Currency currency) impl
 5. Universal value objects belong in Shared Kernel
 
 **Implementation:**
-- Interface: `de.sample.aiarchitecture.sharedkernel.marker.tactical.Value`
-- Shared Value Objects: `de.sample.aiarchitecture.sharedkernel.domain.model.Money`, `ProductId`, `Price`
+- Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value`
+- Shared Value Objects: `dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money`, `ProductId`, `Price`
 - Context-specific Value Objects: In their respective bounded contexts
 
 #### Repository
@@ -307,7 +307,7 @@ an implementation that cannot satisfy it does not implement the port.
 - Fluent API: save() returning aggregate enables method chaining
 
 **Implementation:**
-- Base Interface: `de.sample.aiarchitecture.sharedkernel.marker.port.out.Repository`
+- Base Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.Repository`
 - Domain Interfaces: `ProductRepository`, `ShoppingCartRepository`
 - Implementations: `InMemoryProductRepository`, `JpaShoppingCartRepository` (in `adapter.outgoing.persistence`)
 
@@ -327,7 +327,7 @@ The stored object has no own identity-based lifecycle. You don't load it by ID, 
 A Store extends `OutputPort` directly (not the `Repository` marker):
 
 ```java
-package de.sample.aiarchitecture.sharedkernel.marker.port.out;
+package dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out;
 
 /**
  * Marker interface for Stores — output ports that record or query
@@ -413,7 +413,7 @@ public class CartTotalCalculator implements DomainService {
 3. Operates on domain objects
 4. Named after activities, not entities
 
-**Implementation:** See `de.sample.aiarchitecture.sharedkernel.marker.tactical.DomainService`
+**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainService`
 
 #### Domain Event
 
@@ -527,9 +527,9 @@ public class ProductEventConsumer {
 - Time-travel debugging
 
 **Implementation:**
-- Interface: `de.sample.aiarchitecture.sharedkernel.marker.tactical.DomainEvent`
-- Publisher Interface (SPI): `de.sample.aiarchitecture.sharedkernel.marker.port.out.DomainEventPublisher`
-- Publisher Implementation: `de.sample.aiarchitecture.sharedkernel.adapter.outgoing.event.SpringDomainEventPublisher`
+- Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.DomainEvent`
+- Publisher Interface (SPI): `dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.DomainEventPublisher`
+- Publisher Implementation: `dev.domaincentric.sample.ecommerce.sharedkernel.adapter.outgoing.event.SpringDomainEventPublisher`
 - Examples: `ProductCreated`, `ProductPriceChanged`, `CartItemAddedToCart`, `CartCheckedOut`
 
 **Event Publishing Infrastructure:**
@@ -685,10 +685,10 @@ public class CheckoutConfirmedEventConsumer {
 6. Use DTOs with Shared Kernel types or primitives only
 
 **Implementation:**
-- Interface: `de.sample.aiarchitecture.sharedkernel.marker.tactical.IntegrationEvent`
-- Example Event: `de.sample.aiarchitecture.cart.adapter.outgoing.event.CartCheckedOutEvent`
-- Example Publisher: `de.sample.aiarchitecture.cart.adapter.outgoing.event.CartCheckedOutEventPublisher`
-- Example Consumer: `de.sample.aiarchitecture.inventory.adapter.incoming.event.CheckoutConfirmedEventConsumer`
+- Interface: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEvent`
+- Example Event: `dev.domaincentric.sample.ecommerce.cart.adapter.outgoing.event.CartCheckedOutEvent`
+- Example Publisher: `dev.domaincentric.sample.ecommerce.cart.adapter.outgoing.event.CartCheckedOutEventPublisher`
+- Example Consumer: `dev.domaincentric.sample.ecommerce.inventory.adapter.incoming.event.CheckoutConfirmedEventConsumer`
 
 #### Interface Inversion for Cross-Module Events
 
@@ -764,11 +764,11 @@ Dependencies flow toward leaf modules. Checkout depends on consumer trigger inte
 5. Each listener runs in its own transaction (Spring Modulith default)
 
 **Implementation:**
-- `de.sample.aiarchitecture.cart.events.CartCompletionTrigger`
-- `de.sample.aiarchitecture.inventory.events.StockReductionTrigger`
-- `de.sample.aiarchitecture.checkout.events.CheckoutConfirmedEvent` (implements both)
-- `de.sample.aiarchitecture.cart.adapter.incoming.event.CartCompletionEventConsumer`
-- `de.sample.aiarchitecture.inventory.adapter.incoming.event.StockReductionEventConsumer`
+- `dev.domaincentric.sample.ecommerce.cart.events.CartCompletionTrigger`
+- `dev.domaincentric.sample.ecommerce.inventory.events.StockReductionTrigger`
+- `dev.domaincentric.sample.ecommerce.checkout.events.CheckoutConfirmedEvent` (implements both)
+- `dev.domaincentric.sample.ecommerce.cart.adapter.incoming.event.CartCompletionEventConsumer`
+- `dev.domaincentric.sample.ecommerce.inventory.adapter.incoming.event.StockReductionEventConsumer`
 
 #### Factory
 
@@ -805,7 +805,7 @@ public class ProductFactory implements Factory {
 3. Framework-independent
 4. Stateless
 
-**Implementation:** See `de.sample.aiarchitecture.sharedkernel.marker.tactical.Factory`
+**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Factory`
 
 #### Specification
 
@@ -828,7 +828,7 @@ public class ProductAvailableSpecification implements Specification<Product> {
 3. Framework-independent
 4. Reusable across use cases
 
-**Implementation:** See `de.sample.aiarchitecture.sharedkernel.marker.tactical.Specification`
+**Implementation:** See `dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Specification`
 
 #### Enriched Domain Model Pattern
 
@@ -1054,9 +1054,9 @@ Aggregate + ExternalData  →  EnrichedModel.from(...)  →  Business Logic  →
 The enriched model is not just for display -- it is a domain concept that owns cross-context business rules. See [ADR-021](adr/adr-021-enriched-domain-model-pattern.md) for the full decision record.
 
 **Implementation:**
-- Product: `de.sample.aiarchitecture.product.domain.model.EnrichedProduct`
-- Cart: `de.sample.aiarchitecture.cart.domain.model.EnrichedCart`
-- Checkout: `de.sample.aiarchitecture.checkout.domain.readmodel.CheckoutCartSnapshot`
+- Product: `dev.domaincentric.sample.ecommerce.product.domain.model.EnrichedProduct`
+- Cart: `dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart`
+- Checkout: `dev.domaincentric.sample.ecommerce.checkout.domain.readmodel.CheckoutCartSnapshot`
 
 #### Complete Data Flow: Use Case → ViewModel → Template
 
@@ -1132,11 +1132,11 @@ public record CartPageViewModel(
 See [dto-vs-viewmodel-analysis.md](dto-vs-viewmodel-analysis.md) for detailed patterns.
 
 **Implementation:**
-- Product: `de.sample.aiarchitecture.product.domain.model.EnrichedProduct`
+- Product: `dev.domaincentric.sample.ecommerce.product.domain.model.EnrichedProduct`
 - Product ViewModels: `ProductCatalogPageViewModel`, `ProductDetailPageViewModel`
-- Cart: `de.sample.aiarchitecture.cart.domain.model.EnrichedCart`
+- Cart: `dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart`
 - Cart ViewModels: `CartPageViewModel`, `CartMergePageViewModel`
-- Checkout: `de.sample.aiarchitecture.checkout.domain.readmodel.CheckoutCartSnapshot`
+- Checkout: `dev.domaincentric.sample.ecommerce.checkout.domain.readmodel.CheckoutCartSnapshot`
 - Checkout ViewModels: `BuyerInfoPageViewModel`, `DeliveryPageViewModel`, `PaymentPageViewModel`, `ReviewPageViewModel`, `ConfirmationPageViewModel`
 
 
@@ -1152,7 +1152,7 @@ The `@AsyncInitialize` annotation marks components for asynchronous initializati
 
 ```java
 // sharedkernel/common/annotation/AsyncInitialize.java
-package de.sample.aiarchitecture.sharedkernel.common.annotation;
+package dev.domaincentric.sample.ecommerce.sharedkernel.common.annotation;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -1237,9 +1237,9 @@ public class InMemoryShoppingCartRepository implements ShoppingCartRepository {
 - Follows Dependency Inversion Principle
 
 **Implementation:**
-- Annotation: `de.sample.aiarchitecture.sharedkernel.marker.infrastructure.AsyncInitialize`
-- Processor: `de.sample.aiarchitecture.infrastructure.support.AsyncInitializationProcessor`
-- Configuration: `de.sample.aiarchitecture.infrastructure.config.AsyncConfiguration`
+- Annotation: `dev.domaincentric.sample.ecommerce.sharedkernel.marker.infrastructure.AsyncInitialize`
+- Processor: `dev.domaincentric.sample.ecommerce.infrastructure.support.AsyncInitializationProcessor`
+- Configuration: `dev.domaincentric.sample.ecommerce.infrastructure.config.AsyncConfiguration`
 - Examples: `InMemoryProductRepository`, `InMemoryShoppingCartRepository`
 
 ---
@@ -1511,7 +1511,7 @@ public class UpdateProductPriceUseCase implements UpdateProductPriceInputPort {
 
 ### Implementation
 
-**Base Interface:** `de.sample.aiarchitecture.sharedkernel.marker.port.in.UseCase<INPUT, OUTPUT>`
+**Base Interface:** `dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase<INPUT, OUTPUT>`
 
 **Product Use Cases:**
 - Input Port: `CreateProductInputPort extends UseCase<CreateProductCommand, CreateProductResult>`
@@ -1589,9 +1589,9 @@ application/
 7. The `shared` folder concept mirrors the `sharedkernel` pattern at the bounded context level
 
 **Location:**
-- Product Use Cases: `de.sample.aiarchitecture.product.application.{usecasename}`
-- Cart Use Cases: `de.sample.aiarchitecture.cart.application.{usecasename}`
-- Shared Output Ports: `de.sample.aiarchitecture.{context}.application.shared`
+- Product Use Cases: `dev.domaincentric.sample.ecommerce.product.application.{usecasename}`
+- Cart Use Cases: `dev.domaincentric.sample.ecommerce.cart.application.{usecasename}`
+- Shared Output Ports: `dev.domaincentric.sample.ecommerce.{context}.application.shared`
 
 ### Relationship to Hexagonal Architecture
 
@@ -1618,11 +1618,11 @@ Ports are interfaces that define how the application can be used or how it can u
 
 **Primary Ports (Driving Side):**
 - Application services that define use cases
-- Location: `de.sample.aiarchitecture.application`
+- Location: `dev.domaincentric.sample.ecommerce.application`
 
 **Secondary Ports (Driven Side):**
 - Repository interfaces and other output ports
-- Location: `de.sample.aiarchitecture.{context}.application.shared` (see ADR-008)
+- Location: `dev.domaincentric.sample.ecommerce.{context}.application.shared` (see ADR-008)
 
 #### Adapters
 
@@ -1630,11 +1630,11 @@ Adapters are implementations that connect external systems to the ports.
 
 **Primary Adapters (Driving / Incoming):**
 - REST Controllers, Web MVC, MCP Server
-- Location: `de.sample.aiarchitecture.{boundedcontext}.adapter.incoming`
+- Location: `dev.domaincentric.sample.ecommerce.{boundedcontext}.adapter.incoming`
 
 **Secondary Adapters (Driven / Outgoing):**
 - Repository implementations
-- Location: `de.sample.aiarchitecture.{boundedcontext}.adapter.outgoing`
+- Location: `dev.domaincentric.sample.ecommerce.{boundedcontext}.adapter.outgoing`
 
 ### Example: Product Management Flow
 
@@ -1770,7 +1770,7 @@ public class CompositeCheckoutArticleDataAdapter implements CheckoutArticleDataP
 - Easy to mock for testing
 - Changes to external services only affect this adapter
 
-**Implementation:** `de.sample.aiarchitecture.checkout.adapter.outgoing.product.CompositeCheckoutArticleDataAdapter`
+**Implementation:** `dev.domaincentric.sample.ecommerce.checkout.adapter.outgoing.product.CompositeCheckoutArticleDataAdapter`
 
 #### Enriched Read Model Pattern
 
@@ -1843,9 +1843,9 @@ public record CheckoutCart(
 - No direct coupling to external bounded contexts
 
 **Implementation:**
-- `de.sample.aiarchitecture.checkout.domain.model.EnrichedCheckoutLineItem`
-- `de.sample.aiarchitecture.checkout.domain.model.CheckoutCart`
-- `de.sample.aiarchitecture.checkout.domain.model.CheckoutArticle`
+- `dev.domaincentric.sample.ecommerce.checkout.domain.model.EnrichedCheckoutLineItem`
+- `dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCart`
+- `dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutArticle`
 
 #### Factory for Cross-Context Assembly
 
@@ -1901,7 +1901,7 @@ public final class CheckoutCartFactory implements Factory {
 - Single responsibility for complex object creation
 - Validates data completeness at assembly time
 
-**Implementation:** `de.sample.aiarchitecture.checkout.domain.model.CheckoutCartFactory`
+**Implementation:** `dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCartFactory`
 
 ---
 
@@ -1927,7 +1927,7 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 
 #### Domain Model (Core)
 
-**Location:** `de.sample.aiarchitecture.{context}.domain.model`
+**Location:** `dev.domaincentric.sample.ecommerce.{context}.domain.model`
 
 **Contains:**
 - Aggregates, Entities, Value Objects
@@ -1944,7 +1944,7 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 
 #### Application Layer
 
-**Location:** `de.sample.aiarchitecture.application`
+**Location:** `dev.domaincentric.sample.ecommerce.application`
 
 **Contains:**
 - Application Services (use cases)
@@ -1959,9 +1959,9 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 #### Infrastructure & Adapters
 
 **Location:**
-- `de.sample.aiarchitecture.{boundedcontext}.adapter.incoming` (REST, Web, MCP, event adapters)
-- `de.sample.aiarchitecture.{boundedcontext}.adapter.outgoing` (Repository implementations)
-- `de.sample.aiarchitecture.infrastructure` (Spring configuration)
+- `dev.domaincentric.sample.ecommerce.{boundedcontext}.adapter.incoming` (REST, Web, MCP, event adapters)
+- `dev.domaincentric.sample.ecommerce.{boundedcontext}.adapter.outgoing` (Repository implementations)
+- `dev.domaincentric.sample.ecommerce.infrastructure` (Spring configuration)
 
 **Contains:**
 - REST Controllers and DTOs
@@ -1975,7 +1975,7 @@ Onion Architecture ensures that dependencies flow inward toward the domain core,
 
 #### Shared Kernel Application Ports
 
-**Location:** `de.sample.aiarchitecture.sharedkernel.application.port`
+**Location:** `dev.domaincentric.sample.ecommerce.sharedkernel.application.port`
 
 The `sharedkernel.application.port` package contains **outbound ports** (interfaces) used across all bounded contexts, making it part of the Shared Kernel (Strategic DDD pattern).
 
@@ -2070,7 +2070,7 @@ The top level is organised by bounded context, not by layer — each context car
 domain, application and adapter layers:
 
 ```
-de.sample.aiarchitecture
+dev.domaincentric.sample.ecommerce
 ├── sharedkernel/            # Markers, universal value objects, shared adapters
 ├── {boundedcontext}/        # product, cart, checkout, account, portal,
 │   ├── domain/              # inventory, pricing, backoffice

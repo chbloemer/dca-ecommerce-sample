@@ -19,15 +19,15 @@ This is an **exceptionally well-crafted educational/reference implementation** o
 ### 1. **Architectural Excellence** ✅
 
 **Domain Layer:**
-- **Framework-independent**: No Spring/JPA annotations in domain models (src/main/java/de/sample/aiarchitecture/domain/model/product/Product.java:28)
+- **Framework-independent**: No Spring/JPA annotations in domain models (src/main/java/dev/domaincentric/sample/ecommerce/domain/model/product/Product.java:28)
 - **Pure business logic**: All invariants enforced in aggregate roots
 - **Proper DDD patterns**: Aggregates, Entities, Value Objects, Domain Events all correctly implemented
-- **Clean aggregate boundaries**: CartItem uses package-private constructor (src/main/java/de/sample/aiarchitecture/domain/model/cart/CartItem.java:27), enforcing access only through ShoppingCart aggregate
+- **Clean aggregate boundaries**: CartItem uses package-private constructor (src/main/java/dev/domaincentric/sample/ecommerce/domain/model/cart/CartItem.java:27), enforcing access only through ShoppingCart aggregate
 
 **Hexagonal Architecture:**
 - **Clear port/adapter separation**: Repository interfaces in domain, implementations in portadapter.outgoing
 - **Multiple incoming adapters**: REST API, Web MVC, and MCP server all as separate primary adapters
-- **No direct adapter coupling**: Verified by ArchUnit tests (src/test-architecture/groovy/de/sample/aiarchitecture/HexagonalArchitectureArchUnitTest.groovy:56)
+- **No direct adapter coupling**: Verified by ArchUnit tests (src/test-architecture/groovy/dev/domaincentric/sample/ecommerce/HexagonalArchitectureArchUnitTest.groovy:56)
 
 **Dependency Flow:**
 - Dependencies correctly point inward toward domain core

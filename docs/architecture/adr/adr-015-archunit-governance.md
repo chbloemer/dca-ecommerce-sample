@@ -157,7 +157,7 @@ class DddTacticalPatternsArchUnitTest extends Specification {
 
   def setupSpec() {
     allClasses = new ClassFileImporter()
-        .importPackages("de.sample.aiarchitecture")
+        .importPackages("dev.domaincentric.sample.ecommerce")
   }
 
   def "Aggregate Roots must not have fields with other Aggregate Root types"() {

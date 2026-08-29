@@ -1,11 +1,11 @@
 # Package Structure
 
-Package organization of the ai-architecture project.
+Package organization of the DCA e-commerce sample (Java).
 
 ## Full Structure
 
 ```
-de.sample.aiarchitecture
+dev.domaincentric.sample.ecommerce
 │
 ├── sharedkernel/                    # Shared Kernel (cross-context)
 │   ├── marker/                     # Architectural Markers
@@ -414,7 +414,7 @@ de.sample.aiarchitecture
 │               └── JdbcEventPublicationLogRepository
 │
 └── infrastructure/                  # Infrastructure (cross-cutting)
-    ├── AiArchitectureApplication
+    ├── EcommerceSampleApplication
     ├── config/                    # Spring @Configuration classes
     │   ├── SecurityConfiguration, TransactionConfiguration
     │   ├── AsyncConfiguration, DomainConfiguration

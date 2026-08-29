@@ -1,0 +1,23 @@
+package dev.domaincentric.sample.ecommerce.checkout.domain.model;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Id;
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import java.util.UUID;
+
+/** Value Object representing a Checkout Session's unique identifier. */
+public record CheckoutSessionId(String value) implements Id, Value {
+
+  public CheckoutSessionId {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException("CheckoutSessionId cannot be null or blank");
+    }
+  }
+
+  public static CheckoutSessionId generate() {
+    return new CheckoutSessionId(UUID.randomUUID().toString());
+  }
+
+  public static CheckoutSessionId of(final String value) {
+    return new CheckoutSessionId(value);
+  }
+}

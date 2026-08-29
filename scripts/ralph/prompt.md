@@ -38,7 +38,7 @@ This gives you context about:
 
 ### Package Structure
 ```
-de.sample.aiarchitecture.{context}/
+dev.domaincentric.sample.ecommerce.{context}/
 ├── domain/
 │   ├── model/          # Aggregates, Entities, Value Objects
 │   └── event/          # Domain Events

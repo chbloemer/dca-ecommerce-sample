@@ -1,0 +1,33 @@
+package dev.domaincentric.sample.ecommerce.cart.events;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEvent;
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.IntegrationEventType;
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * Integration Event published when cart contents change.
+ *
+ * <p>Consolidates multiple internal cart domain events (CartItemAddedToCart,
+ * ProductRemovedFromCart, CartItemQuantityChanged, CartCleared) into a single cross-module event.
+ * The Checkout context consumes this event to sync checkout sessions instead of listening to
+ * individual domain events.
+ */
+@IntegrationEventType(name = "cart-contents-changed", version = 1)
+public record CartContentsChangedEvent(
+    UUID eventId, UUID cartId, ChangeType changeType, Instant occurredOn)
+    implements IntegrationEvent {
+
+  /** The type of change that occurred in the cart. */
+  public enum ChangeType {
+    ITEM_ADDED,
+    ITEM_REMOVED,
+    QUANTITY_CHANGED,
+    CART_CLEARED
+  }
+
+  /** Creates a new event with the given cart ID and change type. */
+  public static CartContentsChangedEvent now(UUID cartId, ChangeType changeType) {
+    return new CartContentsChangedEvent(UUID.randomUUID(), cartId, changeType, Instant.now());
+  }
+}

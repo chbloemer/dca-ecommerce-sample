@@ -285,13 +285,13 @@ def "Controller classes must end with 'Controller'"() {
 5. **Updated package declarations**:
    ```java
    // Before
-   package de.sample.aiarchitecture.product.adapter.incoming.web;
+   package dev.domaincentric.sample.ecommerce.product.adapter.incoming.web;
 
    // After (REST)
-   package de.sample.aiarchitecture.product.adapter.incoming.api;
+   package dev.domaincentric.sample.ecommerce.product.adapter.incoming.api;
 
    // After (MVC)
-   package de.sample.aiarchitecture.product.adapter.incoming.web;
+   package dev.domaincentric.sample.ecommerce.product.adapter.incoming.web;
    ```
 
 6. **Verified architecture tests**: All ArchUnit tests pass ✅

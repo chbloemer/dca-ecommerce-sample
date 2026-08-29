@@ -24,7 +24,7 @@ The foundation. Two bounded contexts (Product, Cart) with a flat application lay
 ### Package Structure
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── application/
 │   ├── ProductApplicationService          # 8 methods (createProduct, getAll, getById, ...)
 │   └── ShoppingCartApplicationService     # 9 methods (createCart, addItem, checkout, ...)
@@ -78,7 +78,7 @@ Introduced the `UseCase<I, O>` interface pattern — one class per use case inst
 The flat `*ApplicationService` was replaced by individual use case classes:
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── application/
 │   ├── UseCase.java                       # Base interface: UseCase<Input, Output>
 │   ├── product/
@@ -133,7 +133,7 @@ The defining structural shift: bounded contexts moved to the top level, each wit
 ### Package Structure
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── product/
 │   ├── domain/
 │   │   └── model/                         # Product, ProductRepository, events, ...
@@ -237,7 +237,7 @@ The main development branch. Adopted the flat application structure from `domain
 ### Package Structure (Stabilized)
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── product/
 │   ├── domain/model/                      # Product, value objects, events, specifications
 │   ├── application/
@@ -344,7 +344,7 @@ Added formal module boundaries with Spring Modulith, solving the cross-context e
     "pricing :: api",
     "inventory :: api"
 })
-package de.sample.aiarchitecture.cart;
+package dev.domaincentric.sample.ecommerce.cart;
 ```
 
 2. **Named Interfaces** (`@NamedInterface`) exposing controlled APIs:
@@ -399,7 +399,7 @@ void on(CartCompletionTrigger event) { cartRepository.complete(event.cartId()); 
 ```groovy
 def "Application module structure should be valid"() {
     expect:
-    ApplicationModules.of("de.sample.aiarchitecture").verify()
+    ApplicationModules.of("dev.domaincentric.sample.ecommerce").verify()
 }
 ```
 

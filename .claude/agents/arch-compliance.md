@@ -17,7 +17,7 @@ You create and maintain ArchUnit tests (Groovy/Spock) that enforce Domain-Centri
 
 ## Project Layout
 
-- **Test source**: `src/test-architecture/groovy/de/sample/aiarchitecture/`
+- **Test source**: `src/test-architecture/groovy/dev/domaincentric/sample/ecommerce/`
 - **Base class**: `BaseArchUnitTest.groovy`
 - **Run tests**: `./gradlew test-architecture`
 - **Test reports**: `build/reports/test-architecture/`
@@ -41,25 +41,25 @@ protected JavaClasses allClasses = new ClassFileImporter()
 
 ```groovy
 // Base
-BASE_PACKAGE = "de.sample.aiarchitecture"
+BASE_PACKAGE = "dev.domaincentric.sample.ecommerce"
 
 // Shared Kernel
-SHAREDKERNEL_PACKAGE = "de.sample.aiarchitecture.sharedkernel.."
-SHAREDKERNEL_MARKER_PACKAGE = "de.sample.aiarchitecture.sharedkernel.marker.."
-SHAREDKERNEL_MARKER_TACTICAL_PACKAGE = "de.sample.aiarchitecture.sharedkernel.marker.tactical.."
-SHAREDKERNEL_MARKER_STRATEGIC_PACKAGE = "de.sample.aiarchitecture.sharedkernel.marker.strategic.."
-SHAREDKERNEL_MARKER_PORT_IN_PACKAGE = "de.sample.aiarchitecture.sharedkernel.marker.port.in.."
-SHAREDKERNEL_MARKER_PORT_OUT_PACKAGE = "de.sample.aiarchitecture.sharedkernel.marker.port.out.."
-SHAREDKERNEL_DOMAIN_MODEL_PACKAGE = "de.sample.aiarchitecture.sharedkernel.domain.model.."
+SHAREDKERNEL_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.."
+SHAREDKERNEL_MARKER_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.."
+SHAREDKERNEL_MARKER_TACTICAL_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.."
+SHAREDKERNEL_MARKER_STRATEGIC_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.."
+SHAREDKERNEL_MARKER_PORT_IN_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.."
+SHAREDKERNEL_MARKER_PORT_OUT_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.out.."
+SHAREDKERNEL_DOMAIN_MODEL_PACKAGE = "dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.."
 
 // Layer patterns (wildcarded for all contexts)
-DOMAIN_PACKAGE = "de.sample.aiarchitecture.*.domain.."
-DOMAIN_MODEL_PACKAGE = "de.sample.aiarchitecture.*.domain.model.."
-APPLICATION_PACKAGE = "de.sample.aiarchitecture.*.application.."
-ADAPTER_PACKAGE = "de.sample.aiarchitecture.*.adapter.."
-INCOMING_ADAPTER_PACKAGE = "de.sample.aiarchitecture.*.adapter.incoming.."
-OUTGOING_ADAPTER_PACKAGE = "de.sample.aiarchitecture.*.adapter.outgoing.."
-INFRASTRUCTURE_PACKAGE = "de.sample.aiarchitecture.infrastructure.."
+DOMAIN_PACKAGE = "dev.domaincentric.sample.ecommerce.*.domain.."
+DOMAIN_MODEL_PACKAGE = "dev.domaincentric.sample.ecommerce.*.domain.model.."
+APPLICATION_PACKAGE = "dev.domaincentric.sample.ecommerce.*.application.."
+ADAPTER_PACKAGE = "dev.domaincentric.sample.ecommerce.*.adapter.."
+INCOMING_ADAPTER_PACKAGE = "dev.domaincentric.sample.ecommerce.*.adapter.incoming.."
+OUTGOING_ADAPTER_PACKAGE = "dev.domaincentric.sample.ecommerce.*.adapter.outgoing.."
+INFRASTRUCTURE_PACKAGE = "dev.domaincentric.sample.ecommerce.infrastructure.."
 
 // Per-context constants (product, cart, checkout, account, portal, inventory, pricing)
 // Pattern: {CONTEXT}_CONTEXT_PACKAGE, {CONTEXT}_DOMAIN_PACKAGE,

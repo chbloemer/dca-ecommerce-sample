@@ -1,0 +1,23 @@
+package dev.domaincentric.sample.ecommerce.checkout.domain.model;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Id;
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+
+/**
+ * Value Object representing a Customer's unique identifier within the Checkout context.
+ *
+ * <p>This is the Checkout bounded context's own representation of a customer ID, avoiding direct
+ * coupling to other bounded contexts' domain models.
+ */
+public record CustomerId(String value) implements Id, Value {
+
+  public CustomerId {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException("CustomerId cannot be null or blank");
+    }
+  }
+
+  public static CustomerId of(final String value) {
+    return new CustomerId(value);
+  }
+}

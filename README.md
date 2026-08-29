@@ -1,6 +1,6 @@
-# AI Architecture Sample Project
+# DCA E-Commerce Sample (Java)
 
-A comprehensive demonstration of **Domain-Driven Design (DDD)**, **Clean Architecture**, **Hexagonal Architecture**, and **Onion Architecture** patterns using an e-commerce domain, with **MCP (Model Context Protocol)** server integration for AI assistant interaction.
+The reference implementation of **Domain-Centric Architecture (DCA)** — a synthesis of **Domain-Driven Design**, **Hexagonal Architecture** and **Clean Architecture** — as a working e-commerce application, with **MCP (Model Context Protocol)** server integration for AI assistant interaction.
 
 ## Overview
 
@@ -74,7 +74,7 @@ Layers (from innermost to outermost):
 ## Project Structure
 
 ```
-src/main/java/de/sample/aiarchitecture/
+src/main/java/dev/domaincentric/sample/ecommerce/
 ├── sharedkernel/                         # Shared Kernel (cross-context)
 │   ├── marker/                           # Architectural markers
 │   │   ├── tactical/                     # DDD tactical patterns
@@ -662,7 +662,7 @@ src/main/java/de/sample/aiarchitecture/
 │               └── JdbcEventPublicationLogRepository.java
 │
 └── infrastructure/                       # Infrastructure (cross-cutting)
-    ├── AiArchitectureApplication.java    # Spring Boot main class
+    ├── EcommerceSampleApplication.java    # Spring Boot main class
     ├── config/                           # Spring @Configuration classes
     │   ├── TransactionConfiguration.java
     │   ├── AsyncConfiguration.java

@@ -103,7 +103,7 @@ The MCP server is implemented as a **primary adapter** in the Hexagonal Architec
         └──────────────────────────┘
 ```
 
-**Package:** `de.sample.aiarchitecture.product.adapter.incoming.mcp`
+**Package:** `dev.domaincentric.sample.ecommerce.product.adapter.incoming.mcp`
 
 **Why Primary Adapter?**
 - Incoming port for AI clients
@@ -116,7 +116,7 @@ The MCP server is implemented as a **primary adapter** in the Hexagonal Architec
 
 ### 1. MCP Tools Class
 
-**File:** `src/main/java/de/sample/aiarchitecture/product/adapter/incoming/mcp/ProductCatalogMcpTools.java`
+**File:** `src/main/java/dev/domaincentric/sample/ecommerce/product/adapter/incoming/mcp/ProductCatalogMcpTools.java`
 
 ```java
 @Component
@@ -244,7 +244,7 @@ spring:
         protocol: streamable           # HTTP + SSE (not stdio)
         type: sync                     # Synchronous execution
         stdio: false                   # No process-based communication
-        name: ai-architecture-mcp-server
+        name: dca-ecommerce-sample-mcp-server
         version: 1.0.0
         streamable-http:
           mcp-endpoint: /mcp           # Endpoint path
@@ -390,8 +390,8 @@ Related ADRs:
 - Spring AI Tools: https://docs.spring.io/spring-ai/reference/1.1/api/tools.html
 
 ### Project Files
-- **MCP Tools:** `src/main/java/de/sample/aiarchitecture/product/adapter/incoming/mcp/ProductCatalogMcpTools.java`
-- **Use Cases:** `src/main/java/de/sample/aiarchitecture/product/application/usecase/`
+- **MCP Tools:** `src/main/java/dev/domaincentric/sample/ecommerce/product/adapter/incoming/mcp/ProductCatalogMcpTools.java`
+- **Use Cases:** `src/main/java/dev/domaincentric/sample/ecommerce/product/application/usecase/`
   - `GetAllProductsUseCase.java`
   - `GetProductByIdUseCase.java`
 - **Config:** `src/main/resources/application.yml`

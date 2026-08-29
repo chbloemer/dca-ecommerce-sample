@@ -12,7 +12,7 @@ dependencies {
 
 ## Configuration
 
-**File**: `src/main/java/de/sample/aiarchitecture/infrastructure/config/Pug4jConfiguration.java`
+**File**: `src/main/java/dev/domaincentric/sample/ecommerce/infrastructure/config/Pug4jConfiguration.java`
 
 ```java
 @Configuration
@@ -87,7 +87,7 @@ showcase the debug error page; not production code.
 
 ## Controller Example
 
-**File**: `src/main/java/de/sample/aiarchitecture/product/adapter/incoming/web/ProductPageController.java`
+**File**: `src/main/java/dev/domaincentric/sample/ecommerce/product/adapter/incoming/web/ProductPageController.java`
 
 ```java
 @Controller

@@ -1,0 +1,15 @@
+/**
+ * Account Bounded Context.
+ *
+ * <p>Responsible for user account management, authentication, and profile handling.
+ */
+@NullMarked
+@BoundedContext(
+    name = "Account",
+    description = "User account management, authentication, and profile handling")
+@ApplicationModule(allowedDependencies = {"sharedkernel", "infrastructure"})
+package dev.domaincentric.sample.ecommerce.account;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.BoundedContext;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.modulith.ApplicationModule;

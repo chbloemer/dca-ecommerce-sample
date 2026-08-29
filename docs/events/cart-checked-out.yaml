@@ -15,7 +15,7 @@ event:
 
   publisher:
     context: Cart
-    package: de.sample.aiarchitecture.cart.domain.event
+    package: dev.domaincentric.sample.ecommerce.cart.domain.event
     class: CartCheckedOut
 
   subscribers:
@@ -190,7 +190,7 @@ anti_corruption_layer:
     Translates Cart's ubiquitous language into consumer's language.
 
   implementation:
-    class: de.sample.aiarchitecture.product.adapter.incoming.event.acl.CartEventTranslator
+    class: dev.domaincentric.sample.ecommerce.product.adapter.incoming.event.acl.CartEventTranslator
     method: translate(CartCheckedOut event)
     returns: List<ReduceProductStockCommand>
 

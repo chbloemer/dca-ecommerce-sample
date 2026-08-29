@@ -16,7 +16,7 @@ apply from: "gradle/plugins/test-integration.gradle"
 apply from: "gradle/plugins/test-e2e.gradle"
 
 // Project Configuration
-group = 'de.sample'
+group = 'dev.domaincentric.sample'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -38,7 +38,7 @@ spotless {
 }
 
 springBoot {
-  mainClass = 'de.sample.aiarchitecture.infrastructure.AiArchitectureApplication'
+  mainClass = 'dev.domaincentric.sample.ecommerce.infrastructure.EcommerceSampleApplication'
 }
 
 configurations {

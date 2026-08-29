@@ -1,0 +1,19 @@
+/**
+ * Inventory Bounded Context.
+ *
+ * <p>Responsible for managing stock levels and inventory tracking.
+ */
+@NullMarked
+@BoundedContext(name = "Inventory", description = "Stock level management and inventory tracking")
+@Partnership(
+    context = "checkout",
+    rationale =
+        "Inventory owns the consumer-defined StockReductionTrigger contract that checkout events"
+            + " implement; both contexts evolve it together")
+@ApplicationModule(allowedDependencies = {"sharedkernel", "infrastructure"})
+package dev.domaincentric.sample.ecommerce.inventory;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.BoundedContext;
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.strategic.Partnership;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.modulith.ApplicationModule;

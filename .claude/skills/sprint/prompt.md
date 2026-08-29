@@ -14,19 +14,19 @@ This file is loaded by `/sprint` agents. It contains everything an agent needs t
 
 | Context | Package | Purpose |
 |---------|---------|---------|
-| product | `de.sample.aiarchitecture.product` | Product catalog (identity, description, images) |
-| pricing | `de.sample.aiarchitecture.pricing` | Product pricing |
-| inventory | `de.sample.aiarchitecture.inventory` | Stock levels |
-| cart | `de.sample.aiarchitecture.cart` | Shopping cart |
-| checkout | `de.sample.aiarchitecture.checkout` | Checkout process |
-| account | `de.sample.aiarchitecture.account` | User accounts, auth |
-| portal | `de.sample.aiarchitecture.portal` | Portal / storefront pages |
-| sharedkernel | `de.sample.aiarchitecture.sharedkernel` | Shared markers, value objects, adapters |
+| product | `dev.domaincentric.sample.ecommerce.product` | Product catalog (identity, description, images) |
+| pricing | `dev.domaincentric.sample.ecommerce.pricing` | Product pricing |
+| inventory | `dev.domaincentric.sample.ecommerce.inventory` | Stock levels |
+| cart | `dev.domaincentric.sample.ecommerce.cart` | Shopping cart |
+| checkout | `dev.domaincentric.sample.ecommerce.checkout` | Checkout process |
+| account | `dev.domaincentric.sample.ecommerce.account` | User accounts, auth |
+| portal | `dev.domaincentric.sample.ecommerce.portal` | Portal / storefront pages |
+| sharedkernel | `dev.domaincentric.sample.ecommerce.sharedkernel` | Shared markers, value objects, adapters |
 
 ## Package Structure
 
 ```
-de.sample.aiarchitecture.{context}/
+dev.domaincentric.sample.ecommerce.{context}/
 ├── domain/
 │   ├── model/          # Aggregates, Entities, Value Objects
 │   └── event/          # Domain Events

@@ -21,9 +21,9 @@ The initial implementation had use cases directly importing from other bounded c
 
 ```java
 // ❌ BEFORE: Use case imported directly from Product context
-package de.sample.aiarchitecture.cart.application.additemtocart;
+package dev.domaincentric.sample.ecommerce.cart.application.additemtocart;
 
-import de.sample.aiarchitecture.product.application.shared.ProductRepository;  // ❌ Cross-context!
+import dev.domaincentric.sample.ecommerce.product.application.shared.ProductRepository;  // ❌ Cross-context!
 
 @Service
 public class AddItemToCartUseCase {
@@ -107,7 +107,7 @@ The **consumer-side pattern (output port + adapter) is identical** regardless of
 ### Package Structure
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── product/                              ← PRODUCT CATALOG CONTEXT
 │   ├── domain/model/
 │   ├── application/
@@ -166,7 +166,7 @@ All cross-context imports are confined to the adapter layer:
 
 ```java
 // ProductDataAdapter - ONLY place in Cart that imports from Product
-import de.sample.aiarchitecture.product.adapter.incoming.openhost.ProductCatalogService;
+import dev.domaincentric.sample.ecommerce.product.adapter.incoming.openhost.ProductCatalogService;
 
 @Component
 public class ProductDataAdapter implements ProductDataPort {
@@ -227,7 +227,7 @@ public class AddItemToCartUseCase {
 ### Provider: Open Host Service
 
 ```java
-package de.sample.aiarchitecture.product.adapter.incoming.openhost;
+package dev.domaincentric.sample.ecommerce.product.adapter.incoming.openhost;
 
 @OpenHostService(
     context = "Product Catalog",
@@ -267,7 +267,7 @@ public class ProductCatalogService {
 ### Consumer: Output Port
 
 ```java
-package de.sample.aiarchitecture.cart.application.shared;
+package dev.domaincentric.sample.ecommerce.cart.application.shared;
 
 public interface ProductDataPort extends OutputPort {
 
@@ -284,7 +284,7 @@ public interface ProductDataPort extends OutputPort {
 ### Consumer: Outgoing Adapter
 
 ```java
-package de.sample.aiarchitecture.cart.adapter.outgoing.product;
+package dev.domaincentric.sample.ecommerce.cart.adapter.outgoing.product;
 
 @Component
 public class ProductDataAdapter implements ProductDataPort {
@@ -310,7 +310,7 @@ public class ProductDataAdapter implements ProductDataPort {
 ### @OpenHostService Annotation
 
 ```java
-package de.sample.aiarchitecture.sharedkernel.stereotype;
+package dev.domaincentric.sample.ecommerce.sharedkernel.stereotype;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -349,7 +349,7 @@ def "Outgoing adapters accessing other contexts must only use OpenHostService cl
 
 ```java
 // ❌ Rejected
-import de.sample.aiarchitecture.product.application.shared.ProductRepository;
+import dev.domaincentric.sample.ecommerce.product.application.shared.ProductRepository;
 ```
 
 **Rejected Because**:

@@ -61,7 +61,7 @@ Alistair Cockburn's **Hexagonal Architecture** (Ports and Adapters) solves this:
 ### Package Structure
 
 ```
-src/main/java/de/sample/aiarchitecture/
+src/main/java/dev/domaincentric/sample/ecommerce/
 ├── sharedkernel/              # Shared Kernel (cross-context)
 │   ├── domain/
 │   │   ├── marker/            # DDD building blocks

@@ -68,7 +68,7 @@ a stale one sends the upgrade to the wrong place.
 
 ### Application Entry Point
 
-`de.sample.aiarchitecture.infrastructure.AiArchitectureApplication`
+`dev.domaincentric.sample.ecommerce.infrastructure.EcommerceSampleApplication`
 
 ### Application Configuration
 

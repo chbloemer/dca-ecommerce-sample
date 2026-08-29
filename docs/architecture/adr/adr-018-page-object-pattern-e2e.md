@@ -40,7 +40,7 @@ fillByName("firstName", "Test");
 ### Page Object Structure
 
 ```
-src/test-e2e/java/de/sample/aiarchitecture/e2e/pages/
+src/test-e2e/java/dev/domaincentric/sample/ecommerce/e2e/pages/
 ├── BasePage.java              # Common methods for all pages
 ├── ProductCatalogPage.java    # Product listing interactions
 ├── ProductDetailPage.java     # Product detail and add to cart

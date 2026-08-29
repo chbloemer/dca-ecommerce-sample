@@ -1,0 +1,28 @@
+package dev.domaincentric.sample.ecommerce.sharedkernel.domain.model;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Id;
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.tactical.Value;
+import java.util.UUID;
+
+/**
+ * Value Object representing a Product's unique identifier.
+ *
+ * <p>This is part of the Shared Kernel and allows the Cart bounded context to reference products
+ * without creating a direct dependency on the Product aggregate.
+ */
+public record ProductId(String value) implements Id, Value {
+
+  public ProductId {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException("ProductId cannot be null or blank");
+    }
+  }
+
+  public static ProductId generate() {
+    return new ProductId(UUID.randomUUID().toString());
+  }
+
+  public static ProductId of(final String value) {
+    return new ProductId(value);
+  }
+}

@@ -2,7 +2,7 @@ Implementation Summary
 
 1. Created Use Case Infrastructure
 
-- Base UseCase<I, O> interface in /src/main/java/de/sample/aiarchitecture/application/UseCase.java
+- Base UseCase<I, O> interface in /src/main/java/dev/domaincentric/sample/ecommerce/application/UseCase.java
 - Defines the contract for all use cases with execute() method
 
 2. Product Use Cases

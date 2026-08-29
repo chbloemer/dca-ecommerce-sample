@@ -16,7 +16,7 @@ You are a DDD tactical patterns specialist for this e-commerce reference impleme
 
 ## Project Structure
 
-Base package: `de.sample.aiarchitecture`
+Base package: `dev.domaincentric.sample.ecommerce`
 
 Bounded contexts: `product`, `cart`, `checkout`, `account`, `portal`, `inventory`, `pricing`, `backoffice`
 
@@ -32,7 +32,7 @@ Each context follows:
     └── outgoing/          # Repository implementations
 ```
 
-Shared kernel: `de.sample.aiarchitecture.sharedkernel`
+Shared kernel: `dev.domaincentric.sample.ecommerce.sharedkernel`
 - `marker/tactical/` — `AggregateRoot`, `BaseAggregateRoot`, `Entity`, `Value`, `Id`, `DomainEvent`, `IntegrationEvent`, `@IntegrationEventType`, `DomainService`, `DomainGateway`, `Factory`, `Specification`
 - `marker/strategic/` — `@BoundedContext`, `@SharedKernel`, `@OpenHostService`
 - `marker/port/in/` — `InputPort`, `UseCase<INPUT, OUTPUT>`

@@ -17,7 +17,7 @@
 
 ## Executive Summary
 
-The ai-architecture sample project demonstrates **outstanding implementation of both Domain-Driven Design and Clean Architecture** principles. This is a **reference-quality implementation** that serves as an excellent educational example for enterprise application architecture.
+The DCA e-commerce sample project demonstrates **outstanding implementation of both Domain-Driven Design and Clean Architecture** principles. This is a **reference-quality implementation** that serves as an excellent educational example for enterprise application architecture.
 
 **Key Achievements**:
 - ✅ **Exceptional tactical DDD patterns** - All core building blocks properly implemented
@@ -1238,7 +1238,7 @@ calculateTotal(), isSatisfiedBy()
 
 **Structure**:
 ```
-src/main/java/de/sample/aiarchitecture/
+src/main/java/dev/domaincentric/sample/ecommerce/
 ├── domain/
 │   └── model/           # The Hexagon (Business logic)
 │       ├── product/

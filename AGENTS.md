@@ -156,8 +156,8 @@ public class ExampleClass implements Pattern {
 ...
 
 **Implementation:**
-- Interface: `de.sample.aiarchitecture.domain.model.ddd.Pattern`
-- Example: `de.sample.aiarchitecture.domain.model.product.ConcreteExample`
+- Interface: `dev.domaincentric.sample.ecommerce.domain.model.ddd.Pattern`
+- Example: `dev.domaincentric.sample.ecommerce.domain.model.product.ConcreteExample`
 ```
 
 ---
@@ -248,7 +248,7 @@ If architecture tests fail:
 ### Package Structure Rules
 
 ```
-de.sample.aiarchitecture
+dev.domaincentric.sample.ecommerce
 ├── sharedkernel/             # Shared Kernel (cross-context)
 │   ├── marker/               # Architectural markers (tactical, strategic, port)
 │   ├── domain/               # Shared value objects and specifications
@@ -279,7 +279,7 @@ de.sample.aiarchitecture
 
 ### Architecture Tests (ArchUnit)
 
-Location: `src/test-architecture/groovy/de/sample/aiarchitecture/`
+Location: `src/test-architecture/groovy/dev/domaincentric/sample/ecommerce/`
 
 **Test Categories:**
 - `DddTacticalPatternsArchUnitTest` - Aggregate, Entity, Value Object, Repository patterns

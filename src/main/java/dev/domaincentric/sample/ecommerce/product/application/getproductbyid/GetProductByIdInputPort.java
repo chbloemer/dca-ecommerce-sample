@@ -1,0 +1,27 @@
+package dev.domaincentric.sample.ecommerce.product.application.getproductbyid;
+
+import dev.domaincentric.sample.ecommerce.sharedkernel.marker.port.in.UseCase;
+
+/**
+ * Input port for retrieving a product by its ID.
+ *
+ * <p>This port defines the contract for querying a specific product in the Product bounded context.
+ * Primary adapters (REST controllers, MCP tools, etc.) depend on this interface.
+ *
+ * <p><b>Hexagonal Architecture:</b> This is a driving/primary port for read operations.
+ *
+ * @see
+ *     dev.domaincentric.sample.ecommerce.product.application.usecase.getproductbyid.GetProductByIdUseCase
+ */
+public interface GetProductByIdInputPort
+    extends UseCase<GetProductByIdQuery, GetProductByIdResult> {
+
+  /**
+   * Retrieves a product by its unique identifier.
+   *
+   * @param query the query containing the product ID
+   * @return response containing product details or indication that product was not found
+   */
+  @Override
+  GetProductByIdResult execute(GetProductByIdQuery query);
+}

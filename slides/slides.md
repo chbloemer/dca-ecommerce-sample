@@ -111,7 +111,7 @@ Vier klare Kontexte mit eigenen Modellen:
 # Package Struktur - Bounded Context Schnitt
 
 ```
-de.sample.aiarchitecture
+dev.domaincentric.sample.ecommerce
 │
 ├── product/                     # Product Bounded Context
 │   ├── domain/

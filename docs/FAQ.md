@@ -122,7 +122,7 @@ All three terms refer to:
 // - Secondary Port (Hexagonal Architecture)
 // - Driven Port (Hexagonal Architecture alternative)
 
-package de.sample.aiarchitecture.domain.model.product;
+package dev.domaincentric.sample.ecommerce.domain.model.product;
 
 public interface ProductRepository extends Repository<Product, ProductId> {
     void save(Product product);
@@ -132,7 +132,7 @@ public interface ProductRepository extends Repository<Product, ProductId> {
 }
 
 // The implementation is the Secondary/Driven Adapter:
-package de.sample.aiarchitecture.product.adapter.outgoing.persistence;
+package dev.domaincentric.sample.ecommerce.product.adapter.outgoing.persistence;
 
 @Repository
 class ProductJpaRepository implements ProductRepository {
@@ -220,7 +220,7 @@ class ProductJpaRepositoryAdapter implements ProductRepository {
 ### Package Location
 
 ```
-de.sample.aiarchitecture.application/
+dev.domaincentric.sample.ecommerce.application/
 ├── UseCase.java                    # Base interface (generic contract)
 ├── CreateProductUseCase.java       # Input Port (use case class)
 ├── CreateProductInput.java         # Input Model
@@ -275,7 +275,7 @@ de.sample.aiarchitecture.application/
 
 ```java
 // Output Model (Application Layer)
-package de.sample.aiarchitecture.application;
+package dev.domaincentric.sample.ecommerce.application;
 
 public record CreateProductOutput(
     String productId,
@@ -286,7 +286,7 @@ public record CreateProductOutput(
 ) {}
 
 // DTO (Adapter Layer)
-package de.sample.aiarchitecture.product.adapter.incoming.api;
+package dev.domaincentric.sample.ecommerce.product.adapter.incoming.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

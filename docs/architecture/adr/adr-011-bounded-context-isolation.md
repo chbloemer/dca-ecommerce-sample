@@ -31,7 +31,7 @@ Without clear boundaries:
 ### Package Structure
 
 ```
-de.sample.aiarchitecture/
+dev.domaincentric.sample.ecommerce/
 ├── sharedkernel/              ← Shared Kernel (cross-context)
 │   └── domain/model/
 │       ├── ProductId          (shared ID)
@@ -108,9 +108,9 @@ Each context has clear responsibility:
 
 ```java
 // cart/domain/model/CartItem.java
-import de.sample.aiarchitecture.sharedkernel.domain.model.ProductId;  // ← From Shared Kernel
-import de.sample.aiarchitecture.sharedkernel.domain.model.Price;     // ← From Shared Kernel
-import de.sample.aiarchitecture.sharedkernel.domain.model.Money;     // ← From Shared Kernel
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;  // ← From Shared Kernel
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Price;     // ← From Shared Kernel
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;     // ← From Shared Kernel
 
 public final class CartItem implements Entity<CartItem, CartItemId> {
 

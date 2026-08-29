@@ -100,7 +100,7 @@ tasks.register('test-e2e', Test) {
 
 **Create directory structure:**
 ```
-src/test-e2e/java/de/sample/aiarchitecture/e2e/
+src/test-e2e/java/dev/domaincentric/sample/ecommerce/e2e/
 ├── CheckoutGuestE2ETest.java
 ├── CheckoutLoginE2ETest.java
 └── BaseE2ETest.java
@@ -108,7 +108,7 @@ src/test-e2e/java/de/sample/aiarchitecture/e2e/
 
 **BaseE2ETest.java:**
 ```java
-package de.sample.aiarchitecture.e2e;
+package dev.domaincentric.sample.ecommerce.e2e;
 
 import com.microsoft.playwright.*;
 import org.junit.jupiter.api.*;
@@ -193,7 +193,7 @@ public abstract class BaseE2ETest {
 </component>
 ```
 
-**Note:** App must be running before E2E tests. Start with `./gradlew bootRun` or "AiArchitectureApplication" run config.
+**Note:** App must be running before E2E tests. Start with `./gradlew bootRun` or "EcommerceSampleApplication" run config.
 
 ---
 
