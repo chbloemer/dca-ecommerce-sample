@@ -8,8 +8,8 @@ import de.sample.aiarchitecture.account.application.registeraccount.RegisterAcco
 import de.sample.aiarchitecture.account.application.registeraccount.RegisterAccountResult;
 import de.sample.aiarchitecture.account.application.shared.IdentitySession;
 import de.sample.aiarchitecture.account.application.shared.TokenService;
-import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

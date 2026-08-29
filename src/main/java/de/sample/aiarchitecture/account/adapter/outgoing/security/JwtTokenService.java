@@ -1,8 +1,8 @@
 package de.sample.aiarchitecture.account.adapter.outgoing.security;
 
 import de.sample.aiarchitecture.account.application.shared.TokenService;
-import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

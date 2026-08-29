@@ -5,8 +5,8 @@ import de.sample.aiarchitecture.account.application.authenticateaccount.Authenti
 import de.sample.aiarchitecture.account.application.authenticateaccount.AuthenticateAccountResult;
 import de.sample.aiarchitecture.account.application.shared.IdentitySession;
 import de.sample.aiarchitecture.account.application.shared.TokenService;
-import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Controller;

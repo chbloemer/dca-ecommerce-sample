@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.sample.aiarchitecture.account.application.shared.RegisteredUserValidator;
-import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import de.sample.aiarchitecture.sharedkernel.application.shared.IdentityProvider;
+import de.sample.aiarchitecture.sharedkernel.domain.model.UserId;
 import jakarta.servlet.http.Cookie;
 import java.util.HashSet;
 import java.util.Optional;
