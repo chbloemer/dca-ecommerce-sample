@@ -120,7 +120,7 @@ class CheckoutLoginE2ETest extends BaseE2ETest {
     // Step 2: Try to start checkout
     CartPage cart = CartPage.navigateTo(page);
     cart.waitForItems();
-    clickTestElement("cart-checkout-link");
+    clickTestElement("cart-checkout-button");
 
     // If there's a login prompt during checkout, handle it
     if (getCurrentPath().contains("/login")) {

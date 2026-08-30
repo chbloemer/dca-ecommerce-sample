@@ -59,7 +59,9 @@ block content
       .cart__actions
         if shoppingCart.status() === 'ACTIVE'
           if shoppingCart.canCheckout()
-            a.btn.btn--primary.btn--lg(href='/checkout/start?cartId=' + shoppingCart.cartId() data-test="cart-checkout-link") Proceed to Checkout
+            form(method="post" action="/checkout/start" data-test="cart-checkout-form")
+              input(type="hidden" name="cartId" value=shoppingCart.cartId())
+              button.btn.btn--primary.btn--lg(type="submit" data-test="cart-checkout-button") Proceed to Checkout
             .cart__actions-info
               a(href="/products") Continue Shopping
           else

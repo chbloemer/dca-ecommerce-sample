@@ -11,7 +11,7 @@ public class CartPage extends BasePage {
 
   private static final String URL_PATTERN = "/cart**";
   private static final String CART_ITEM = "cart-item";
-  private static final String CHECKOUT_LINK = "cart-checkout-link";
+  private static final String CHECKOUT_BUTTON = "cart-checkout-button";
 
   /**
    * Creates a new CartPage and waits for it to load.
@@ -40,7 +40,7 @@ public class CartPage extends BasePage {
    */
   public BuyerInfoPage proceedToCheckout() {
     waitFor(CART_ITEM);
-    click(CHECKOUT_LINK);
+    click(CHECKOUT_BUTTON);
     return new BuyerInfoPage(page);
   }
 
