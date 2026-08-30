@@ -424,7 +424,7 @@ Reference implementation demonstrating Domain-Centric Architecture with DDD, Hex
 **Description:** Replace the fake checkout button on the cart page with a link to the new checkout bounded context. The cart page should redirect to the checkout flow instead of the old fake checkout endpoint.
 
 **Acceptance Criteria:**
-- Cart page checkout button redirects to /checkout/start?cartId={cartId} instead of /cart/{cartId}/checkout
+- Cart page checkout button posts a form to /checkout/start with cartId instead of /cart/{cartId}/checkout
 - Old /cart/{cartId}/checkout endpoint is removed or deprecated
 - Checkout flow can be started from the cart page
 - Architecture tests pass
