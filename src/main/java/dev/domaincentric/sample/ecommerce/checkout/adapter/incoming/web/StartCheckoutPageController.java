@@ -2,6 +2,7 @@ package dev.domaincentric.sample.ecommerce.checkout.adapter.incoming.web;
 
 import dev.domaincentric.sample.ecommerce.checkout.application.startcheckout.StartCheckoutCommand;
 import dev.domaincentric.sample.ecommerce.checkout.application.startcheckout.StartCheckoutInputPort;
+import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,9 +32,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class StartCheckoutPageController {
 
   private final StartCheckoutInputPort startCheckoutInputPort;
+  private final IdentityProvider identityProvider;
 
-  public StartCheckoutPageController(final StartCheckoutInputPort startCheckoutInputPort) {
+  public StartCheckoutPageController(
+      final StartCheckoutInputPort startCheckoutInputPort,
+      final IdentityProvider identityProvider) {
     this.startCheckoutInputPort = startCheckoutInputPort;
+    this.identityProvider = identityProvider;
+  }
+
+  private String currentCustomerId() {
+    return identityProvider.getCurrentIdentity().userId().value();
   }
 
   /**
@@ -52,7 +61,7 @@ public class StartCheckoutPageController {
       @RequestParam final String cartId, final RedirectAttributes redirectAttributes) {
 
     try {
-      startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+      startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, currentCustomerId()));
       return "redirect:/checkout/buyer";
 
     } catch (IllegalArgumentException | IllegalStateException e) {

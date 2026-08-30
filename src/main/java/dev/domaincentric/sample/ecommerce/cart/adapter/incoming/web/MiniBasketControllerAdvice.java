@@ -1,11 +1,11 @@
 package dev.domaincentric.sample.ecommerce.cart.adapter.incoming.web;
 
+import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdQuery;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdResult;
-import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdUseCase;
 import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartUseCase;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCartItem;
@@ -38,13 +38,13 @@ public class MiniBasketControllerAdvice {
 
   private static final Logger LOG = LoggerFactory.getLogger(MiniBasketControllerAdvice.class);
 
-  private final GetOrCreateActiveCartUseCase getOrCreateActiveCartUseCase;
-  private final GetCartByIdUseCase getCartByIdUseCase;
+  private final GetOrCreateActiveCartInputPort getOrCreateActiveCartUseCase;
+  private final GetCartByIdInputPort getCartByIdUseCase;
   private final IdentityProvider identityProvider;
 
   public MiniBasketControllerAdvice(
-      final GetOrCreateActiveCartUseCase getOrCreateActiveCartUseCase,
-      final GetCartByIdUseCase getCartByIdUseCase,
+      final GetOrCreateActiveCartInputPort getOrCreateActiveCartUseCase,
+      final GetCartByIdInputPort getCartByIdUseCase,
       final IdentityProvider identityProvider) {
     this.getOrCreateActiveCartUseCase = getOrCreateActiveCartUseCase;
     this.getCartByIdUseCase = getCartByIdUseCase;
@@ -73,7 +73,7 @@ public class MiniBasketControllerAdvice {
               new GetOrCreateActiveCartCommand(customerId.value()));
 
       final GetCartByIdResult result =
-          getCartByIdUseCase.execute(new GetCartByIdQuery(cartRef.cartId()));
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartRef.cartId(), cartRef.customerId()));
 
       if (result.found()) {
         final EnrichedCart cart = result.cart().orElseThrow();

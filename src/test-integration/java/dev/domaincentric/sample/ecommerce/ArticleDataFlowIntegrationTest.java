@@ -209,10 +209,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 2));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 2));
 
       // When: Starting checkout
-      StartCheckoutResult result = startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+      StartCheckoutResult result =
+          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
 
       // Then: Checkout session should have line items with current prices
       assertNotNull(result.sessionId(), "Session should be created");
@@ -234,10 +236,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 1));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 1));
 
       // When: Starting checkout
-      StartCheckoutResult result = startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+      StartCheckoutResult result =
+          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
 
       // Then: Line item should have product name
       StartCheckoutResult.LineItemData lineItem = result.lineItems().get(0);
@@ -263,10 +267,11 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 1));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 1));
 
       StartCheckoutResult startResult =
-          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
       String sessionId = startResult.sessionId();
 
       // Complete all checkout steps
@@ -290,10 +295,11 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 1));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 1));
 
       StartCheckoutResult startResult =
-          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
       String sessionId = startResult.sessionId();
 
       // Complete all checkout steps
@@ -326,10 +332,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 2));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 2));
 
       // When: Getting cart by ID
-      GetCartByIdResult result = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult result =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
 
       // Then: Cart items should have current pricing from ArticleDataPort
       assertTrue(result.found(), "Cart should be found");
@@ -353,10 +361,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 1));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 1));
 
       // When: Getting cart
-      GetCartByIdResult result = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult result =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
 
       // Then: Item should have both price at addition and current price
       EnrichedCartItem item = result.cart().orElseThrow().items().get(0);
@@ -383,10 +393,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 1));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 1));
 
       // When: Getting cart immediately (price hasn't changed)
-      GetCartByIdResult result = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult result =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
 
       // Then: Price should not be marked as changed
       EnrichedCartItem item = result.cart().orElseThrow().items().get(0);
@@ -413,10 +425,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 1));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 1));
 
       // Get initial cart state
-      GetCartByIdResult initialResult = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult initialResult =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
       EnrichedCartItem initialItem = initialResult.cart().orElseThrow().items().get(0);
       BigDecimal originalPrice = initialItem.priceAtAddition().value().amount();
 
@@ -426,7 +440,8 @@ class ArticleDataFlowIntegrationTest {
           new SetProductPriceCommand(testProductIdString, newPrice, "EUR"));
 
       // Then: Getting cart should show price changed
-      GetCartByIdResult updatedResult = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult updatedResult =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
       EnrichedCartItem updatedItem = updatedResult.cart().orElseThrow().items().get(0);
 
       assertTrue(
@@ -458,12 +473,13 @@ class ArticleDataFlowIntegrationTest {
       String cartId = cartResponse.cartId();
 
       addItemToCartUseCase.execute(
-          new AddItemToCartCommand(cartId, product1Id.value().toString(), 1));
+          new AddItemToCartCommand(cartId, customerId, product1Id.value().toString(), 1));
       addItemToCartUseCase.execute(
-          new AddItemToCartCommand(cartId, product2Id.value().toString(), 1));
+          new AddItemToCartCommand(cartId, customerId, product2Id.value().toString(), 1));
 
       // Get initial prices
-      GetCartByIdResult initialResult = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult initialResult =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
       assertEquals(
           2, initialResult.cart().orElseThrow().items().size(), "Cart should have 2 items");
 
@@ -480,7 +496,8 @@ class ArticleDataFlowIntegrationTest {
           new SetProductPriceCommand(product1Id.value().toString(), newPrice, "EUR"));
 
       // When: Getting cart
-      GetCartByIdResult result = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult result =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
 
       // Then: Only first product should show price change
       EnrichedCartItem item1 =
@@ -513,10 +530,12 @@ class ArticleDataFlowIntegrationTest {
           getOrCreateActiveCartUseCase.execute(new GetOrCreateActiveCartCommand(customerId));
       String cartId = cartResponse.cartId();
 
-      addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, testProductIdString, 2));
+      addItemToCartUseCase.execute(
+          new AddItemToCartCommand(cartId, customerId, testProductIdString, 2));
 
       // Step 1: Verify cart enrichment
-      GetCartByIdResult cartResult = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+      GetCartByIdResult cartResult =
+          getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
       assertTrue(cartResult.found());
       assertNotNull(
           cartResult.cart().orElseThrow().items().get(0).currentArticle().currentPrice(),
@@ -524,7 +543,7 @@ class ArticleDataFlowIntegrationTest {
 
       // Step 2: Start checkout (uses CheckoutArticleDataPort for pricing)
       StartCheckoutResult startResult =
-          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+          startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
       assertNotNull(
           startResult.lineItems().get(0).unitPrice(),
           "Checkout should have pricing from CheckoutArticleDataPort");

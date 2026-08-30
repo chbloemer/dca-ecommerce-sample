@@ -9,6 +9,7 @@ import dev.domaincentric.sample.ecommerce.cart.domain.model.ArticlePriceResolver
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartValidationResult;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCartFactory;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
@@ -68,7 +69,7 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
     // outside the transaction
     final ShoppingCart current =
         shoppingCartRepository
-            .findById(cartId)
+            .findByIdForCustomer(cartId, CustomerId.of(input.customerId()))
             .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + input.cartId()));
     final Set<ProductId> productIds =
         current.items().stream().map(item -> item.productId()).collect(Collectors.toSet());
@@ -79,7 +80,7 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
         () -> {
           final ShoppingCart cart =
               shoppingCartRepository
-                  .findById(cartId)
+                  .findByIdForCustomer(cartId, CustomerId.of(input.customerId()))
                   .orElseThrow(
                       () -> new IllegalArgumentException("Cart not found: " + input.cartId()));
           final EnrichedCart enrichedCart = enrichedCartFactory.create(cart, articleData);

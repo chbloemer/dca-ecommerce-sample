@@ -2,12 +2,12 @@ package dev.domaincentric.sample.ecommerce.product.adapter.incoming.mcp;
 
 import dev.domaincentric.sample.ecommerce.product.adapter.incoming.api.ProductDto;
 import dev.domaincentric.sample.ecommerce.product.adapter.incoming.api.ProductDtoConverter;
+import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsResult;
-import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsUseCase;
+import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdResult;
-import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdUseCase;
 import java.util.List;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springframework.stereotype.Component;
@@ -23,8 +23,8 @@ import org.springframework.stereotype.Component;
  * pattern, exposing domain functionality through the MCP protocol. It uses Clean Architecture use
  * cases (input ports) to access domain logic.
  *
- * <p><b>Clean Architecture:</b> This adapter depends on use case interfaces rather than application
- * services, following the Dependency Inversion Principle.
+ * <p><b>Clean Architecture:</b> This adapter depends on use case interfaces (input ports) rather
+ * than the use case classes, following the Dependency Inversion Principle.
  *
  * <p><b>Available Tools:</b>
  *
@@ -36,13 +36,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductCatalogMcpToolProvider {
 
-  private final GetAllProductsUseCase getAllProductsUseCase;
-  private final GetProductByIdUseCase getProductByIdUseCase;
+  private final GetAllProductsInputPort getAllProductsUseCase;
+  private final GetProductByIdInputPort getProductByIdUseCase;
   private final ProductDtoConverter productDtoConverter;
 
   public ProductCatalogMcpToolProvider(
-      final GetAllProductsUseCase getAllProductsUseCase,
-      final GetProductByIdUseCase getProductByIdUseCase,
+      final GetAllProductsInputPort getAllProductsUseCase,
+      final GetProductByIdInputPort getProductByIdUseCase,
       final ProductDtoConverter productDtoConverter) {
     this.getAllProductsUseCase = getAllProductsUseCase;
     this.getProductByIdUseCase = getProductByIdUseCase;
@@ -90,9 +90,4 @@ public class ProductCatalogMcpToolProvider {
 
     return productDtoConverter.toDto(output);
   }
-
-  // Note: The following tools don't have corresponding use cases yet:
-  // - GetProductBySkuUseCase
-  // - GetProductsByCategoryUseCase
-  // They can be added if needed for MCP functionality
 }

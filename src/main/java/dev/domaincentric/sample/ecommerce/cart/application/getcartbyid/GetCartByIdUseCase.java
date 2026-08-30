@@ -4,6 +4,7 @@ import dev.domaincentric.sample.ecommerce.cart.application.shared.ArticleDataPor
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCartFactory;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
@@ -44,7 +45,10 @@ public class GetCartByIdUseCase implements GetCartByIdInputPort {
   public GetCartByIdResult execute(final GetCartByIdQuery input) {
     final CartId cartId = CartId.of(input.cartId());
 
-    final Optional<ShoppingCart> cartOpt = shoppingCartRepository.findById(cartId);
+    // Scoped to the caller: a cart that is not theirs is indistinguishable from one that does not
+    // exist.
+    final Optional<ShoppingCart> cartOpt =
+        shoppingCartRepository.findByIdForCustomer(cartId, CustomerId.of(input.customerId()));
 
     if (cartOpt.isEmpty()) {
       return GetCartByIdResult.notFound();

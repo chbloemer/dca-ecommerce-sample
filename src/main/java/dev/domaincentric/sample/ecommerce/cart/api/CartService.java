@@ -1,8 +1,6 @@
 package dev.domaincentric.sample.ecommerce.cart.api;
 
 import dev.domaincentric.dca.buildingblocks.ddd.strategic.relationships.OpenHostService;
-import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartCommand;
-import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.completecart.CompleteCartCommand;
 import dev.domaincentric.sample.ecommerce.cart.application.completecart.CompleteCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdInputPort;
@@ -19,7 +17,7 @@ import org.springframework.stereotype.Service;
 /**
  * Open Host Service for Shopping Cart.
  *
- * <p>Exposes cart data and checkout operations for cross-module access. The Checkout context uses
+ * <p>Exposes cart snapshots and cart completion for cross-module access. The Checkout context uses
  * this service instead of directly accessing Cart internals (repository, domain model).
  *
  * <p><b>Hexagonal Architecture:</b> As an incoming adapter, this service calls input ports (use
@@ -28,20 +26,16 @@ import org.springframework.stereotype.Service;
 @OpenHostService(
     context = "Shopping Cart",
     description =
-        "Provides cart data and checkout operations for other bounded contexts (primarily Checkout)")
+        "Provides cart data and cart completion for other bounded contexts (primarily Checkout)")
 @Service
 public class CartService {
 
   private final GetCartByIdInputPort getCartByIdInputPort;
-  private final CheckoutCartInputPort checkoutCartInputPort;
   private final CompleteCartInputPort completeCartInputPort;
 
   public CartService(
-      GetCartByIdInputPort getCartByIdInputPort,
-      CheckoutCartInputPort checkoutCartInputPort,
-      CompleteCartInputPort completeCartInputPort) {
+      GetCartByIdInputPort getCartByIdInputPort, CompleteCartInputPort completeCartInputPort) {
     this.getCartByIdInputPort = getCartByIdInputPort;
-    this.checkoutCartInputPort = checkoutCartInputPort;
     this.completeCartInputPort = completeCartInputPort;
   }
 
@@ -68,12 +62,17 @@ public class CartService {
   /**
    * Retrieves cart data by ID.
    *
+   * <p>Empty when the cart does not exist <em>or</em> is not that customer's. A consuming context
+   * has to name the customer it is acting for; that is what keeps the ownership rule in the context
+   * that owns carts instead of in every caller.
+   *
    * @param cartId the cart ID
+   * @param customerId the customer the calling context is acting for
    * @return cart snapshot if found
    */
-  public Optional<CartSnapshot> findCartById(UUID cartId) {
+  public Optional<CartSnapshot> findCartById(UUID cartId, String customerId) {
     GetCartByIdResult result =
-        getCartByIdInputPort.execute(new GetCartByIdQuery(cartId.toString()));
+        getCartByIdInputPort.execute(new GetCartByIdQuery(cartId.toString(), customerId));
 
     if (!result.found()) {
       return Optional.empty();
@@ -98,16 +97,10 @@ public class CartService {
   }
 
   /**
-   * Marks a cart as checked out.
-   *
-   * @param cartId the cart ID to check out
-   */
-  public void markAsCheckedOut(UUID cartId) {
-    checkoutCartInputPort.execute(new CheckoutCartCommand(cartId.toString()));
-  }
-
-  /**
    * Marks a cart as completed after checkout confirmation.
+   *
+   * <p>Unscoped on purpose: this one acts on nobody's behalf — it is the system reacting to its own
+   * event, delivered at least once, with no caller to check.
    *
    * @param cartId the cart ID to complete
    */

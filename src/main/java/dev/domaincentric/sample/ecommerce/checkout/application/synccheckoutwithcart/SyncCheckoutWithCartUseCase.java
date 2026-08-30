@@ -84,9 +84,10 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
 
     // Cart contents and product data come from other contexts (remote-capable) - outside the
     // transaction
+    // No caller here - the session names the customer this runs on behalf of.
     final CartData cart =
         cartDataPort
-            .findById(cartId)
+            .findById(cartId, activeSession.get().customerId())
             .orElseThrow(
                 () ->
                     new IllegalStateException(

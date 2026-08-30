@@ -674,26 +674,41 @@ curl http://localhost:8080/actuator/health
 
 ## API Documentation
 
+`/api/**` is authenticated by an `Authorization: Bearer` token and by **nothing else** — no browser cookie
+reaches it and none is issued, which is the only reason it may skip the CSRF token (ADR-035). Authorization is
+stated by each resource, not by the filter chain: the JWT filter gives every request an authentication, so
+`authenticated()` is satisfied by an anonymous visitor too (ADR-036).
+
+| Route | Who |
+|---|---|
+| `GET /api/products`, `GET /api/products/{id}` | anyone — the same assortment the shop pages show |
+| `POST /api/products` | staff role |
+| `GET /api/carts` (every cart in the shop) | staff role |
+| `POST /api/carts`, `GET /api/carts/{id}`, `POST /{id}/items`, `DELETE /{id}/items/{productId}`, `POST /{id}/checkout`, `GET /api/carts/customer/{id}/active` | the caller, on their own cart — a stranger's cart answers `404`, never `403` |
+| `POST /api/auth/{login,register,logout}` | anyone; the token comes back in the body, no cookie is set |
+
+### Authentication
+
+```bash
+# Register (or /login with an existing account) — the response body carries the token
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ada@example.com","password":"Secret123","firstName":"Ada","lastName":"Lovelace","dateOfBirth":"1815-12-10"}'
+```
+
+The staff role has no provisioning path in this sample: an operator token is minted out of band (see
+`ApiAuthorizationIntegrationTest`).
+
 ### Product API
 
-#### Get All Products
 ```bash
+# Public
 curl http://localhost:8080/api/products
-```
-
-#### Get Product by ID
-```bash
 curl http://localhost:8080/api/products/{productId}
-```
 
-#### Get Product by SKU
-```bash
-curl http://localhost:8080/api/products/sku/LAPTOP-001
-```
-
-#### Create Product
-```bash
+# Staff only
 curl -X POST http://localhost:8080/api/products \
+  -H "Authorization: Bearer $STAFF_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "sku": "TEST-001",
@@ -705,51 +720,31 @@ curl -X POST http://localhost:8080/api/products \
   }'
 ```
 
-#### Delete Product
-```bash
-curl -X DELETE http://localhost:8080/api/products/{productId}
-```
-
 ### Shopping Cart API
 
-#### Create Cart
-```bash
-curl -X POST "http://localhost:8080/api/carts?customerId=customer-123"
-```
+Every route below acts on the cart of the token's own identity.
 
-#### Get Active Cart for Customer
 ```bash
-curl http://localhost:8080/api/carts/customer/customer-123/active
-```
+# Create the caller's cart (no customerId — it is the caller's)
+curl -X POST http://localhost:8080/api/carts -H "Authorization: Bearer $TOKEN"
 
-#### Get Cart by ID
-```bash
-curl http://localhost:8080/api/carts/{cartId}
-```
+# The caller's active cart
+curl http://localhost:8080/api/carts/customer/$USER_ID/active -H "Authorization: Bearer $TOKEN"
 
-#### Add Item to Cart
-```bash
+# One of the caller's carts; somebody else's answers 404
+curl http://localhost:8080/api/carts/{cartId} -H "Authorization: Bearer $TOKEN"
+
 curl -X POST http://localhost:8080/api/carts/{cartId}/items \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "productId": "{productId}",
-    "quantity": 2
-  }'
-```
+  -d '{"productId": "{productId}", "quantity": 2}'
 
-#### Remove Item from Cart
-```bash
-curl -X DELETE http://localhost:8080/api/carts/{cartId}/items/{itemId}
-```
+curl -X DELETE http://localhost:8080/api/carts/{cartId}/items/{productId} -H "Authorization: Bearer $TOKEN"
 
-#### Checkout Cart
-```bash
-curl -X POST http://localhost:8080/api/carts/{cartId}/checkout
-```
+curl -X POST http://localhost:8080/api/carts/{cartId}/checkout -H "Authorization: Bearer $TOKEN"
 
-#### Delete Cart
-```bash
-curl -X DELETE http://localhost:8080/api/carts/{cartId}
+# Every cart in the shop — staff only
+curl http://localhost:8080/api/carts -H "Authorization: Bearer $STAFF_TOKEN"
 ```
 
 ### MCP (Model Context Protocol) API

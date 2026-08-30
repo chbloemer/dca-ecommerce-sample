@@ -27,13 +27,10 @@ public class CartDataAdapter implements CartDataPort {
   }
 
   @Override
-  public Optional<CartData> findById(final CartId cartId) {
-    return cartService.findCartById(UUID.fromString(cartId.value())).map(this::toCartData);
-  }
-
-  @Override
-  public void markAsCheckedOut(final CartId cartId) {
-    cartService.markAsCheckedOut(UUID.fromString(cartId.value()));
+  public Optional<CartData> findById(final CartId cartId, final CustomerId customerId) {
+    return cartService
+        .findCartById(UUID.fromString(cartId.value()), customerId.value())
+        .map(this::toCartData);
   }
 
   private CartData toCartData(final CartSnapshot snapshot) {

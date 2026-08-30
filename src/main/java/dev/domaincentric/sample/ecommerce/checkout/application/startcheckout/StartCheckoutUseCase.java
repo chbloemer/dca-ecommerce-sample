@@ -13,6 +13,7 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCartFact
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItem;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItemId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
@@ -80,10 +81,12 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
   public StartCheckoutResult execute(final StartCheckoutCommand command) {
     final CartId cartId = CartId.of(command.cartId());
 
-    // Cart and article data come from other contexts (remote-capable) - outside the transaction
+    // Cart and article data come from other contexts (remote-capable) - outside the transaction.
+    // Scoped to the caller: a cart that is not theirs is indistinguishable from one that does not
+    // exist.
     final CartData cart =
         cartDataPort
-            .findById(cartId)
+            .findById(cartId, CustomerId.of(command.customerId()))
             .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + command.cartId()));
     if (!cart.active()) {
       throw new IllegalArgumentException("Cart is not active: " + command.cartId());

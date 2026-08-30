@@ -1,14 +1,14 @@
 package dev.domaincentric.sample.ecommerce.cart.adapter.incoming.web;
 
 import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartUseCase;
+import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdQuery;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdResult;
-import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdUseCase;
 import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartUseCase;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.service.CartTotalCalculator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
@@ -40,16 +40,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/cart")
 public class CartPageController {
 
-  private final GetCartByIdUseCase getCartByIdUseCase;
-  private final GetOrCreateActiveCartUseCase getOrCreateActiveCartUseCase;
-  private final AddItemToCartUseCase addItemToCartUseCase;
+  private final GetCartByIdInputPort getCartByIdUseCase;
+  private final GetOrCreateActiveCartInputPort getOrCreateActiveCartUseCase;
+  private final AddItemToCartInputPort addItemToCartUseCase;
   private final IdentityProvider identityProvider;
   private final CartTotalCalculator cartTotalCalculator;
 
   public CartPageController(
-      final GetCartByIdUseCase getCartByIdUseCase,
-      final GetOrCreateActiveCartUseCase getOrCreateActiveCartUseCase,
-      final AddItemToCartUseCase addItemToCartUseCase,
+      final GetCartByIdInputPort getCartByIdUseCase,
+      final GetOrCreateActiveCartInputPort getOrCreateActiveCartUseCase,
+      final AddItemToCartInputPort addItemToCartUseCase,
       final IdentityProvider identityProvider,
       final CartTotalCalculator cartTotalCalculator) {
     this.getCartByIdUseCase = getCartByIdUseCase;
@@ -79,7 +79,7 @@ public class CartPageController {
 
     // Fetch cart details
     final GetCartByIdResult result =
-        getCartByIdUseCase.execute(new GetCartByIdQuery(cartResponse.cartId()));
+        getCartByIdUseCase.execute(new GetCartByIdQuery(cartResponse.cartId(), customerId.value()));
 
     if (!result.found()) {
       return "error/404";
@@ -127,7 +127,7 @@ public class CartPageController {
 
     // Add product to cart
     final AddItemToCartCommand command =
-        new AddItemToCartCommand(cartResponse.cartId(), productId, quantity);
+        new AddItemToCartCommand(cartResponse.cartId(), customerId.value(), productId, quantity);
     final AddItemToCartResult addResponse = addItemToCartUseCase.execute(command);
 
     // Add success message

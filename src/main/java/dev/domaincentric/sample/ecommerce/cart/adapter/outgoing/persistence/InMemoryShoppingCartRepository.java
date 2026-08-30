@@ -42,6 +42,12 @@ public class InMemoryShoppingCartRepository implements ShoppingCartRepository {
   }
 
   @Override
+  public Optional<ShoppingCart> findByIdForCustomer(
+      final CartId cartId, final CustomerId customerId) {
+    return findById(cartId).filter(cart -> cart.customerId().equals(customerId));
+  }
+
+  @Override
   public List<ShoppingCart> findByCustomerId(final CustomerId customerId) {
     return carts.values().stream().filter(cart -> cart.customerId().equals(customerId)).toList();
   }

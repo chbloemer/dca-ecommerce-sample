@@ -1,11 +1,11 @@
 package dev.domaincentric.sample.ecommerce.product.adapter.incoming.web;
 
+import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsResult;
-import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsUseCase;
+import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdResult;
-import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdUseCase;
 import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,12 +41,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/products")
 public class ProductPageController {
 
-  private final GetAllProductsUseCase getAllProductsUseCase;
-  private final GetProductByIdUseCase getProductByIdUseCase;
+  private final GetAllProductsInputPort getAllProductsUseCase;
+  private final GetProductByIdInputPort getProductByIdUseCase;
 
   public ProductPageController(
-      final GetAllProductsUseCase getAllProductsUseCase,
-      final GetProductByIdUseCase getProductByIdUseCase) {
+      final GetAllProductsInputPort getAllProductsUseCase,
+      final GetProductByIdInputPort getProductByIdUseCase) {
     this.getAllProductsUseCase = getAllProductsUseCase;
     this.getProductByIdUseCase = getProductByIdUseCase;
   }

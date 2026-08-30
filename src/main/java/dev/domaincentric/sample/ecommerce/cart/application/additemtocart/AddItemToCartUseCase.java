@@ -6,6 +6,7 @@ import dev.domaincentric.sample.ecommerce.cart.application.shared.ArticleDataPor
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.Quantity;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
@@ -78,7 +79,7 @@ public class AddItemToCartUseCase implements AddItemToCartInputPort {
         () -> {
           final ShoppingCart cart =
               shoppingCartRepository
-                  .findById(cartId)
+                  .findByIdForCustomer(cartId, CustomerId.of(input.customerId()))
                   .orElseThrow(
                       () -> new IllegalArgumentException("Cart not found: " + input.cartId()));
           cart.addItem(productId, quantity, priceAtAddition);

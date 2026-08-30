@@ -129,6 +129,12 @@ class RecoverCartOnLoginUseCaseTest {
     private final Map<CartId, ShoppingCart> carts = new ConcurrentHashMap<>();
 
     @Override
+    public Optional<ShoppingCart> findByIdForCustomer(
+        final CartId cartId, final CustomerId customerId) {
+      return findById(cartId).filter(cart -> cart.customerId().equals(customerId));
+    }
+
+    @Override
     public Optional<ShoppingCart> findById(CartId id) {
       return Optional.ofNullable(carts.get(id));
     }

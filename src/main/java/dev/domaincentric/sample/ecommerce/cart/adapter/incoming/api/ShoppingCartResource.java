@@ -1,24 +1,29 @@
 package dev.domaincentric.sample.ecommerce.cart.adapter.incoming.api;
 
 import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.additemtocart.AddItemToCartUseCase;
 import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.checkoutcart.CheckoutCartUseCase;
 import dev.domaincentric.sample.ecommerce.cart.application.createcart.CreateCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.createcart.CreateCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.createcart.CreateCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.createcart.CreateCartUseCase;
+import dev.domaincentric.sample.ecommerce.cart.application.getallcarts.GetAllCartsInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getallcarts.GetAllCartsQuery;
 import dev.domaincentric.sample.ecommerce.cart.application.getallcarts.GetAllCartsResult;
-import dev.domaincentric.sample.ecommerce.cart.application.getallcarts.GetAllCartsUseCase;
+import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdQuery;
 import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdResult;
-import dev.domaincentric.sample.ecommerce.cart.application.getcartbyid.GetCartByIdUseCase;
+import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.removeitemfromcart.RemoveItemFromCartCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.removeitemfromcart.RemoveItemFromCartInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.removeitemfromcart.RemoveItemFromCartResult;
-import dev.domaincentric.sample.ecommerce.cart.application.removeitemfromcart.RemoveItemFromCartUseCase;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
+import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
 import jakarta.validation.Valid;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,87 +32,98 @@ import org.springframework.web.bind.annotation.*;
  * REST API Resource for Shopping Cart operations.
  *
  * <p>This is a primary adapter (incoming) in Hexagonal Architecture that exposes shopping cart
- * functionality via REST API using Clean Architecture use cases.
+ * functionality via REST API using Clean Architecture use cases. It depends on use case interfaces
+ * (input ports) rather than the use case classes.
  *
- * <p><b>Clean Architecture:</b> This controller depends on use case interfaces (input ports) for
- * all cart operations, following the Dependency Inversion Principle.
+ * <p><b>Authorization:</b> every route acts on the cart of the caller's own identity — the cart id
+ * in the path selects <i>which</i> of the caller's carts is meant, never <i>whose</i> cart is
+ * meant. A cart belonging to somebody else answers {@code 404}, not {@code 403}: a {@code 403}
+ * would confirm that the id exists, which is exactly the fact a stranger must not learn. Listing
+ * every cart in the shop crosses that boundary by design and therefore requires the staff role.
+ *
+ * <p><b>Bearer only:</b> {@code /api/**} is authenticated by an {@code Authorization: Bearer}
+ * header and never by a browser cookie, which is what makes its CSRF exemption sound (ADR-035).
  */
 @RestController
 @RequestMapping("/api/carts")
 public class ShoppingCartResource {
 
-  private final CreateCartUseCase createCartUseCase;
-  private final GetAllCartsUseCase getAllCartsUseCase;
-  private final GetCartByIdUseCase getCartByIdUseCase;
-  private final dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart
-          .GetOrCreateActiveCartUseCase
-      getOrCreateActiveCartUseCase;
-  private final AddItemToCartUseCase addItemToCartUseCase;
-  private final RemoveItemFromCartUseCase removeItemFromCartUseCase;
-  private final CheckoutCartUseCase checkoutCartUseCase;
+  private final CreateCartInputPort createCart;
+  private final GetAllCartsInputPort getAllCarts;
+  private final GetCartByIdInputPort getCartById;
+  private final GetOrCreateActiveCartInputPort getOrCreateActiveCart;
+  private final AddItemToCartInputPort addItemToCart;
+  private final RemoveItemFromCartInputPort removeItemFromCart;
+  private final CheckoutCartInputPort checkoutCart;
   private final ShoppingCartDtoConverter converter;
+  private final IdentityProvider identityProvider;
 
   public ShoppingCartResource(
-      final CreateCartUseCase createCartUseCase,
-      final GetAllCartsUseCase getAllCartsUseCase,
-      final GetCartByIdUseCase getCartByIdUseCase,
-      final dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart
-              .GetOrCreateActiveCartUseCase
-          getOrCreateActiveCartUseCase,
-      final AddItemToCartUseCase addItemToCartUseCase,
-      final RemoveItemFromCartUseCase removeItemFromCartUseCase,
-      final CheckoutCartUseCase checkoutCartUseCase,
-      final ShoppingCartDtoConverter converter) {
-    this.createCartUseCase = createCartUseCase;
-    this.getAllCartsUseCase = getAllCartsUseCase;
-    this.getCartByIdUseCase = getCartByIdUseCase;
-    this.getOrCreateActiveCartUseCase = getOrCreateActiveCartUseCase;
-    this.addItemToCartUseCase = addItemToCartUseCase;
-    this.removeItemFromCartUseCase = removeItemFromCartUseCase;
-    this.checkoutCartUseCase = checkoutCartUseCase;
+      final CreateCartInputPort createCart,
+      final GetAllCartsInputPort getAllCarts,
+      final GetCartByIdInputPort getCartById,
+      final GetOrCreateActiveCartInputPort getOrCreateActiveCart,
+      final AddItemToCartInputPort addItemToCart,
+      final RemoveItemFromCartInputPort removeItemFromCart,
+      final CheckoutCartInputPort checkoutCart,
+      final ShoppingCartDtoConverter converter,
+      final IdentityProvider identityProvider) {
+    this.createCart = createCart;
+    this.getAllCarts = getAllCarts;
+    this.getCartById = getCartById;
+    this.getOrCreateActiveCart = getOrCreateActiveCart;
+    this.addItemToCart = addItemToCart;
+    this.removeItemFromCart = removeItemFromCart;
+    this.checkoutCart = checkoutCart;
     this.converter = converter;
+    this.identityProvider = identityProvider;
   }
 
+  /** Creates a cart for the caller. The customer is the caller's identity, never a parameter. */
   @PostMapping
-  public ResponseEntity<ShoppingCartDto> createCart(@RequestParam final String customerId) {
-    final CreateCartResult output = createCartUseCase.execute(new CreateCartCommand(customerId));
+  public ResponseEntity<ShoppingCartDto> createCart() {
+    final CreateCartResult output = createCart.execute(new CreateCartCommand(currentCustomerId()));
 
     return ResponseEntity.status(HttpStatus.CREATED).body(converter.toDto(output));
   }
 
+  /**
+   * Every cart in the shop — the operator view, and the only route that leaves the caller's data.
+   */
   @GetMapping
   public ResponseEntity<ShoppingCartListDto> getAllCarts() {
-    final GetAllCartsResult output = getAllCartsUseCase.execute(new GetAllCartsQuery());
+    if (!identityProvider.getCurrentIdentity().hasRole(IdentityProvider.Identity.ROLE_STAFF)) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    final GetAllCartsResult output = getAllCarts.execute(new GetAllCartsQuery());
 
     return ResponseEntity.ok(converter.toListDto(output));
   }
 
   @GetMapping("/{cartId}")
   public ResponseEntity<ShoppingCartDto> getCart(@PathVariable final String cartId) {
-    final GetCartByIdResult result = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
-
-    if (!result.found()) {
-      return ResponseEntity.notFound().build();
-    }
-
-    return ResponseEntity.ok(converter.toDto(result.cart().orElseThrow()));
+    return ownCart(cartId)
+        .map(cart -> ResponseEntity.ok(converter.toDto(cart)))
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
+  /**
+   * The caller's active cart. The customer id in the path must name the caller; any other value is
+   * treated as a cart that does not exist for them.
+   */
   @GetMapping("/customer/{customerId}/active")
   public ResponseEntity<ShoppingCartDto> getOrCreateActiveCart(
       @PathVariable final String customerId) {
-    if (customerId == null || customerId.isBlank()) {
-      return ResponseEntity.badRequest().build();
+    if (!currentCustomerId().equals(customerId)) {
+      return ResponseEntity.notFound().build();
     }
 
     final var response =
-        getOrCreateActiveCartUseCase.execute(
-            new dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart
-                .GetOrCreateActiveCartCommand(customerId));
+        getOrCreateActiveCart.execute(new GetOrCreateActiveCartCommand(currentCustomerId()));
 
-    // Fetch full cart with enriched data
     final GetCartByIdResult result =
-        getCartByIdUseCase.execute(new GetCartByIdQuery(response.cartId()));
+        getCartById.execute(new GetCartByIdQuery(response.cartId(), currentCustomerId()));
     return ResponseEntity.ok(converter.toDto(result.cart().orElseThrow()));
   }
 
@@ -115,22 +131,21 @@ public class ShoppingCartResource {
   public ResponseEntity<ShoppingCartDto> addItemToCart(
       @PathVariable final String cartId, @Valid @RequestBody final AddToCartRequest request) {
 
+    if (ownCart(cartId).isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
     final AddItemToCartCommand input =
-        new AddItemToCartCommand(cartId, request.productId(), request.quantity());
+        new AddItemToCartCommand(
+            cartId, currentCustomerId(), request.productId(), request.quantity());
 
     try {
-      final AddItemToCartResult output = addItemToCartUseCase.execute(input);
+      final AddItemToCartResult output = addItemToCart.execute(input);
       return ResponseEntity.ok(converter.toDto(output));
     } catch (IllegalArgumentException ex) {
       final String msg = ex.getMessage() != null ? ex.getMessage() : "Invalid request";
-      if (msg.startsWith("Cart not found")) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-      }
       if (msg.startsWith("Product not found")) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-      }
-      if (msg.startsWith("Insufficient stock")) {
-        return ResponseEntity.badRequest().build();
       }
       return ResponseEntity.badRequest().build();
     }
@@ -140,27 +155,41 @@ public class ShoppingCartResource {
   public ResponseEntity<ShoppingCartDto> removeItemFromCart(
       @PathVariable final String cartId, @PathVariable final String productId) {
 
-    final RemoveItemFromCartCommand input = new RemoveItemFromCartCommand(cartId, productId);
-    final RemoveItemFromCartResult output = removeItemFromCartUseCase.execute(input);
+    if (ownCart(cartId).isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    final RemoveItemFromCartCommand input =
+        new RemoveItemFromCartCommand(cartId, currentCustomerId(), productId);
+    final RemoveItemFromCartResult output = removeItemFromCart.execute(input);
 
     return ResponseEntity.ok(converter.toDto(output));
   }
 
   @PostMapping("/{cartId}/checkout")
   public ResponseEntity<ShoppingCartDto> checkout(@PathVariable final String cartId) {
-    final CheckoutCartResult output = checkoutCartUseCase.execute(new CheckoutCartCommand(cartId));
+    if (ownCart(cartId).isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    final CheckoutCartResult output =
+        checkoutCart.execute(new CheckoutCartCommand(cartId, currentCustomerId()));
 
     return ResponseEntity.ok(converter.toDto(output));
   }
 
-  // Note: The following endpoint doesn't have a corresponding use case yet:
-  // - DeleteCartUseCase
-  // Temporarily commented out until use case is created:
-  /*
-  @DeleteMapping("/{cartId}")
-  public ResponseEntity<Void> deleteCart(@PathVariable final String cartId) {
-    // TODO: Implement DeleteCartUseCase
-    return ResponseEntity.noContent().build();
+  private String currentCustomerId() {
+    return identityProvider.getCurrentIdentity().userId().value();
   }
-  */
+
+  /**
+   * The cart, but only if it is the caller's — otherwise empty, and the caller is told it is not
+   * there.
+   */
+  private Optional<EnrichedCart> ownCart(final String cartId) {
+    return getCartById
+        .execute(new GetCartByIdQuery(cartId, currentCustomerId()))
+        .cart()
+        .filter(cart -> cart.customerId().value().equals(currentCustomerId()));
+  }
 }

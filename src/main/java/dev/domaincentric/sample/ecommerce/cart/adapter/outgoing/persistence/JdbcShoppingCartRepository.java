@@ -49,6 +49,18 @@ public class JdbcShoppingCartRepository implements ShoppingCartRepository {
   }
 
   @Override
+  public Optional<ShoppingCart> findByIdForCustomer(
+      final CartId cartId, final CustomerId customerId) {
+    final List<CartRow> rows =
+        jdbcTemplate.query(
+            "SELECT id, customer_id, status FROM carts WHERE id = ? AND customer_id = ?",
+            cartRowMapper(),
+            cartId.value(),
+            customerId.value());
+    return rows.stream().findFirst().map(this::toDomain);
+  }
+
+  @Override
   public List<ShoppingCart> findByCustomerId(final CustomerId customerId) {
     final List<CartRow> rows =
         jdbcTemplate.query(

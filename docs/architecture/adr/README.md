@@ -42,6 +42,7 @@ Architecture Decision Records capture important architectural decisions with con
 | [ADR-033](adr-033-adopt-dca-java-libraries.md) | Adopt the dca-java Libraries for Markers and Architecture Rules | ✅ Accepted |
 | [ADR-034](adr-034-transaction-boundary-and-remote-ports.md) | Transaction boundary — `@Transactional` for local use cases, `TransactionBoundary` when remote ports are involved | ✅ Accepted |
 | [ADR-035](adr-035-csrf-protection-and-bearer-only-api.md) | CSRF Protection for Web Forms, Bearer-Only Authentication for the API | ✅ Accepted |
+| [ADR-036](adr-036-api-authorization-at-the-adapter.md) | A guard goes where its inputs are — and `authenticated()` is not one | ✅ Accepted |
 
 ### Proposed 🟡
 

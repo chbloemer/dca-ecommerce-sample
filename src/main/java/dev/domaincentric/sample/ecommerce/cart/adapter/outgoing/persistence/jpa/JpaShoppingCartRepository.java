@@ -39,6 +39,13 @@ public class JpaShoppingCartRepository implements ShoppingCartRepository {
 
   @Override
   @Transactional(readOnly = true)
+  public Optional<ShoppingCart> findByIdForCustomer(
+      final CartId cartId, final CustomerId customerId) {
+    return findById(cartId).filter(cart -> cart.customerId().equals(customerId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<ShoppingCart> findByCustomerId(final CustomerId customerId) {
     return cartRepo.findByCustomerId(customerId.value()).stream().map(this::toDomain).toList();
   }

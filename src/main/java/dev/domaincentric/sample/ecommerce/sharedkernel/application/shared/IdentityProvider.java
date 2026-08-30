@@ -76,6 +76,13 @@ public interface IdentityProvider extends OutputPort {
     /** Default role for registered customers. */
     String ROLE_CUSTOMER = "CUSTOMER";
 
+    /**
+     * Operator role. It guards what a shopper must never reach — listing every customer's cart,
+     * creating a product — and no registration path hands it out: an account only gets it by being
+     * given it.
+     */
+    String ROLE_STAFF = "STAFF";
+
     /** The user's unique identifier (always present). */
     UserId userId();
 

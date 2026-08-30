@@ -1,14 +1,15 @@
 package dev.domaincentric.sample.ecommerce.product.adapter.incoming.api;
 
 import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductCommand;
+import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductResult;
-import dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductUseCase;
+import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsResult;
-import dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsUseCase;
+import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdInputPort;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdQuery;
 import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdResult;
-import dev.domaincentric.sample.ecommerce.product.application.getproductbyid.GetProductByIdUseCase;
+import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -19,39 +20,48 @@ import org.springframework.web.bind.annotation.*;
  * REST API Resource for Product operations.
  *
  * <p>This is a primary adapter (incoming) in Hexagonal Architecture that exposes product
- * functionality via REST API. It uses Clean Architecture use cases instead of directly accessing
- * domain services.
+ * functionality via REST API. It depends on use case interfaces (input ports) rather than the use
+ * case classes, following the Dependency Inversion Principle.
  *
- * <p><b>Clean Architecture:</b> This controller depends on use case interfaces (input ports) rather
- * than application services, following the Dependency Inversion Principle.
+ * <p><b>Authorization:</b> reading the catalog is public — it is the same assortment the shop pages
+ * show. Creating a product is an operator action and requires the staff role. The JWT filter gives
+ * <i>every</i> request an authentication, anonymous ones included, so {@code authenticated()} in
+ * the security configuration does not guard this; the adapter has to.
  *
- * <p><b>RESTful Design:</b> Follows REST best practices with proper HTTP methods and status codes.
+ * <p><b>Bearer only:</b> {@code /api/**} is authenticated by an {@code Authorization: Bearer}
+ * header and never by a browser cookie, which is what makes its CSRF exemption sound (ADR-035).
  */
 @RestController
 @RequestMapping("/api/products")
 public class ProductResource {
 
-  private final CreateProductUseCase createProductUseCase;
-  private final GetAllProductsUseCase getAllProductsUseCase;
-  private final GetProductByIdUseCase getProductByIdUseCase;
+  private final CreateProductInputPort createProduct;
+  private final GetAllProductsInputPort getAllProducts;
+  private final GetProductByIdInputPort getProductById;
   private final ProductDtoConverter converter;
+  private final IdentityProvider identityProvider;
 
   public ProductResource(
-      final CreateProductUseCase createProductUseCase,
-      final GetAllProductsUseCase getAllProductsUseCase,
-      final GetProductByIdUseCase getProductByIdUseCase,
-      final ProductDtoConverter converter) {
-    this.createProductUseCase = createProductUseCase;
-    this.getAllProductsUseCase = getAllProductsUseCase;
-    this.getProductByIdUseCase = getProductByIdUseCase;
+      final CreateProductInputPort createProduct,
+      final GetAllProductsInputPort getAllProducts,
+      final GetProductByIdInputPort getProductById,
+      final ProductDtoConverter converter,
+      final IdentityProvider identityProvider) {
+    this.createProduct = createProduct;
+    this.getAllProducts = getAllProducts;
+    this.getProductById = getProductById;
     this.converter = converter;
+    this.identityProvider = identityProvider;
   }
 
   @PostMapping
   public ResponseEntity<ProductDto> createProduct(
       @Valid @RequestBody final CreateProductRequest request) {
 
-    // Convert REST request to use case input
+    if (!identityProvider.getCurrentIdentity().hasRole(IdentityProvider.Identity.ROLE_STAFF)) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
     final CreateProductCommand input =
         new CreateProductCommand(
             request.sku(),
@@ -63,16 +73,18 @@ public class ProductResource {
             request.category(),
             request.stock());
 
-    // Execute use case
-    final CreateProductResult output = createProductUseCase.execute(input);
-
-    // Convert output to DTO
-    return ResponseEntity.status(HttpStatus.CREATED).body(converter.toDto(output));
+    try {
+      final CreateProductResult output = createProduct.execute(input);
+      return ResponseEntity.status(HttpStatus.CREATED).body(converter.toDto(output));
+    } catch (final IllegalArgumentException | IllegalStateException e) {
+      // A malformed SKU or a duplicate one is the caller's mistake, not the server's.
+      return ResponseEntity.badRequest().build();
+    }
   }
 
   @GetMapping
   public ResponseEntity<List<ProductDto>> getAllProducts() {
-    final GetAllProductsResult output = getAllProductsUseCase.execute(new GetAllProductsQuery());
+    final GetAllProductsResult output = getAllProducts.execute(new GetAllProductsQuery());
 
     final List<ProductDto> products = output.products().stream().map(converter::toDto).toList();
 
@@ -81,7 +93,7 @@ public class ProductResource {
 
   @GetMapping("/{id}")
   public ResponseEntity<ProductDto> getProductById(@PathVariable final String id) {
-    final GetProductByIdResult output = getProductByIdUseCase.execute(new GetProductByIdQuery(id));
+    final GetProductByIdResult output = getProductById.execute(new GetProductByIdQuery(id));
 
     if (!output.found()) {
       return ResponseEntity.notFound().build();
@@ -89,25 +101,4 @@ public class ProductResource {
 
     return ResponseEntity.ok(converter.toDto(output));
   }
-
-  // Note: The following endpoints don't have corresponding use cases yet in the current
-  // implementation
-  // They would need to be added if needed:
-  // - GetProductBySkuUseCase
-  // - DeleteProductUseCase
-
-  // Temporarily commented out until use cases are created:
-  /*
-  @GetMapping("/sku/{sku}")
-  public ResponseEntity<ProductDto> getProductBySku(@PathVariable final String sku) {
-    // TODO: Implement GetProductBySkuUseCase
-    return ResponseEntity.notFound().build();
-  }
-
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteProduct(@PathVariable final String id) {
-    // TODO: Implement DeleteProductUseCase
-    return ResponseEntity.noContent().build();
-  }
-  */
 }

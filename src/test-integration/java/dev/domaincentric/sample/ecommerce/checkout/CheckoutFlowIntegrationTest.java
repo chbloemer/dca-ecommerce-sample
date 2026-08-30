@@ -96,10 +96,11 @@ class CheckoutFlowIntegrationTest {
     String productId = getFirstProductId();
 
     // Add a product
-    addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, productId, 2));
+    addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, customerId, productId, 2));
 
     // Verify cart is ACTIVE with items
-    GetCartByIdResult cartBefore = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+    GetCartByIdResult cartBefore =
+        getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
     assertTrue(cartBefore.found(), "Cart should be found");
     assertEquals(
         "ACTIVE",
@@ -109,14 +110,15 @@ class CheckoutFlowIntegrationTest {
 
     // Step 2: Start checkout (cart remains ACTIVE - user can still modify it)
     StartCheckoutResult startResponse =
-        startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+        startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
     String sessionId = startResponse.sessionId();
     assertNotNull(sessionId, "Checkout session should be created");
     assertEquals("BUYER_INFO", startResponse.currentStep(), "Should start at BUYER_INFO step");
     assertEquals("ACTIVE", startResponse.status(), "Session should be ACTIVE");
 
     // Verify cart remains ACTIVE during checkout (can still be modified)
-    GetCartByIdResult cartAfterStart = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+    GetCartByIdResult cartAfterStart =
+        getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
     assertEquals(
         "ACTIVE",
         cartAfterStart.cart().orElseThrow().status().name(),
@@ -186,7 +188,7 @@ class CheckoutFlowIntegrationTest {
     // Try to start checkout with empty cart - should fail
     assertThrows(
         IllegalArgumentException.class,
-        () -> startCheckoutInputPort.execute(new StartCheckoutCommand(cartId)),
+        () -> startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId)),
         "Should reject checkout of empty cart");
   }
 
@@ -203,21 +205,21 @@ class CheckoutFlowIntegrationTest {
     String productId = getFirstProductId();
 
     // Add a product
-    addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, productId, 1));
+    addItemToCartUseCase.execute(new AddItemToCartCommand(cartId, customerId, productId, 1));
 
     // Start first checkout
     StartCheckoutResult firstSession =
-        startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+        startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
     assertNotNull(firstSession.sessionId(), "First checkout session should be created");
 
     // Cart remains ACTIVE, so starting another checkout is allowed
     // (user abandoned previous checkout and started fresh)
     StartCheckoutResult secondSession =
-        startCheckoutInputPort.execute(new StartCheckoutCommand(cartId));
+        startCheckoutInputPort.execute(new StartCheckoutCommand(cartId, customerId));
     assertNotNull(secondSession.sessionId(), "Second checkout session should be created");
 
     // Verify cart is still ACTIVE
-    GetCartByIdResult cart = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId));
+    GetCartByIdResult cart = getCartByIdUseCase.execute(new GetCartByIdQuery(cartId, customerId));
     assertEquals("ACTIVE", cart.cart().orElseThrow().status().name(), "Cart should remain ACTIVE");
   }
 }

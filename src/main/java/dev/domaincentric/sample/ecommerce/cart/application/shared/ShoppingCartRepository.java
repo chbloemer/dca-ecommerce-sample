@@ -40,6 +40,19 @@ public interface ShoppingCartRepository extends Repository<ShoppingCart, CartId>
    * @param customerId the customer ID
    * @return the active cart if found, empty otherwise
    */
+  /**
+   * Finds one customer's cart by ID — empty when it does not exist <em>or</em> is not theirs.
+   *
+   * <p>Every use case that acts on a cart a caller named reaches for this rather than {@code
+   * findById}: the two cases are indistinguishable on purpose, and a persistence adapter expresses
+   * it as one predicate. {@code findById} stays for the system paths that act on nobody's behalf.
+   *
+   * @param cartId the cart ID
+   * @param customerId the customer the caller is acting as
+   * @return the cart if it exists and belongs to that customer
+   */
+  Optional<ShoppingCart> findByIdForCustomer(CartId cartId, CustomerId customerId);
+
   Optional<ShoppingCart> findActiveCartByCustomerId(CustomerId customerId);
 
   /**

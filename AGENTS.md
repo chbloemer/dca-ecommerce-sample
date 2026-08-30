@@ -266,6 +266,32 @@ dev.domaincentric.sample.ecommerce
     └── security/             # Security infrastructure
 ```
 
+### API and Authorization
+
+`/api/**` and `/mcp/**` are authenticated by an `Authorization: Bearer` header and by nothing else: no cookie
+reaches them and none is issued, which is the only reason they are exempt from CSRF (ADR-035). Changing the
+exemption and the cookie-free treatment apart is the mistake to watch for in review.
+
+The filter chain says who *is* here, never what they may do: the JWT filter gives every request an
+authentication, so `anyRequest().authenticated()` is satisfied by an anonymous visitor as well. **A guard goes
+where its inputs are** (ADR-036) — the discriminator is whether the check needs the aggregate, not whether it
+feels "business" or "technical":
+
+- **Claims only** → the incoming adapter. `POST /api/products` and `GET /api/carts` require
+  `IdentityProvider.Identity#hasRole(ROLE_STAFF)`. That is a property of the exposure: the same use case is
+  legitimate for a console or batch job with no HTTP identity.
+- **Ownership of a resource** → the use case, always, because no adapter may be the only thing standing between a
+  caller and a stranger's data. The caller is part of the command (`GetCartByIdQuery(cartId, customerId)`,
+  `CheckoutCartCommand(cartId, customerId)`, `StartCheckoutCommand(cartId, customerId)`) and the use case asks a
+  scoped question — `ShoppingCartRepository#findByIdForCustomer`, not `findById` plus an `if`. The Cart's Open
+  Host Service demands the customer for the same reason, so Checkout inherits the rule. `findById` stays for the
+  system paths that act on nobody's behalf (`CompleteCart` from an integration event).
+- **The refusal is rendered at the edge:** a cart that is not the caller's answers `404`, not `403` — a `403`
+  would confirm the id exists.
+
+Catalog reads are public. Resources and MCP tool providers depend on `*InputPort` interfaces, never on the
+`*UseCase` classes.
+
 ### Dependency Rules
 
 1. **Domain** → No dependencies (framework-independent)
@@ -282,7 +308,7 @@ dev.domaincentric.sample.ecommerce
 
 Location: `src/test-architecture/java/dev/domaincentric/sample/ecommerce/`
 
-The rules themselves live in the library `dev.domaincentric:dca-archunit` (109 rules in 10 sets, ids
+The rules themselves live in the library `dev.domaincentric:dca-archunit` (110 rules in 10 sets, ids
 `DCA-<SET>-<NNN>`: LAY, ONI, HEX, TAC, STR, MAP, ADV, USE, NAM, CYC). This project only *runs* them:
 
 - `ArchitectureRulesTest` — extends `DcaArchitectureTest`, one dynamic test per rule, grouped into a

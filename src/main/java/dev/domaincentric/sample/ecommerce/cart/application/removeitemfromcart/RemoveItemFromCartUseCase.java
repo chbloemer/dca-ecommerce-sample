@@ -3,6 +3,7 @@ package dev.domaincentric.sample.ecommerce.cart.application.removeitemfromcart;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
@@ -47,7 +48,7 @@ public class RemoveItemFromCartUseCase implements RemoveItemFromCartInputPort {
     // Retrieve cart
     final ShoppingCart cart =
         shoppingCartRepository
-            .findById(cartId)
+            .findByIdForCustomer(cartId, CustomerId.of(input.customerId()))
             .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + input.cartId()));
 
     // Remove item from cart (business logic in aggregate)

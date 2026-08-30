@@ -2,6 +2,7 @@ package dev.domaincentric.sample.ecommerce.checkout.application.shared;
 
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.OutputPort;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CartId;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CustomerId;
 import java.util.Optional;
 
 /**
@@ -19,15 +20,11 @@ public interface CartDataPort extends OutputPort {
   /**
    * Finds cart data by cart ID.
    *
+   * <p>Empty when the cart does not exist <em>or</em> is not that customer's.
+   *
    * @param cartId the cart identifier
+   * @param customerId the customer this context is acting for
    * @return the cart data if found, empty otherwise
    */
-  Optional<CartData> findById(CartId cartId);
-
-  /**
-   * Marks a cart as checked out after a successful checkout.
-   *
-   * @param cartId the cart identifier to mark as checked out
-   */
-  void markAsCheckedOut(CartId cartId);
+  Optional<CartData> findById(CartId cartId, CustomerId customerId);
 }
