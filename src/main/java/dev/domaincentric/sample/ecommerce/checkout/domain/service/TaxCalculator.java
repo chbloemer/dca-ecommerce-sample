@@ -1,4 +1,4 @@
-package dev.domaincentric.sample.ecommerce.cart.domain.service;
+package dev.domaincentric.sample.ecommerce.checkout.domain.service;
 
 import dev.domaincentric.dca.buildingblocks.ddd.tactical.DomainService;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
@@ -6,17 +6,16 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * Domain Service for the value-added tax contained in a cart's amounts.
+ * Domain Service for the value-added tax contained in a checkout's totals.
  *
- * <p>Article prices are gross prices: what the customer sees is what the customer pays. The tax is
- * therefore not added on top, it is <em>extracted</em> from the amount — the cart shows how much of
- * the subtotal is VAT, and the subtotal itself does not change.
+ * <p>Line-item prices and shipping costs are gross amounts, so the tax is extracted rather than
+ * added: the grand total stays subtotal plus shipping, and the tax line tells the customer how much
+ * of it goes to the tax authority.
  *
- * <p>The Checkout context applies the same rule to its own totals. Both contexts own their copy of
- * it on purpose: the rule is small, and a shared implementation would tie the two contexts together
- * for the sake of one number.
+ * <p>The Cart context owns the same rule for its own page. Duplicating a rule this small keeps the
+ * two contexts independent — neither has to change when the other's presentation does.
  */
-public final class CartTotalCalculator implements DomainService {
+public final class TaxCalculator implements DomainService {
 
   private static final BigDecimal DEFAULT_TAX_RATE = BigDecimal.valueOf(0.19); // 19% VAT
 
@@ -49,15 +48,5 @@ public final class CartTotalCalculator implements DomainService {
    */
   public Money containedTax(final Money grossAmount) {
     return containedTax(grossAmount, DEFAULT_TAX_RATE);
-  }
-
-  /**
-   * Returns the net amount of a gross amount at the default rate.
-   *
-   * @param grossAmount the amount including tax
-   * @return the amount without the contained tax
-   */
-  public Money netAmount(final Money grossAmount) {
-    return grossAmount.subtract(containedTax(grossAmount));
   }
 }

@@ -2,6 +2,7 @@ package dev.domaincentric.sample.ecommerce.cart.adapter.incoming.web;
 
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCartItem;
+import dev.domaincentric.sample.ecommerce.cart.domain.service.CartTotalCalculator;
 import java.math.BigDecimal;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -23,7 +24,8 @@ public record CartPageViewModel(
     boolean canCheckout) {
 
   /** Creates a CartPageViewModel from an EnrichedCart. */
-  public static CartPageViewModel fromEnrichedCart(final EnrichedCart cart) {
+  public static CartPageViewModel fromEnrichedCart(
+      final EnrichedCart cart, final CartTotalCalculator totalCalculator) {
     final var lineItems = cart.items().stream().map(LineItemViewModel::fromEnrichedItem).toList();
 
     final int totalQuantity = cart.items().stream().mapToInt(item -> item.quantity().value()).sum();
@@ -32,7 +34,7 @@ public record CartPageViewModel(
         cart.cartId().value(),
         cart.status().name(),
         lineItems,
-        TotalsViewModel.fromEnrichedCart(cart),
+        TotalsViewModel.fromEnrichedCart(cart, totalCalculator),
         cart.items().size(),
         totalQuantity,
         cart.hasAnyPriceChanges(),
@@ -105,14 +107,20 @@ public record CartPageViewModel(
       BigDecimal currentSubtotal,
       BigDecimal originalSubtotal,
       BigDecimal totalDifference,
+      BigDecimal containedTax,
       String currencyCode) {
-    static TotalsViewModel fromEnrichedCart(final EnrichedCart cart) {
+    static TotalsViewModel fromEnrichedCart(
+        final EnrichedCart cart, final CartTotalCalculator totalCalculator) {
       final var current = cart.calculateCurrentSubtotal();
       final var original = cart.calculateOriginalSubtotal();
       final var diff = cart.totalPriceDifference();
 
       return new TotalsViewModel(
-          current.amount(), original.amount(), diff.amount(), current.currency().getCurrencyCode());
+          current.amount(),
+          original.amount(),
+          diff.amount(),
+          totalCalculator.containedTax(current).amount(),
+          current.currency().getCurrencyCode());
     }
   }
 }

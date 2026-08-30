@@ -10,6 +10,7 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItem;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItemId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionId;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
 
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final CartDataPort cartDataPort;
+  private final TaxCalculator taxCalculator;
   private final ProductInfoPort productInfoPort;
   private final DomainEventPublisher eventPublisher;
   private final TransactionBoundary transactionBoundary;
@@ -55,11 +57,13 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
   public SyncCheckoutWithCartUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final CartDataPort cartDataPort,
+      final TaxCalculator taxCalculator,
       final ProductInfoPort productInfoPort,
       final DomainEventPublisher eventPublisher,
       final TransactionBoundary transactionBoundary) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.cartDataPort = cartDataPort;
+    this.taxCalculator = taxCalculator;
     this.productInfoPort = productInfoPort;
     this.eventPublisher = eventPublisher;
     this.transactionBoundary = transactionBoundary;
@@ -129,7 +133,7 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
                           () ->
                               new IllegalStateException(
                                   "Checkout session vanished: " + sessionId.value()));
-              session.syncLineItems(newLineItems, total);
+              session.syncLineItems(newLineItems, total, taxCalculator);
               checkoutSessionRepository.save(session);
               eventPublisher.publishAndClearEvents(session);
               return SyncCheckoutWithCartResult.synced(

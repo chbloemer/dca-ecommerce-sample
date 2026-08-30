@@ -13,6 +13,7 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCartFact
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItem;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItemId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Service;
 public class StartCheckoutUseCase implements StartCheckoutInputPort {
 
   private final CartDataPort cartDataPort;
+  private final TaxCalculator taxCalculator;
   private final CheckoutCartFactory checkoutCartFactory;
   private final CheckoutArticleDataPort checkoutArticleDataPort;
   private final CheckoutSessionRepository checkoutSessionRepository;
@@ -59,12 +61,14 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
 
   public StartCheckoutUseCase(
       final CartDataPort cartDataPort,
+      final TaxCalculator taxCalculator,
       final CheckoutCartFactory checkoutCartFactory,
       final CheckoutArticleDataPort checkoutArticleDataPort,
       final CheckoutSessionRepository checkoutSessionRepository,
       final DomainEventPublisher domainEventPublisher,
       final TransactionBoundary transactionBoundary) {
     this.cartDataPort = cartDataPort;
+    this.taxCalculator = taxCalculator;
     this.checkoutCartFactory = checkoutCartFactory;
     this.checkoutArticleDataPort = checkoutArticleDataPort;
     this.checkoutSessionRepository = checkoutSessionRepository;
@@ -123,7 +127,8 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
     return transactionBoundary.inTransaction(
         () -> {
           final CheckoutSession session =
-              CheckoutSession.start(cart.cartId(), cart.customerId(), lineItems, total);
+              CheckoutSession.start(
+                  cart.cartId(), cart.customerId(), lineItems, total, taxCalculator);
           checkoutSessionRepository.save(session);
           domainEventPublisher.publishAndClearEvents(session);
           return mapToResult(session);

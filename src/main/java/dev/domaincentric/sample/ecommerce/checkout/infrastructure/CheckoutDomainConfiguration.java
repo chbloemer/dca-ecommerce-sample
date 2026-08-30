@@ -2,6 +2,7 @@ package dev.domaincentric.sample.ecommerce.checkout.infrastructure;
 
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCartFactory;
 import dev.domaincentric.sample.ecommerce.checkout.domain.service.CheckoutStepValidator;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,5 +23,10 @@ public class CheckoutDomainConfiguration {
   @Bean
   public CheckoutCartFactory checkoutCartFactory() {
     return new CheckoutCartFactory();
+  }
+
+  @Bean
+  public TaxCalculator taxCalculator() {
+    return new TaxCalculator();
   }
 }

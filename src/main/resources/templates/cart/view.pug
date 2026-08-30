@@ -55,6 +55,9 @@ block content
         .cart__total-row
           span Subtotal
           span #{shoppingCart.totals().currentSubtotal()} #{shoppingCart.totals().currencyCode()}
+        .cart__total-row.cart__total-row--note(data-test="cart-tax-row")
+          span incl. VAT
+          span #{shoppingCart.totals().containedTax()} #{shoppingCart.totals().currencyCode()}
 
       .cart__actions
         if shoppingCart.status() === 'ACTIVE'

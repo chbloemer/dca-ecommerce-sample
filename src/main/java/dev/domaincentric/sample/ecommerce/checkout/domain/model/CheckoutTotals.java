@@ -7,7 +7,10 @@ import java.util.Currency;
 /**
  * Value Object representing the calculated totals for a checkout session.
  *
- * <p>Contains subtotal, shipping, tax, and grand total amounts.
+ * <p>Contains subtotal, shipping, the contained tax and the grand total. Prices are gross prices:
+ * {@code tax} is the share of {@code subtotal} and {@code shipping} that is value-added tax, not an
+ * additional charge — which is why {@code total} is subtotal plus shipping and does not include it
+ * a second time.
  */
 public record CheckoutTotals(Money subtotal, Money shipping, Money tax, Money total)
     implements Value {
@@ -34,7 +37,7 @@ public record CheckoutTotals(Money subtotal, Money shipping, Money tax, Money to
 
   public static CheckoutTotals calculate(
       final Money subtotal, final Money shipping, final Money tax) {
-    var total = subtotal.add(shipping).add(tax);
+    var total = subtotal.add(shipping);
     return new CheckoutTotals(subtotal, shipping, tax, total);
   }
 

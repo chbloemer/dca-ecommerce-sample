@@ -10,6 +10,7 @@ import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart
 import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartResult;
 import dev.domaincentric.sample.ecommerce.cart.application.getorcreateactivecart.GetOrCreateActiveCartUseCase;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
+import dev.domaincentric.sample.ecommerce.cart.domain.service.CartTotalCalculator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,16 +44,19 @@ public class CartPageController {
   private final GetOrCreateActiveCartUseCase getOrCreateActiveCartUseCase;
   private final AddItemToCartUseCase addItemToCartUseCase;
   private final IdentityProvider identityProvider;
+  private final CartTotalCalculator cartTotalCalculator;
 
   public CartPageController(
       final GetCartByIdUseCase getCartByIdUseCase,
       final GetOrCreateActiveCartUseCase getOrCreateActiveCartUseCase,
       final AddItemToCartUseCase addItemToCartUseCase,
-      final IdentityProvider identityProvider) {
+      final IdentityProvider identityProvider,
+      final CartTotalCalculator cartTotalCalculator) {
     this.getCartByIdUseCase = getCartByIdUseCase;
     this.getOrCreateActiveCartUseCase = getOrCreateActiveCartUseCase;
     this.addItemToCartUseCase = addItemToCartUseCase;
     this.identityProvider = identityProvider;
+    this.cartTotalCalculator = cartTotalCalculator;
   }
 
   /**
@@ -83,7 +87,7 @@ public class CartPageController {
 
     // Convert to page-specific ViewModel
     final CartPageViewModel viewModel =
-        CartPageViewModel.fromEnrichedCart(result.cart().orElseThrow());
+        CartPageViewModel.fromEnrichedCart(result.cart().orElseThrow(), cartTotalCalculator);
 
     model.addAttribute("shoppingCart", viewModel);
     model.addAttribute("title", "Shopping Cart");

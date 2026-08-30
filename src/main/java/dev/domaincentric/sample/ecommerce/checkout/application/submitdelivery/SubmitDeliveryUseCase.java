@@ -3,6 +3,7 @@ package dev.domaincentric.sample.ecommerce.checkout.application.submitdelivery;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.DeliveryAddress;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.ShippingOption;
@@ -31,12 +32,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubmitDeliveryUseCase implements SubmitDeliveryInputPort {
 
   private final CheckoutSessionRepository checkoutSessionRepository;
+  private final TaxCalculator taxCalculator;
   private final DomainEventPublisher eventPublisher;
 
   public SubmitDeliveryUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
+      final TaxCalculator taxCalculator,
       final DomainEventPublisher eventPublisher) {
     this.checkoutSessionRepository = checkoutSessionRepository;
+    this.taxCalculator = taxCalculator;
     this.eventPublisher = eventPublisher;
   }
 
@@ -71,7 +75,7 @@ public class SubmitDeliveryUseCase implements SubmitDeliveryInputPort {
             shippingCost);
 
     // Submit delivery (domain validates session state and step)
-    session.submitDelivery(address, shippingOption);
+    session.submitDelivery(address, shippingOption, taxCalculator);
 
     // Save session
     checkoutSessionRepository.save(session);
