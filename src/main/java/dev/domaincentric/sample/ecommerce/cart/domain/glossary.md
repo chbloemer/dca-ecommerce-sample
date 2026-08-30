@@ -293,15 +293,6 @@ communication (opt-in).
 functionally in the Cart context at all, or is this a cross-context query to
 Account/Customer?
 
-### ComposedCartSpecification
-
-**Definition:** Legacy wrapper for composed specifications.
-
-**Type:** Specification (Legacy)
-
-**Notes:** According to the code comment, no longer needed. Candidate for
-removal — clarify with the domain expert/team.
-
 ## Factories
 
 ### EnrichedCartFactory

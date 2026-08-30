@@ -196,7 +196,6 @@ src/main/java/dev/domaincentric/sample/ecommerce/
 │   │   ├── specification/                # Cart specifications (Visitor pattern)
 │   │   │   ├── CartSpecification.java    # Base specification interface
 │   │   │   ├── CartSpecificationVisitor.java  # Visitor for database-agnostic filtering
-│   │   │   ├── ComposedCartSpecification.java
 │   │   │   ├── ActiveCart.java
 │   │   │   ├── HasMinTotal.java
 │   │   │   ├── HasAnyAvailableItem.java

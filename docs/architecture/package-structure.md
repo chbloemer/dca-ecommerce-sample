@@ -112,7 +112,6 @@ dev.domaincentric.sample.ecommerce
 │   │   │   └── EnrichedCartFactory
 │   │   ├── specification/          # Cart Specifications (Visitor pattern)
 │   │   │   ├── CartSpecification, CartSpecificationVisitor
-│   │   │   ├── ComposedCartSpecification
 │   │   │   ├── ActiveCart, HasMinTotal
 │   │   │   ├── HasAnyAvailableItem, LastUpdatedBefore
 │   │   │   └── CustomerAllowsMarketing

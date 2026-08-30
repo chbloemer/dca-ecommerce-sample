@@ -8,7 +8,6 @@ import dev.domaincentric.sample.ecommerce.cart.domain.model.CustomerId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.Quantity;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.cart.domain.specification.ActiveCart;
-import dev.domaincentric.sample.ecommerce.cart.domain.specification.ComposedCartSpecification;
 import dev.domaincentric.sample.ecommerce.cart.domain.specification.HasMinTotal;
 import dev.domaincentric.sample.ecommerce.infrastructure.EcommerceSampleApplication;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
@@ -64,8 +63,7 @@ class ShoppingCartRepositoryJpaIntegrationTest {
     shoppingCartRepository.save(big);
 
     // when: compose spec and query
-    var composed = new ActiveCart().and(new HasMinTotal(Money.euro(50.00)));
-    var spec = new ComposedCartSpecification(composed);
+    var spec = new ActiveCart().and(new HasMinTotal(Money.euro(50.00)));
 
     PageResult<ShoppingCart> page = shoppingCartRepository.findBy(spec, PagingRequest.of(0, 10));
 
