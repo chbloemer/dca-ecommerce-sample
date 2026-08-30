@@ -33,9 +33,7 @@ public final class CartTotalCalculator implements DomainService {
     }
 
     final BigDecimal net =
-        grossAmount
-            .amount()
-            .divide(BigDecimal.ONE.add(taxRate), 10, RoundingMode.HALF_UP);
+        grossAmount.amount().divide(BigDecimal.ONE.add(taxRate), 10, RoundingMode.HALF_UP);
     final BigDecimal tax = grossAmount.amount().subtract(net);
 
     return Money.of(tax.setScale(2, RoundingMode.HALF_UP), grossAmount.currency());

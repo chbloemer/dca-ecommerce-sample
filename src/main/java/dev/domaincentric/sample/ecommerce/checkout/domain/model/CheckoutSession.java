@@ -7,10 +7,10 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.event.CheckoutComplete
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.CheckoutConfirmed;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.CheckoutExpired;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.CheckoutSessionStarted;
-import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.DeliverySubmitted;
 import dev.domaincentric.sample.ecommerce.checkout.domain.event.PaymentSubmitted;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutValidationResult.ValidationError;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.TaxCalculator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import java.util.ArrayList;
 import java.util.Collections;
