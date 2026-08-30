@@ -7,6 +7,8 @@ import dev.domaincentric.sample.ecommerce.cart.application.mergecarts.CartMergeS
 import dev.domaincentric.sample.ecommerce.cart.application.mergecarts.MergeCartsCommand;
 import dev.domaincentric.sample.ecommerce.cart.application.mergecarts.MergeCartsInputPort;
 import dev.domaincentric.sample.ecommerce.cart.application.mergecarts.MergeCartsResult;
+import dev.domaincentric.sample.ecommerce.cart.application.recovercart.RecoverCartOnLoginCommand;
+import dev.domaincentric.sample.ecommerce.cart.application.recovercart.RecoverCartOnLoginInputPort;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,14 +36,17 @@ public class CartMergePageController {
 
   private final GetCartMergeOptionsInputPort getCartMergeOptionsUseCase;
   private final MergeCartsInputPort mergeCartsUseCase;
+  private final RecoverCartOnLoginInputPort recoverCartOnLoginUseCase;
   private final IdentityProvider identityProvider;
 
   public CartMergePageController(
       final GetCartMergeOptionsInputPort getCartMergeOptionsUseCase,
       final MergeCartsInputPort mergeCartsUseCase,
+      final RecoverCartOnLoginInputPort recoverCartOnLoginUseCase,
       final IdentityProvider identityProvider) {
     this.getCartMergeOptionsUseCase = getCartMergeOptionsUseCase;
     this.mergeCartsUseCase = mergeCartsUseCase;
+    this.recoverCartOnLoginUseCase = recoverCartOnLoginUseCase;
     this.identityProvider = identityProvider;
   }
 
@@ -73,7 +78,14 @@ public class CartMergePageController {
     final GetCartMergeOptionsResult options = getCartMergeOptionsUseCase.execute(query);
 
     if (!options.mergeRequired()) {
-      // No merge needed - redirect with welcome message
+      // Nothing to decide does not mean nothing to do: when only the anonymous cart holds items,
+      // they still
+      // have to follow the visitor into their account, or logging in would silently empty the cart.
+      // The use
+      // case is idempotent, so the other cases pass through it untouched.
+      recoverCartOnLoginUseCase.execute(
+          new RecoverCartOnLoginCommand(anonymousUserId, registeredUserId));
+
       redirectAttributes.addFlashAttribute("message", "Welcome back!");
 
       if (returnUrl != null && !returnUrl.isBlank()) {
