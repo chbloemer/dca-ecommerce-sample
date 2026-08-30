@@ -20,11 +20,10 @@ import org.springframework.stereotype.Service;
  * <p>This use case orchestrates adding an item to the cart by:
  *
  * <ol>
- *   <li>Retrieving the cart and article data
- *   <li>Validating business rules (product existence, stock availability)
- *   <li>Adding the item to cart (business logic in aggregate)
- *   <li>Persisting the updated cart
- *   <li>Publishing domain events
+ *   <li>Retrieving the article data and validating business rules (product existence, stock
+ *       availability) - outside the transaction, because the port may reach another context
+ *   <li>Inside one short {@link UnitOfWork}: loading the cart, adding the item (business logic in
+ *       aggregate), persisting the cart and publishing its domain events
  * </ol>
  *
  * <p><b>Hexagonal Architecture:</b> This class implements the {@link AddItemToCartInputPort}
