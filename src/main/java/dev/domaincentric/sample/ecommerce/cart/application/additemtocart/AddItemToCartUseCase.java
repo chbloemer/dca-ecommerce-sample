@@ -1,6 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.application.additemtocart;
 
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ArticleDataPort;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
@@ -12,7 +13,6 @@ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Price;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for adding an item to a shopping cart.
@@ -39,20 +39,22 @@ import org.springframework.transaction.annotation.Transactional;
  * </ul>
  */
 @Service
-@Transactional
 public class AddItemToCartUseCase implements AddItemToCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
   private final ArticleDataPort articleDataPort;
   private final DomainEventPublisher eventPublisher;
+  private final UnitOfWork unitOfWork;
 
   public AddItemToCartUseCase(
       final ShoppingCartRepository shoppingCartRepository,
       final ArticleDataPort articleDataPort,
-      final DomainEventPublisher eventPublisher) {
+      final DomainEventPublisher eventPublisher,
+      final UnitOfWork unitOfWork) {
     this.shoppingCartRepository = shoppingCartRepository;
     this.articleDataPort = articleDataPort;
     this.eventPublisher = eventPublisher;
+    this.unitOfWork = unitOfWork;
   }
 
   @Override
@@ -61,36 +63,33 @@ public class AddItemToCartUseCase implements AddItemToCartInputPort {
     final ProductId productId = ProductId.of(input.productId());
     final Quantity quantity = new Quantity(input.quantity());
 
-    // Retrieve cart
-    final ShoppingCart cart =
-        shoppingCartRepository
-            .findById(cartId)
-            .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + input.cartId()));
-
-    // Retrieve article data through output port (includes product existence, pricing, and stock)
+    // Remote-capable read (Product Catalog via ACL) - outside the transaction
     final CartArticle cartArticle =
         articleDataPort
             .getArticleData(productId)
             .orElseThrow(
                 () -> new IllegalArgumentException("Product not found: " + input.productId()));
-
-    // Business rule: Check if product has sufficient stock using CartArticle domain method
     if (!cartArticle.hasStockFor(quantity.value())) {
       throw new IllegalArgumentException("Insufficient stock for product: " + input.productId());
     }
-
     final Price priceAtAddition = Price.of(cartArticle.currentPrice());
 
-    // Add item to cart (business logic in aggregate)
-    cart.addItem(productId, quantity, priceAtAddition);
+    // Short transaction: load, mutate, save, publish
+    return unitOfWork.run(
+        () -> {
+          final ShoppingCart cart =
+              shoppingCartRepository
+                  .findById(cartId)
+                  .orElseThrow(
+                      () -> new IllegalArgumentException("Cart not found: " + input.cartId()));
+          cart.addItem(productId, quantity, priceAtAddition);
+          shoppingCartRepository.save(cart);
+          eventPublisher.publishAndClearEvents(cart);
+          return toResult(cart);
+        });
+  }
 
-    // Persist
-    shoppingCartRepository.save(cart);
-
-    // Publish domain events
-    eventPublisher.publishAndClearEvents(cart);
-
-    // Map to output
+  private static AddItemToCartResult toResult(final ShoppingCart cart) {
     final List<AddItemToCartResult.CartItemSummary> items =
         cart.items().stream()
             .map(
@@ -102,9 +101,7 @@ public class AddItemToCartUseCase implements AddItemToCartInputPort {
                         item.priceAtAddition().value().amount(),
                         item.priceAtAddition().value().currency().getCurrencyCode()))
             .toList();
-
     final Money total = cart.calculateTotal();
-
     return new AddItemToCartResult(
         cart.id().value(),
         cart.customerId().value(),

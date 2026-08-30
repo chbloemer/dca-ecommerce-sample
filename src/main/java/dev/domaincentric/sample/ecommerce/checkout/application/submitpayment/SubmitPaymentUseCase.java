@@ -1,6 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.submitpayment;
 
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.PaymentProvider;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.PaymentProviderRegistry;
@@ -9,7 +10,6 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionI
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.PaymentProviderId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.PaymentSelection;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for submitting payment information during checkout.
@@ -28,34 +28,30 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional
 public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
 
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final PaymentProviderRegistry paymentProviderRegistry;
   private final DomainEventPublisher eventPublisher;
+  private final UnitOfWork unitOfWork;
 
   public SubmitPaymentUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final PaymentProviderRegistry paymentProviderRegistry,
-      final DomainEventPublisher eventPublisher) {
+      final DomainEventPublisher eventPublisher,
+      final UnitOfWork unitOfWork) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.paymentProviderRegistry = paymentProviderRegistry;
     this.eventPublisher = eventPublisher;
+    this.unitOfWork = unitOfWork;
   }
 
   @Override
   public SubmitPaymentResult execute(final SubmitPaymentCommand command) {
-    // Load session
     final CheckoutSessionId sessionId = CheckoutSessionId.of(command.sessionId());
-    final CheckoutSession session =
-        checkoutSessionRepository
-            .findById(sessionId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Session not found: " + command.sessionId()));
-
-    // Validate payment provider exists
     final PaymentProviderId providerId = PaymentProviderId.of(command.providerId());
+
+    // Provider lookup is remote-capable (payment service provider) - outside the transaction
     final PaymentProvider provider =
         paymentProviderRegistry
             .findById(providerId)
@@ -63,21 +59,24 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
                 () ->
                     new IllegalArgumentException(
                         "Payment provider not found: " + command.providerId()));
-
-    // Create payment selection value object
     final PaymentSelection paymentSelection =
         PaymentSelection.of(providerId, command.providerReference());
 
-    // Submit payment (domain validates session state and step)
-    session.submitPayment(paymentSelection);
-
-    // Save session
-    checkoutSessionRepository.save(session);
-
-    eventPublisher.publishAndClearEvents(session);
-
-    // Map to response
-    return mapToResponse(session, provider);
+    // Short transaction: load, submit, save, publish
+    return unitOfWork.run(
+        () -> {
+          final CheckoutSession session =
+              checkoutSessionRepository
+                  .findById(sessionId)
+                  .orElseThrow(
+                      () ->
+                          new IllegalArgumentException(
+                              "Session not found: " + command.sessionId()));
+          session.submitPayment(paymentSelection);
+          checkoutSessionRepository.save(session);
+          eventPublisher.publishAndClearEvents(session);
+          return mapToResponse(session, provider);
+        });
   }
 
   private SubmitPaymentResult mapToResponse(

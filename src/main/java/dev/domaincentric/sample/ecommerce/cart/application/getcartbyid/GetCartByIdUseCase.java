@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for retrieving a shopping cart by its ID.
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional(readOnly = true)
 public class GetCartByIdUseCase implements GetCartByIdInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;

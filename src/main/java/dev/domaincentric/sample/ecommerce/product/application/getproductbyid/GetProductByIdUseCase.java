@@ -13,7 +13,6 @@ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.util.Currency;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for retrieving a product by its ID.
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional(readOnly = true)
 public class GetProductByIdUseCase implements GetProductByIdInputPort {
 
   private static final Currency DEFAULT_CURRENCY = Currency.getInstance("EUR");

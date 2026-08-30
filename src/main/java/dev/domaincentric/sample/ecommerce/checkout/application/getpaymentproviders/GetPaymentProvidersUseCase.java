@@ -5,7 +5,6 @@ import dev.domaincentric.sample.ecommerce.checkout.application.shared.PaymentPro
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.PaymentProviderRegistry;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for retrieving available payment providers.
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional(readOnly = true)
 public class GetPaymentProvidersUseCase implements GetPaymentProvidersInputPort {
 
   private final PaymentProviderRegistry paymentProviderRegistry;

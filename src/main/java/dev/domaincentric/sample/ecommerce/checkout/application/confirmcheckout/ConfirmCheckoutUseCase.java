@@ -1,6 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.confirmcheckout;
 
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutArticleDataPort;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutArticle;
@@ -11,7 +12,6 @@ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for confirming a checkout session.
@@ -34,41 +34,35 @@ import org.springframework.transaction.annotation.Transactional;
  * transaction.
  */
 @Service
-@Transactional
 public class ConfirmCheckoutUseCase implements ConfirmCheckoutInputPort {
 
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final CheckoutArticleDataPort checkoutArticleDataPort;
   private final DomainEventPublisher domainEventPublisher;
+  private final UnitOfWork unitOfWork;
 
   public ConfirmCheckoutUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final CheckoutArticleDataPort checkoutArticleDataPort,
-      final DomainEventPublisher domainEventPublisher) {
+      final DomainEventPublisher domainEventPublisher,
+      final UnitOfWork unitOfWork) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.checkoutArticleDataPort = checkoutArticleDataPort;
     this.domainEventPublisher = domainEventPublisher;
+    this.unitOfWork = unitOfWork;
   }
 
   @Override
   public ConfirmCheckoutResult execute(final ConfirmCheckoutCommand command) {
-    // Load session
     final CheckoutSessionId sessionId = CheckoutSessionId.of(command.sessionId());
-    final CheckoutSession session =
-        checkoutSessionRepository
-            .findById(sessionId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Session not found: " + command.sessionId()));
 
-    // Collect product IDs from line items
+    // Article data comes from the Product Catalog (remote-capable) - fetched outside the
+    // transaction, keyed by the line items of the session as it is now
+    final CheckoutSession current = loadSession(sessionId, command);
     final List<ProductId> productIds =
-        session.lineItems().stream().map(item -> item.productId()).toList();
-
-    // Fetch fresh article data (pricing, availability) for validation
+        current.lineItems().stream().map(item -> item.productId()).toList();
     final Map<ProductId, CheckoutArticle> articleDataMap =
         checkoutArticleDataPort.getArticleData(productIds);
-
-    // Build resolver from fetched data
     final CheckoutArticlePriceResolver resolver =
         productId -> {
           final CheckoutArticle article = articleDataMap.get(productId);
@@ -79,20 +73,23 @@ public class ConfirmCheckoutUseCase implements ConfirmCheckoutInputPort {
               article.currentPrice(), article.isAvailable(), article.availableStock());
         };
 
-    // Confirm checkout with validation (domain validates state, step, completeness, and items)
-    // This raises the CheckoutConfirmed integration event
-    session.confirm(resolver);
+    // Short transaction: reload, confirm, save, publish
+    return unitOfWork.run(
+        () -> {
+          final CheckoutSession session = loadSession(sessionId, command);
+          session.confirm(resolver);
+          checkoutSessionRepository.save(session);
+          domainEventPublisher.publishAndClearEvents(session);
+          return mapToResponse(session);
+        });
+  }
 
-    // Save session
-    checkoutSessionRepository.save(session);
-
-    // Publish domain events — triggers cross-module listeners via interface inversion:
-    // - CartCompletionEventConsumer completes the cart (separate transaction)
-    // - StockReductionEventConsumer reduces stock (separate transaction)
-    domainEventPublisher.publishAndClearEvents(session);
-
-    // Map to response
-    return mapToResponse(session);
+  private CheckoutSession loadSession(
+      final CheckoutSessionId sessionId, final ConfirmCheckoutCommand command) {
+    return checkoutSessionRepository
+        .findById(sessionId)
+        .orElseThrow(
+            () -> new IllegalArgumentException("Session not found: " + command.sessionId()));
   }
 
   private ConfirmCheckoutResult mapToResponse(final CheckoutSession session) {

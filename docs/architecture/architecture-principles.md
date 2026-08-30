@@ -1373,7 +1373,7 @@ Commands modify system state and publish domain events.
   that would accept one
 
 **Characteristics:**
-- Transactional (`@Transactional`)
+- Transactional (`@Transactional`, or `UnitOfWork.run` around save + publish when the use case also calls remote-capable ports — ADR-034)
 - Validate business rules
 - Modify aggregate state
 - Publish domain events
@@ -2282,7 +2282,7 @@ class holds the forbidden type outright.
 3. Secondary adapters may not be accessed by any layer
 4. Application services may only be accessed by primary adapters
 5. **sharedkernel.application.port must contain only interfaces** (Shared Kernel outbound ports pattern)
-6. **`@Transactional` only in the application layer** - the use case owns the unit of work; outgoing persistence adapters are the documented exception (multi-statement atomicity, joins the caller's transaction via REQUIRED propagation)
+6. **`@Transactional` only in the application layer** - the use case owns the unit of work; outgoing persistence adapters are the documented exception (multi-statement atomicity, joins the caller's transaction via REQUIRED propagation). A `@Transactional` use case calls no remote-capable port (`DCA-USE-013`); such use cases draw the boundary with `UnitOfWork.run` after the remote reads (ADR-034)
 
 #### Naming Conventions
 

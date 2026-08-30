@@ -39,6 +39,7 @@ Architecture Decision Records capture important architectural decisions with con
 | [ADR-030](adr-030-three-cookie-session-design.md) | Separate Cookies for Identity, Session and Renewal | ✅ Accepted (partially implemented) |
 | [ADR-031](adr-031-persistence-adapters-as-the-default.md) | A Repository Hands Out Copies — Real Persistence Is the Default | ✅ Accepted (account and cart converted) |
 | [ADR-032](adr-032-executable-context-map.md) | The Context Map Is Declared in Code and Enforced | ✅ Accepted |
+| [ADR-034](adr-034-transaction-boundary-and-remote-ports.md) | Transaction boundary — `@Transactional` for local use cases, `UnitOfWork` when remote ports are involved | Accepted |
 | [ADR-033](adr-033-adopt-dca-java-libraries.md) | Adopt the dca-java Libraries for Markers and Architecture Rules | ✅ Accepted |
 
 ### Proposed 🟡

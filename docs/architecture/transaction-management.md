@@ -30,6 +30,35 @@ public class ProductApplicationService {
 }
 ```
 
+## Remote Ports: Draw the Boundary by Hand
+
+`@Transactional` on the class is right only while everything inside is local (repositories, stores, event
+publishers). A use case that also calls a port which may leave the process — another context's data port, a
+payment provider, a mail gateway — must not hold the connection for that round trip. It drops the annotation and
+uses the `UnitOfWork` output port instead (`SpringUnitOfWork` → `TransactionTemplate`):
+
+```java
+@Service                                   // no class-level @Transactional
+public class AddItemToCartUseCase implements AddItemToCartInputPort {
+
+  public AddItemToCartResult execute(AddItemToCartCommand input) {
+    CartArticle article = articleDataPort.getArticleData(productId).orElseThrow();   // remote-capable, no tx
+
+    return unitOfWork.run(() -> {                                                    // short transaction
+      ShoppingCart cart = shoppingCartRepository.findById(cartId).orElseThrow();     // (re)load inside
+      cart.addItem(productId, quantity, Price.of(article.currentPrice()));
+      shoppingCartRepository.save(cart);
+      eventPublisher.publishAndClearEvents(cart);
+      return toResult(cart);
+    });
+  }
+}
+```
+
+Rules: `DCA-USE-013` fails a `@Transactional` use case that calls any output port other than `Repository`,
+`Store`, `DomainEventPublisher`, `IntegrationEventPublisher`, `UnitOfWork`; `DCA-USE-012` accepts either
+`@Transactional` or `UnitOfWork.run` as the boundary for a publishing use case. See ADR-034.
+
 ## Read-Only Transactions
 
 Use `@Transactional(readOnly = true)` for query methods:
@@ -76,7 +105,7 @@ REST Controller (no transaction)
 
 ## Key Rules
 
-1. **Application Services = Transactional Boundary** - Controllers have NO `@Transactional`
+1. **Application Services = Transactional Boundary** - Controllers have NO `@Transactional`; use cases that call remote-capable ports use `UnitOfWork.run` instead of the class annotation
 2. **Read-Only for Queries** - Use `readOnly = true` for query methods
 3. **Events After Commit** - Use `@TransactionalEventListener(phase = AFTER_COMMIT)`
 4. **One Transaction Per Use Case** - Each public method is one transaction
@@ -89,6 +118,17 @@ REST Controller (no transaction)
 @RestController
 @Transactional  // WRONG - transaction boundary too broad
 public class ProductResource { }
+```
+
+❌ **Remote Call Inside the Transaction:**
+```java
+@Transactional
+public class SubmitPaymentUseCase {
+  public void execute(...) {
+    paymentProviderRegistry.findById(id);   // WRONG - holds the connection for a remote round trip
+    ...
+  }
+}
 ```
 
 ❌ **Event Listener Without Transactional Phase:**
@@ -107,3 +147,4 @@ public class Product { }
 
 - [Architecture Principles](architecture-principles.md) - Application Service patterns
 - [ADR-002: Framework-Independent Domain](adr/adr-002-framework-independent-domain.md)
+- [ADR-034: Transaction Boundary and Remote Ports](adr/adr-034-transaction-boundary-and-remote-ports.md)

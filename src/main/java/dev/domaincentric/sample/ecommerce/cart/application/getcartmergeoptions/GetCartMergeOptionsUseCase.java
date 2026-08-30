@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for checking if cart merge options should be presented.
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional(readOnly = true)
 public class GetCartMergeOptionsUseCase implements GetCartMergeOptionsInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;

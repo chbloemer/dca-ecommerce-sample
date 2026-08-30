@@ -14,7 +14,6 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for retrieving all products.
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional(readOnly = true)
 public class GetAllProductsUseCase implements GetAllProductsInputPort {
 
   private static final Currency DEFAULT_CURRENCY = Currency.getInstance("EUR");

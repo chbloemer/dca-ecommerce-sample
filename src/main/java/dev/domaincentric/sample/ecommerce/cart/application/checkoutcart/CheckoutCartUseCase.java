@@ -1,6 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.application.checkoutcart;
 
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
+import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ArticleDataPort;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ArticlePrice;
@@ -18,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Use case for checking out a shopping cart.
@@ -38,59 +38,61 @@ import org.springframework.transaction.annotation.Transactional;
  * interface, which is a primary/driving port in the application layer.
  */
 @Service
-@Transactional
 public class CheckoutCartUseCase implements CheckoutCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
   private final ArticleDataPort articleDataPort;
   private final DomainEventPublisher eventPublisher;
+  private final UnitOfWork unitOfWork;
 
   public CheckoutCartUseCase(
       final ShoppingCartRepository shoppingCartRepository,
       final ArticleDataPort articleDataPort,
-      final DomainEventPublisher eventPublisher) {
+      final DomainEventPublisher eventPublisher,
+      final UnitOfWork unitOfWork) {
     this.shoppingCartRepository = shoppingCartRepository;
     this.articleDataPort = articleDataPort;
     this.eventPublisher = eventPublisher;
+    this.unitOfWork = unitOfWork;
   }
 
   @Override
   public CheckoutCartResult execute(final CheckoutCartCommand input) {
     final CartId cartId = CartId.of(input.cartId());
 
-    // Retrieve cart
-    final ShoppingCart cart =
+    // Which articles do we need? Read the cart once, then fetch article data remotely - both
+    // outside the transaction
+    final ShoppingCart current =
         shoppingCartRepository
             .findById(cartId)
             .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + input.cartId()));
-
-    // Collect product IDs and fetch article data in batch
     final Set<ProductId> productIds =
-        cart.items().stream().map(item -> item.productId()).collect(Collectors.toSet());
-
+        current.items().stream().map(item -> item.productId()).collect(Collectors.toSet());
     final Map<ProductId, CartArticle> articleData = articleDataPort.getArticleData(productIds);
 
-    // Create enriched cart using factory method
-    final EnrichedCart enrichedCart = EnrichedCart.from(cart, articleData);
+    // Short transaction: reload, validate, checkout, save, publish
+    return unitOfWork.run(
+        () -> {
+          final ShoppingCart cart =
+              shoppingCartRepository
+                  .findById(cartId)
+                  .orElseThrow(
+                      () -> new IllegalArgumentException("Cart not found: " + input.cartId()));
+          final EnrichedCart enrichedCart = EnrichedCart.from(cart, articleData);
+          if (!enrichedCart.isValidForCheckout()) {
+            final ArticlePriceResolver priceResolver = buildResolver(articleData);
+            final CartValidationResult validationResult = cart.validateForCheckout(priceResolver);
+            throw new CartValidationException(validationResult);
+          }
+          cart.checkout();
+          shoppingCartRepository.save(cart);
+          eventPublisher.publishAndClearEvents(cart);
+          return toResult(cart, enrichedCart);
+        });
+  }
 
-    // Validate cart using EnrichedCart domain methods
-    if (!enrichedCart.isValidForCheckout()) {
-      // Build price resolver from article data for legacy validation result
-      final ArticlePriceResolver priceResolver = buildResolver(articleData);
-      final CartValidationResult validationResult = cart.validateForCheckout(priceResolver);
-      throw new CartValidationException(validationResult);
-    }
-
-    // Checkout (business logic validates rules: cart not empty, cart is active)
-    cart.checkout();
-
-    // Persist
-    shoppingCartRepository.save(cart);
-
-    // Publish domain events
-    eventPublisher.publishAndClearEvents(cart);
-
-    // Map to output using enriched cart items
+  private static CheckoutCartResult toResult(
+      final ShoppingCart cart, final EnrichedCart enrichedCart) {
     final List<CheckoutCartResult.CartItemSummary> items =
         enrichedCart.items().stream()
             .map(
@@ -102,9 +104,7 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
                         item.currentArticle().currentPrice().amount(),
                         item.currentArticle().currentPrice().currency().getCurrencyCode()))
             .toList();
-
     final Money total = enrichedCart.calculateCurrentSubtotal();
-
     return new CheckoutCartResult(
         cart.id().value(),
         enrichedCart.customerId().value(),
