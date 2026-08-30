@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -26,10 +25,13 @@ import org.springframework.test.web.servlet.MvcResult;
  * CSRF strategy (ADR-035): browser forms carry the token from the {@code XSRF-TOKEN} cookie; the
  * Bearer-only API is exempt because cookies never authenticate it.
  */
-@SpringBootTest(classes = EcommerceSampleApplication.class)
+// MockMvc requests commit, and the shared H2 database (DB_CLOSE_DELAY=-1) outlives the Spring
+// context — so this class gets a database of its own instead of polluting the repository tests.
+@SpringBootTest(
+    classes = EcommerceSampleApplication.class,
+    properties =
+        "spring.datasource.url=jdbc:h2:mem:csrf_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
 @AutoConfigureMockMvc
-// MockMvc requests commit — the carts they create must not leak into repository tests
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class CsrfProtectionIntegrationTest {
 
   private static final Pattern PRODUCT_LINK = Pattern.compile("href=\"/products/([0-9a-f-]{36})\"");
