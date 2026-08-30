@@ -42,7 +42,7 @@ This project showcases best practices for structuring a Spring Boot application 
 - **Entities**: CartItem, CheckoutLineItem
 - **Value Objects**: ProductId, SKU, Price, Money, Quantity, Category, BuyerInfo, DeliveryAddress, Email, HashedPassword, etc.
 - **Repositories**: Interfaces in application layer, implementations in adapters
-- **Domain Services**: PricingService, CartTotalCalculator, CheckoutStepValidator
+- **Domain Services**: CartTotalCalculator, CheckoutStepValidator
 - **Domain Events**: ProductCreated, CartCheckedOut, CartItemAddedToCart, CartItemQuantityChanged, ProductRemovedFromCart, CartCleared, CheckoutSessionStarted, CheckoutConfirmed, AccountRegistered, PriceChanged, StockChanged, etc.
 - **Factories**: ProductFactory, EnrichedCartFactory, CheckoutCartFactory
 - **Specifications**: CartSpecification (with Visitor pattern: ActiveCart, HasMinTotal, HasAnyAvailableItem, LastUpdatedBefore, CustomerAllowsMarketing)
@@ -118,8 +118,6 @@ src/main/java/dev/domaincentric/sample/ecommerce/
 │   │   │   ├── Category.java
 │   │   │   ├── ImageUrl.java
 │   │   │   └── ProductFactory.java       # Factory
-│   │   ├── service/                      # Domain services
-│   │   │   └── PricingService.java
 │   │   └── event/                        # Domain events
 │   │       ├── ProductCreated.java
 │   │       ├── ProductNameChanged.java

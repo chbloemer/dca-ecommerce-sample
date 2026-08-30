@@ -42,8 +42,6 @@ dev.domaincentric.sample.ecommerce
 │   │   │   ├── ProductFactory
 │   │   │   ├── ProductArticle (external article data)
 │   │   │   └── EnrichedProduct (Enriched Domain Model with factory)
-│   │   ├── service/                # Domain Services
-│   │   │   └── PricingService
 │   │   └── event/                  # Domain Events
 │   │       └── ProductCreated
 │   ├── application/                # Application Layer

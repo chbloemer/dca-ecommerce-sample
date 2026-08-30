@@ -135,20 +135,6 @@ the old and new category.
 
 **Type:** Domain Event
 
-## Domain Services
-
-### PricingService
-
-**Definition:** Domain service for calculating discounts and quantity tiers on
-a given price. Contains the tier rules for bulk discounts (5/10/15/20% from
-10/20/50/100 units).
-
-**Type:** Domain Service
-
-**Notes:** Open question — does this service functionally belong in the
-Product or in the Pricing context? Since prices live in the Pricing context,
-relocation would be a natural fit.
-
 ## Factories
 
 ### ProductFactory
