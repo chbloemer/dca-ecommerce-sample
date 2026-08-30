@@ -282,15 +282,22 @@ dev.domaincentric.sample.ecommerce
 
 Location: `src/test-architecture/java/dev/domaincentric/sample/ecommerce/`
 
-The rules themselves live in the library `dev.domaincentric:dca-archunit` (107 rules in 10 sets, ids
+The rules themselves live in the library `dev.domaincentric:dca-archunit` (109 rules in 10 sets, ids
 `DCA-<SET>-<NNN>`: LAY, ONI, HEX, TAC, STR, MAP, ADV, USE, NAM, CYC). This project only *runs* them:
 
-- `ArchitectureRulesTest` — extends `DcaArchitectureTest`, one dynamic test per rule; excludes nothing.
+- `ArchitectureRulesTest` — extends `DcaArchitectureTest`, one dynamic test per rule, grouped into a
+  container per rule set; excludes nothing. Its `additionalSelection()` shows the configuration a
+  consuming project would use (`DcaRuleSelection`: scope, severity, exceptions, freeze baseline).
+- `EcommerceLayout` — the base package and `DcaLayout` all three tests share.
 - `ContextMapDocumentationTest` — renders `docs/architecture/context-map.md` via `ContextMapRenderer`
   and fails when the committed file was stale (fix: commit the regenerated file).
 - `SpringModulithVerificationTest` — Spring Modulith module boundaries (sample-specific, not a DCA rule).
 
-To switch a rule off, override `excludedRuleIds()` in `ArchitectureRulesTest` and record why in an ADR.
+To switch a rule off, return `DcaRuleSelection.all().excluding("<id>", "<reason>")` from
+`additionalSelection()` in `ArchitectureRulesTest` — the rule then shows up as an aborted test with
+that reason — and record the decision in an ADR. The same is configurable without code in
+`dca-archunit.properties` on the test class path; never override `selection()` itself, which would
+replace that file instead of adding to it.
 Rule changes belong in `dca-java`, not here.
 
 **Run architecture tests:**

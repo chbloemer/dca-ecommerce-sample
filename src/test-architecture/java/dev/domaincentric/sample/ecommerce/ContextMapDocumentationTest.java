@@ -3,7 +3,6 @@ package dev.domaincentric.sample.ecommerce;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.domaincentric.dca.archunit.DcaArchitecture;
-import dev.domaincentric.dca.archunit.DcaLayout;
 import dev.domaincentric.dca.archunit.contextmap.ContextMapRenderer;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,8 +23,7 @@ class ContextMapDocumentationTest {
 
   @Test
   void contextMapDocumentMatchesTheDeclaredContextMap() throws IOException {
-    DcaArchitecture architecture =
-        DcaArchitecture.load(DcaLayout.forBasePackage("dev.domaincentric.sample.ecommerce"));
+    DcaArchitecture architecture = DcaArchitecture.load(EcommerceLayout.layout());
     String generated = ContextMapRenderer.of(architecture).render();
     String existing = Files.exists(CONTEXT_MAP) ? Files.readString(CONTEXT_MAP) : null;
 

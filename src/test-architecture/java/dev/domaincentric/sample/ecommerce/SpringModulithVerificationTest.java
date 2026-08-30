@@ -15,7 +15,7 @@ import org.springframework.modulith.core.ApplicationModules;
 class SpringModulithVerificationTest {
 
   private static final ApplicationModules MODULES =
-      ApplicationModules.of("dev.domaincentric.sample.ecommerce");
+      ApplicationModules.of(EcommerceLayout.BASE_PACKAGE);
 
   @Test
   void applicationModuleStructureIsValid() {
