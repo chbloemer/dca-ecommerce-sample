@@ -32,6 +32,8 @@ block content
     h3.checkout__section-title Buyer Information
 
     form.checkout__form(method="post" action="/checkout/buyer" data-test="buyer-form")
+      if _csrf
+        input(type="hidden" name=_csrf.parameterName value=_csrf.token)
       .form__group
         label.form__label(for="email") Email Address
         - var emailValue = buyerInfoPage.existingBuyerInfo() ? buyerInfoPage.existingBuyerInfo().email() : (identity.isRegistered() ? identity.email().orElse('') : '')

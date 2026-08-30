@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /**
  * Security configuration for the application.
@@ -25,7 +26,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *   <li>Stateless session management (no HTTP sessions)
  *   <li>JWT filter for extracting/creating identity tokens
  *   <li>BCrypt password encoding for account passwords
- *   <li>CSRF disabled (using JWT cookies with SameSite=Lax)
+ *   <li>CSRF protection for browser forms via a cookie-backed token (stateless, {@code XSRF-TOKEN}
+ *       cookie + {@code _csrf} form field); token-based endpoints ({@code /api/**}, {@code
+ *       /auth/**}, {@code /mcp/**}) and the H2 console are exempt. {@code SameSite=Lax} on the
+ *       identity cookie is defence in depth, not the CSRF strategy.
  * </ul>
  *
  * <p><b>Authentication Flow:</b>
@@ -64,8 +68,12 @@ public class SecurityConfiguration {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-        // Disable CSRF - we use JWT in cookies with SameSite=Lax for protection
-        .csrf(csrf -> csrf.disable())
+        // CSRF: cookie-backed token (no HTTP session to store it in); every writing Pug form
+        // carries it via CsrfTokenModelAdvice. Non-browser endpoints are exempt.
+        .csrf(
+            csrf ->
+                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringRequestMatchers("/api/**", "/auth/**", "/mcp/**", "/h2-console/**"))
 
         // Configure authorization rules
         .authorizeHttpRequests(

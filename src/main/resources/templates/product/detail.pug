@@ -46,6 +46,8 @@ block content
     .product-detail__actions
       if productDetail.isAvailable()
         form(method="post" action="/cart/add-product" data-test="product-add-to-cart-form")
+          if _csrf
+            input(type="hidden" name=_csrf.parameterName value=_csrf.token)
           input(type="hidden" name="productId" value=productDetail.productId())
           input(type="hidden" name="quantity" value="1")
           button.btn.btn--accent.btn--lg(type="submit" data-test="product-add-to-cart-button") Add to Cart

@@ -131,7 +131,11 @@ bootRun {
   if (project.hasProperty('log-debug')) {
     args '--debug'
   }
-  systemProperties System.properties
+  // Forward only application-relevant -D properties. Passing all of System.properties leaks the
+  // Gradle daemon's java.home into the toolchain JVM and breaks JCE initialisation there.
+  systemProperties System.properties.findAll { k, v ->
+    k.toString().startsWith('spring.') || k.toString().startsWith('e2e.')
+  }
 }
 
 // IntelliJ IDEA module configuration (Gradle 9+ compatible)

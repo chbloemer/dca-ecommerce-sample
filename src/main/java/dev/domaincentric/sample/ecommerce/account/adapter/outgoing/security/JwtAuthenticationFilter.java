@@ -39,7 +39,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <ul>
  *   <li>HttpOnly: true (prevents XSS attacks)
  *   <li>Secure: based on request scheme (https = secure)
- *   <li>SameSite: Lax (CSRF protection)
+ *   <li>SameSite: Lax (defence in depth; CSRF protection itself is the token in every form)
  *   <li>Path: / (accessible site-wide)
  *   <li>MaxAge: based on token type (30 days anonymous, 7 days registered)
  * </ul>

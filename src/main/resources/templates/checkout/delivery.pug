@@ -20,6 +20,8 @@ block content
       .alert.alert--error(data-test="delivery-error-message")= error
 
     form.checkout__form(method="post" action="/checkout/delivery" data-test="delivery-form")
+      if _csrf
+        input(type="hidden" name=_csrf.parameterName value=_csrf.token)
       h3.checkout__section-title Shipping Address
 
       .form__group

@@ -60,6 +60,8 @@ block content
         if shoppingCart.status() === 'ACTIVE'
           if shoppingCart.canCheckout()
             form(method="post" action="/checkout/start" data-test="cart-checkout-form")
+              if _csrf
+                input(type="hidden" name=_csrf.parameterName value=_csrf.token)
               input(type="hidden" name="cartId" value=shoppingCart.cartId())
               button.btn.btn--primary.btn--lg(type="submit" data-test="cart-checkout-button") Proceed to Checkout
             .cart__actions-info

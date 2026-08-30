@@ -15,6 +15,8 @@ block content
         .alert.alert--error(data-test="login-error-message")= error
 
       form.auth__form(method="POST" action="/login" data-test="login-form")
+        if _csrf
+          input(type="hidden" name=_csrf.parameterName value=_csrf.token)
         if returnUrl
           input(type="hidden" name="returnUrl" value=returnUrl)
 

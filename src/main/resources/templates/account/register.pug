@@ -12,6 +12,8 @@ block content
         .alert.alert--error(data-test="register-error-message")= error
 
       form.auth__form(method="POST" action="/register" data-test="register-form")
+        if _csrf
+          input(type="hidden" name=_csrf.parameterName value=_csrf.token)
         if returnUrl
           input(type="hidden" name="returnUrl" value=returnUrl)
 

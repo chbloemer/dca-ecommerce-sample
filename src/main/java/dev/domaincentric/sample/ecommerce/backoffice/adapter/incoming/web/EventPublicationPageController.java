@@ -3,8 +3,6 @@ package dev.domaincentric.sample.ecommerce.backoffice.adapter.incoming.web;
 import dev.domaincentric.sample.ecommerce.backoffice.application.geteventpublications.GetEventPublicationsInputPort;
 import dev.domaincentric.sample.ecommerce.backoffice.application.geteventpublications.GetEventPublicationsQuery;
 import dev.domaincentric.sample.ecommerce.backoffice.application.geteventpublications.GetEventPublicationsResult;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,19 +35,15 @@ public class EventPublicationPageController {
    * @param error whether the previous login attempt failed
    * @param logout whether the user just logged out
    * @param model the Spring MVC model
-   * @param request the HTTP request (for CSRF token)
    * @return the Pug template name
    */
   @GetMapping("/login")
   public String showLoginPage(
       @RequestParam(required = false) final String error,
       @RequestParam(required = false) final String logout,
-      final Model model,
-      final HttpServletRequest request) {
-    final CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-    if (csrfToken != null) {
-      model.addAttribute("_csrf", csrfToken);
-    }
+      final Model model) {
+    model.addAttribute("error", error != null);
+    model.addAttribute("logout", logout != null);
     model.addAttribute("title", "Backoffice Login");
 
     return "backoffice/login";
@@ -62,7 +56,7 @@ public class EventPublicationPageController {
    * @return the Pug template name
    */
   @GetMapping("/events")
-  public String showEventPublicationLog(final Model model, final HttpServletRequest request) {
+  public String showEventPublicationLog(final Model model) {
     final GetEventPublicationsResult result =
         getEventPublicationsInputPort.execute(new GetEventPublicationsQuery());
 
@@ -70,11 +64,6 @@ public class EventPublicationPageController {
 
     model.addAttribute("eventLog", viewModel);
     model.addAttribute("title", "Event Publication Log");
-
-    final CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-    if (csrfToken != null) {
-      model.addAttribute("_csrf", csrfToken);
-    }
 
     return "backoffice/events";
   }

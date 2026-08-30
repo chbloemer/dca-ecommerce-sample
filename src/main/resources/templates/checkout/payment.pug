@@ -20,6 +20,8 @@ block content
       .alert.alert--error(data-test="payment-error-message")= error
 
     form.checkout__form(method="post" action="/checkout/payment" data-test="payment-form")
+      if _csrf
+        input(type="hidden" name=_csrf.parameterName value=_csrf.token)
       h3.checkout__section-title Select Payment Method
 
       .payment-options(data-test="payment-options")

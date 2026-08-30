@@ -164,22 +164,22 @@ Easier to apply different security policies:
 public class SecurityConfiguration {
 
   @Bean
-  public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) {
+  public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
     http
       .securityMatcher("/api/**")
       .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-      .oauth2ResourceServer(oauth2 -> oauth2.jwt())  // Token-based
-      .csrf().disable();  // No CSRF for APIs
+      .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))  // Token-based
+      .csrf(csrf -> csrf.disable());  // No CSRF for token-authenticated APIs
     return http.build();
   }
 
   @Bean
-  public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) {
+  public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
     http
       .securityMatcher("/products/**", "/cart/**")
       .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-      .formLogin()  // Session-based
-      .csrf().enable();  // CSRF protection for web
+      .formLogin(Customizer.withDefaults())  // Session-based
+      .csrf(Customizer.withDefaults());  // CSRF token in every writing web form
     return http.build();
   }
 }

@@ -26,6 +26,8 @@ block content
               p.form__hint(data-test="profile-name-note") Your name was set when you created your account and cannot be changed.
 
             form.form(method="POST" action="/account/profile" data-test="profile-form")
+              if _csrf
+                input(type="hidden" name=_csrf.parameterName value=_csrf.token)
               .form__group
                 label.form__label(for="email") Email
                 input.form__input#email(type="email" name="email" required autofocus placeholder="you@example.com" value=profilePage.email() data-test="profile-email-input")

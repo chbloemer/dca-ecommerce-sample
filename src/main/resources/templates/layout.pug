@@ -44,6 +44,8 @@ html(lang="en")
           if identity != null && !identity.isAnonymous()
             span.nav__link(data-test="user-greeting") Welcome, #{identity.email().orElse('User')}
             form.nav__logout-form(method="post" action="/logout" data-test="logout-form")
+              if _csrf
+                input(type="hidden" name=_csrf.parameterName value=_csrf.token)
               button.nav__link.nav__logout-btn(type="submit" data-test="logout-button") Logout
           else
             a.nav__link(href="/login" data-test="nav-login-link") Login
