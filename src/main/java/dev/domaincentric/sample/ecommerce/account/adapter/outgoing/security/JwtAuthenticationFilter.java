@@ -28,11 +28,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>This filter is responsible for:
  *
  * <ol>
- *   <li>Extracting JWT from the cookie (or Authorization header)
+ *   <li>Extracting JWT from the cookie (browser requests) or the Authorization header
  *   <li>If no JWT exists, generating an anonymous token and setting the cookie
  *   <li>Validating the token and extracting the Identity
  *   <li>Setting the SecurityContext with the Identity for downstream access
  * </ol>
+ *
+ * <p><b>Token-only endpoints:</b> requests to {@code /api/**} and {@code /mcp/**} are authenticated
+ * exclusively by {@code Authorization: Bearer}; cookies are neither read nor written there. That is
+ * what makes their exemption from CSRF protection sound — a browser cannot authenticate a
+ * cross-site request to them with automatically attached cookies.
  *
  * <p><b>Cookie Settings:</b>
  *
@@ -85,8 +90,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // The identity is resolved first and independently of authentication: it carries the cart, so
     // an expired or missing session must never cost it (ADR-029). It is the same UserId before and
     // after login — authentication adds a session, it does not replace who the browser is.
-    final UserId identityUserId = resolveIdentity(request, response);
-    setSecurityContext(resolveSession(request, identityUserId));
+    if (isTokenOnlyEndpoint(request)) {
+      setSecurityContext(resolveBearerIdentity(request));
+    } else {
+      final UserId identityUserId = resolveIdentity(request, response);
+      setSecurityContext(resolveSession(request, identityUserId));
+    }
 
     // Continue filter chain
     filterChain.doFilter(request, response);
@@ -167,6 +176,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     return identity;
+  }
+
+  /**
+   * Identity for token-only endpoints: whatever the Bearer token says, or a throwaway anonymous
+   * identity when there is none. No cookie is consulted or issued.
+   */
+  private IdentityProvider.Identity resolveBearerIdentity(final HttpServletRequest request) {
+    final Optional<String> token = extractTokenFromHeader(request);
+    if (token.isEmpty()) {
+      return JwtIdentity.anonymous(UserId.generateAnonymous());
+    }
+    if (!(tokenService.validate(token.get()) instanceof TokenValidation.Valid valid)) {
+      return JwtIdentity.anonymous(UserId.generateAnonymous());
+    }
+    final IdentityProvider.Identity identity = valid.identity();
+    if (identity.isRegistered() && !registeredUserValidator.existsForUserId(identity.userId())) {
+      return JwtIdentity.anonymous(identity.userId());
+    }
+    return identity;
+  }
+
+  private static boolean isTokenOnlyEndpoint(final HttpServletRequest request) {
+    final String path = request.getRequestURI();
+    return path.startsWith("/api/") || path.startsWith("/mcp");
   }
 
   private Optional<String> sessionToken(final HttpServletRequest request) {

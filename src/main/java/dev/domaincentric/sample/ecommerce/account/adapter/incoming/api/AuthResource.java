@@ -6,7 +6,6 @@ import dev.domaincentric.sample.ecommerce.account.application.authenticateaccoun
 import dev.domaincentric.sample.ecommerce.account.application.registeraccount.RegisterAccountCommand;
 import dev.domaincentric.sample.ecommerce.account.application.registeraccount.RegisterAccountInputPort;
 import dev.domaincentric.sample.ecommerce.account.application.registeraccount.RegisterAccountResult;
-import dev.domaincentric.sample.ecommerce.account.application.shared.IdentitySession;
 import dev.domaincentric.sample.ecommerce.account.application.shared.TokenService;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.UserId;
@@ -29,8 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
  * <ul>
  *   <li>POST /api/auth/login - Authenticate user and return JWT token
  *   <li>POST /api/auth/register - Register new user and return JWT token
- *   <li>POST /api/auth/logout - Clear authentication cookie
+ *   <li>POST /api/auth/logout - No-op acknowledgement; the client discards its token
  * </ul>
+ *
+ * <p><b>Stateless by design:</b> the API never sets or reads cookies. Clients send the returned
+ * token as {@code Authorization: Bearer}; browser sessions are established through the web login
+ * form instead (ADR-035).
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -40,19 +43,16 @@ public class AuthResource {
   private final RegisterAccountInputPort registerAccountUseCase;
   private final TokenService tokenService;
   private final IdentityProvider identityProvider;
-  private final IdentitySession identitySession;
 
   public AuthResource(
       final AuthenticateAccountInputPort authenticateAccountUseCase,
       final RegisterAccountInputPort registerAccountUseCase,
       final TokenService tokenService,
-      final IdentityProvider identityProvider,
-      final IdentitySession identitySession) {
+      final IdentityProvider identityProvider) {
     this.authenticateAccountUseCase = authenticateAccountUseCase;
     this.registerAccountUseCase = registerAccountUseCase;
     this.tokenService = tokenService;
     this.identityProvider = identityProvider;
-    this.identitySession = identitySession;
   }
 
   @PostMapping("/login")
@@ -71,8 +71,6 @@ public class AuthResource {
     final String token =
         tokenService.generateRegisteredToken(
             UserId.of(result.userId()), result.email(), result.roles());
-
-    identitySession.setRegisteredIdentity(token);
 
     return ResponseEntity.ok(LoginResponse.success(token, result.email()));
   }
@@ -99,8 +97,6 @@ public class AuthResource {
           tokenService.generateRegisteredToken(
               UserId.of(result.userId()), result.email(), result.roles());
 
-      identitySession.setRegisteredIdentity(token);
-
       return ResponseEntity.status(HttpStatus.CREATED)
           .body(RegisterResponse.success(token, result.email()));
 
@@ -109,9 +105,12 @@ public class AuthResource {
     }
   }
 
+  /**
+   * Stateless: the API holds no session, so logging out means the client discards its token. The
+   * endpoint exists so clients have a uniform place to call; it returns 204.
+   */
   @PostMapping("/logout")
   public ResponseEntity<Void> logout() {
-    identitySession.logOut();
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 }

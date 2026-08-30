@@ -27,9 +27,11 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
  *   <li>JWT filter for extracting/creating identity tokens
  *   <li>BCrypt password encoding for account passwords
  *   <li>CSRF protection for browser forms via a cookie-backed token (stateless, {@code XSRF-TOKEN}
- *       cookie + {@code _csrf} form field); token-based endpoints ({@code /api/**}, {@code
- *       /auth/**}, {@code /mcp/**}) and the H2 console are exempt. {@code SameSite=Lax} on the
- *       identity cookie is defence in depth, not the CSRF strategy.
+ *       cookie + {@code _csrf} form field). {@code /api/**} and {@code /mcp/**} are exempt because
+ *       {@link JwtAuthenticationFilter} authenticates them by Bearer header only — cookies are
+ *       never read there, so a cross-site request cannot borrow the browser's session (ADR-035).
+ *       The H2 console is exempt as a development tool. {@code SameSite=Lax} on the identity cookie
+ *       is defence in depth, not the CSRF strategy.
  * </ul>
  *
  * <p><b>Authentication Flow:</b>
@@ -69,11 +71,11 @@ public class SecurityConfiguration {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         // CSRF: cookie-backed token (no HTTP session to store it in); every writing Pug form
-        // carries it via CsrfTokenModelAdvice. Non-browser endpoints are exempt.
+        // carries it via CsrfTokenModelAdvice. Bearer-only endpoints are exempt (ADR-035).
         .csrf(
             csrf ->
                 csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .ignoringRequestMatchers("/api/**", "/auth/**", "/mcp/**", "/h2-console/**"))
+                    .ignoringRequestMatchers("/api/**", "/mcp/**", "/h2-console/**"))
 
         // Configure authorization rules
         .authorizeHttpRequests(

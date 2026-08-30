@@ -20,6 +20,9 @@ configurations {
 
 // Apply common test dependencies and include main outputs
 addCommonTestDependencies('testIntegrationImplementation')
+dependencies {
+  testIntegrationImplementation "org.springframework.boot:spring-boot-starter-webmvc-test:${springBootVersion}"
+}
 
 dependencies {
   testIntegrationImplementation sourceSets.main.output
