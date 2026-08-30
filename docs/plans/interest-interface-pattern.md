@@ -72,7 +72,7 @@ public class CheckoutCartBuilder implements CheckoutStateInterest {
 | `README.md` | After "Enriched Read Model Pattern" | Add "Interest Interface Pattern" section with full example |
 | `README.md` | Aggregate Rules | Add rule: "Prefer Interest Interface over getters for state exposure" |
 
-### 2.3 Update dca-ecommerce-sample Documentation
+### 2.3 Update dca-ecommerce-sample-java Documentation
 
 | File | Changes |
 |------|---------|

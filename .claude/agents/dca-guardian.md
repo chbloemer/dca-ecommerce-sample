@@ -22,20 +22,20 @@ This is a multi-project repository:
 
 ```
 domain-centric-architecture/
-├── dca-ecommerce-sample/                    # Reference implementation (Java/Spring Boot)
+├── dca-ecommerce-sample-java/                    # Reference implementation (Java/Spring Boot)
 │   └── docs/architecture/                     # Implementation-specific docs
 ├── implementing-domain-centric-architecture/  # Compact architectural guide
 └── dca-book/                                  # Comprehensive book-style guide
 ```
 
 **Source of truth hierarchy:**
-1. `dca-ecommerce-sample/` — source of truth for code and implementation
+1. `dca-ecommerce-sample-java/` — source of truth for code and implementation
 2. `implementing-domain-centric-architecture/` — source of truth for patterns and rules
 3. `dca-book/` — educational interpretation of (1) and (2)
 
 ## Key Documentation Files
 
-### dca-ecommerce-sample/
+### dca-ecommerce-sample-java/
 - `README.md` — Project overview, bounded contexts, structure
 - `docs/architecture/architecture-principles.md` — Main architecture documentation
 - `docs/architecture/package-structure.md` — Detailed package organization
@@ -65,7 +65,7 @@ domain-centric-architecture/
 5. Bounded context list is complete and current
 
 ### Cross-Project Consistency
-1. No contradictions between `dca-ecommerce-sample/`, `implementing-domain-centric-architecture/`, and `dca-book/`
+1. No contradictions between `dca-ecommerce-sample-java/`, `implementing-domain-centric-architecture/`, and `dca-book/`
 2. Naming conventions are consistent across all docs and CLAUDE.md files
 3. Pattern definitions don't diverge between projects
 4. Package structure templates match reference implementation
@@ -102,7 +102,7 @@ When code changes are made, identify which docs need updating:
 
 ```bash
 # Verify code compiles and arch tests pass
-cd dca-ecommerce-sample && ./gradlew build && ./gradlew test-architecture
+cd dca-ecommerce-sample-java && ./gradlew build && ./gradlew test-architecture
 
 # Check for outdated references after renames
 grep -r "OldClassName" --include="*.md" ..
