@@ -10,9 +10,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Binds {@link TransactionBoundary} to Spring's transaction manager.
  *
  * <p>Use cases that talk to other contexts or external systems draw their transaction boundary by
- * hand with this port instead of a class-level {@code @Transactional}: remote reads happen before
- * {@link #run(Supplier)}, the transactional core (load, mutate, save, publish) inside it. Domain
- * events published inside share the transaction; after-commit listeners fire on commit.
+ * hand with this application-layer abstraction (not a port) instead of a class-level
+ * {@code @Transactional}: remote reads happen before {@link #inTransaction(Supplier)}, the
+ * transactional core (load, mutate, save, publish) inside it. Domain events published inside share
+ * the transaction; after-commit listeners fire on commit.
  */
 @Component
 public class SpringTransactionBoundary implements TransactionBoundary {

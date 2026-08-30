@@ -10,8 +10,7 @@ import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
  *
  * <p><b>Hexagonal Architecture:</b> This is a driving/primary port for read operations.
  *
- * @see
- *     dev.domaincentric.sample.ecommerce.product.application.usecase.getallproducts.GetAllProductsUseCase
+ * @see dev.domaincentric.sample.ecommerce.product.application.getallproducts.GetAllProductsUseCase
  */
 public interface GetAllProductsInputPort
     extends UseCase<GetAllProductsQuery, GetAllProductsResult> {

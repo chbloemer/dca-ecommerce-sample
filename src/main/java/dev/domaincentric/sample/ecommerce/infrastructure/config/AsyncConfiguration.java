@@ -12,7 +12,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  *
  * <p>Enables {@code @Async} annotation processing and provides a custom thread pool for
  * asynchronous initialization tasks triggered by {@link
- * dev.domaincentric.sample.ecommerce.sharedkernel.common.annotation.AsyncInitialize}.
+ * dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure.AsyncInitialize}.
  *
  * <p><b>Architecture Pattern:</b> This is infrastructure configuration (Spring-specific). The
  * {@code @AsyncInitialize} annotation itself (in sharedkernel) is framework-agnostic.
@@ -26,8 +26,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  *   <li>Thread Name Prefix: "AsyncInit-"
  * </ul>
  *
- * @see dev.domaincentric.sample.ecommerce.sharedkernel.common.annotation.AsyncInitialize
- * @see AsyncInitializationProcessor
+ * @see dev.domaincentric.sample.ecommerce.sharedkernel.infrastructure.AsyncInitialize
+ * @see dev.domaincentric.sample.ecommerce.infrastructure.support.AsyncInitializationProcessor
  */
 @Configuration
 @EnableAsync

@@ -10,7 +10,7 @@ import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
  *
  * <p><b>Hexagonal Architecture:</b> This is a driving/primary port for write operations.
  *
- * @see dev.domaincentric.sample.ecommerce.cart.application.usecase.createcart.CreateCartUseCase
+ * @see dev.domaincentric.sample.ecommerce.cart.application.createcart.CreateCartUseCase
  */
 public interface CreateCartInputPort extends UseCase<CreateCartCommand, CreateCartResult> {
 

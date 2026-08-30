@@ -6,9 +6,9 @@ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.specification.Spec
 import java.util.Objects;
 
 /**
- * Legacy adapter wrapper. No longer needed now that repositories accept {@link
- * CompositeSpecification <ShoppingCart>} directly. Kept for source compatibility if referenced
- * elsewhere.
+ * Wraps a {@code CompositeSpecification<ShoppingCart>} as a {@link CartSpecification}; repositories
+ * accept the composite directly, so this wrapper is only needed where a {@code CartSpecification}
+ * type is required.
  */
 public final class ComposedCartSpecification implements CompositeSpecification<ShoppingCart> {
 

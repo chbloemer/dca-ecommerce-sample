@@ -19,7 +19,7 @@ import java.util.UUID;
  * <p><b>Cross-context communication</b> uses the integration event {@code CartCheckedOutEvent}
  * (created by an outgoing event adapter), not this domain event directly.
  *
- * @see dev.domaincentric.sample.ecommerce.cart.adapter.outgoing.event.CartCheckedOutEvent
+ * @see dev.domaincentric.sample.ecommerce.cart.events.CartCheckedOutEvent
  */
 public record CartCheckedOut(
     UUID eventId,

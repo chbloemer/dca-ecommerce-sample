@@ -12,8 +12,7 @@ import dev.domaincentric.dca.buildingblocks.hexagonal.port.in.UseCase;
  * <p><b>Hexagonal Architecture:</b> This is a driving/primary port - it drives the application core
  * to execute business logic.
  *
- * @see
- *     dev.domaincentric.sample.ecommerce.product.application.usecase.createproduct.CreateProductUseCase
+ * @see dev.domaincentric.sample.ecommerce.product.application.createproduct.CreateProductUseCase
  */
 public interface CreateProductInputPort extends UseCase<CreateProductCommand, CreateProductResult> {
 

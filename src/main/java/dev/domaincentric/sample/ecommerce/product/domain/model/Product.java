@@ -24,7 +24,8 @@ import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
  * <p><b>Domain Events:</b>
  *
  * <ul>
- *   <li>{@link ProductCreated} - when a new product is created
+ *   <li>{@link dev.domaincentric.sample.ecommerce.product.domain.event.ProductCreated} - when a new
+ *       product is created
  *   <li>{@link ProductNameChanged} - when the product name is updated
  *   <li>{@link ProductDescriptionChanged} - when the product description is updated
  *   <li>{@link ProductCategoryChanged} - when the product category is updated
