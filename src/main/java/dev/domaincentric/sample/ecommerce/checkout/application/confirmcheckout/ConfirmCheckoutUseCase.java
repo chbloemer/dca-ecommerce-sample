@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.confirmcheckout;
 
+import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
-import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutArticleDataPort;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutArticle;
@@ -39,17 +39,17 @@ public class ConfirmCheckoutUseCase implements ConfirmCheckoutInputPort {
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final CheckoutArticleDataPort checkoutArticleDataPort;
   private final DomainEventPublisher domainEventPublisher;
-  private final UnitOfWork unitOfWork;
+  private final TransactionBoundary transactionBoundary;
 
   public ConfirmCheckoutUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final CheckoutArticleDataPort checkoutArticleDataPort,
       final DomainEventPublisher domainEventPublisher,
-      final UnitOfWork unitOfWork) {
+      final TransactionBoundary transactionBoundary) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.checkoutArticleDataPort = checkoutArticleDataPort;
     this.domainEventPublisher = domainEventPublisher;
-    this.unitOfWork = unitOfWork;
+    this.transactionBoundary = transactionBoundary;
   }
 
   @Override
@@ -74,7 +74,7 @@ public class ConfirmCheckoutUseCase implements ConfirmCheckoutInputPort {
         };
 
     // Short transaction: reload, confirm, save, publish
-    return unitOfWork.run(
+    return transactionBoundary.inTransaction(
         () -> {
           final CheckoutSession session = loadSession(sessionId, command);
           session.confirm(resolver);

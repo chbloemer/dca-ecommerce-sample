@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.synccheckoutwithcart;
 
+import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
-import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CartData;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CartDataPort;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
@@ -50,19 +50,19 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
   private final CartDataPort cartDataPort;
   private final ProductInfoPort productInfoPort;
   private final DomainEventPublisher eventPublisher;
-  private final UnitOfWork unitOfWork;
+  private final TransactionBoundary transactionBoundary;
 
   public SyncCheckoutWithCartUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final CartDataPort cartDataPort,
       final ProductInfoPort productInfoPort,
       final DomainEventPublisher eventPublisher,
-      final UnitOfWork unitOfWork) {
+      final TransactionBoundary transactionBoundary) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.cartDataPort = cartDataPort;
     this.productInfoPort = productInfoPort;
     this.eventPublisher = eventPublisher;
-    this.unitOfWork = unitOfWork;
+    this.transactionBoundary = transactionBoundary;
   }
 
   @Override
@@ -120,7 +120,7 @@ public class SyncCheckoutWithCartUseCase implements SyncCheckoutWithCartInputPor
 
     // Short transaction: reload, sync, save, publish
     final SyncCheckoutWithCartResult result =
-        unitOfWork.run(
+        transactionBoundary.inTransaction(
             () -> {
               final CheckoutSession session =
                   checkoutSessionRepository

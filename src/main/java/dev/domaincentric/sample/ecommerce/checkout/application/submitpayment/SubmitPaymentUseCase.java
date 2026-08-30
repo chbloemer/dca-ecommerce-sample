@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.submitpayment;
 
+import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
-import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.PaymentProvider;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.PaymentProviderRegistry;
@@ -33,17 +33,17 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final PaymentProviderRegistry paymentProviderRegistry;
   private final DomainEventPublisher eventPublisher;
-  private final UnitOfWork unitOfWork;
+  private final TransactionBoundary transactionBoundary;
 
   public SubmitPaymentUseCase(
       final CheckoutSessionRepository checkoutSessionRepository,
       final PaymentProviderRegistry paymentProviderRegistry,
       final DomainEventPublisher eventPublisher,
-      final UnitOfWork unitOfWork) {
+      final TransactionBoundary transactionBoundary) {
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.paymentProviderRegistry = paymentProviderRegistry;
     this.eventPublisher = eventPublisher;
-    this.unitOfWork = unitOfWork;
+    this.transactionBoundary = transactionBoundary;
   }
 
   @Override
@@ -63,7 +63,7 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
         PaymentSelection.of(providerId, command.providerReference());
 
     // Short transaction: load, submit, save, publish
-    return unitOfWork.run(
+    return transactionBoundary.inTransaction(
         () -> {
           final CheckoutSession session =
               checkoutSessionRepository

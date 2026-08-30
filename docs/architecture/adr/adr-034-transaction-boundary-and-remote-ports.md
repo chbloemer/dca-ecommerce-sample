@@ -1,4 +1,4 @@
-# ADR-034: Transaction Boundary — `@Transactional` for Local Use Cases, `UnitOfWork` When Remote Ports Are Involved
+# ADR-034: Transaction Boundary — `@Transactional` for Local Use Cases, `TransactionBoundary` When Remote Ports Are Involved
 
 **Date**: 2026-08-30 · **Status**: Accepted
 
@@ -15,14 +15,15 @@ remote effect.
 
 - **Local use cases** (repositories, stores, event publishers only) keep class-level `@Transactional`.
 - **Use cases with remote-capable ports** drop the annotation and draw the boundary by hand with the
-  `UnitOfWork` output port (`dca-building-blocks`), implemented by `SpringUnitOfWork` over Spring's
-  `TransactionTemplate`: remote reads first, then `unitOfWork.run(() -> { load; mutate; save; publish; })`.
+  `TransactionBoundary` from `dca-building-blocks` — an application-layer execution abstraction, deliberately not an
+  output port (a transaction is no interaction with the outside world; it defines the execution semantics of several
+  such interactions) — implemented in infrastructure by `SpringTransactionBoundary` over Spring's `TransactionTemplate`: remote reads first, then `transactionBoundary.inTransaction(() -> { load; mutate; save; publish; })`.
   Aggregates are (re)loaded inside `run`, so the transaction sees fresh state.
 - **Read-only use cases** that call remote ports run without a transaction; the repositories they read from
   manage their own.
 - Two rules of the DCA catalog enforce this: `DCA-USE-012` (a use case that publishes domain events is
-  `@Transactional` or uses `UnitOfWork.run`) and `DCA-USE-013` (a `@Transactional` use case calls no output port
-  other than `Repository`, `Store`, `DomainEventPublisher`, `IntegrationEventPublisher`, `UnitOfWork`).
+  `@Transactional` or uses `TransactionBoundary.run`) and `DCA-USE-013` (a `@Transactional` use case calls no output port
+  other than `Repository`, `Store`, `DomainEventPublisher`, `IntegrationEventPublisher`, `TransactionBoundary`).
 
 ## Consequences
 

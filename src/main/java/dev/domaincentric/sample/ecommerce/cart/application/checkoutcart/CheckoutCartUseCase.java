@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.application.checkoutcart;
 
+import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
-import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ArticleDataPort;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ArticlePrice;
@@ -43,17 +43,17 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
   private final ShoppingCartRepository shoppingCartRepository;
   private final ArticleDataPort articleDataPort;
   private final DomainEventPublisher eventPublisher;
-  private final UnitOfWork unitOfWork;
+  private final TransactionBoundary transactionBoundary;
 
   public CheckoutCartUseCase(
       final ShoppingCartRepository shoppingCartRepository,
       final ArticleDataPort articleDataPort,
       final DomainEventPublisher eventPublisher,
-      final UnitOfWork unitOfWork) {
+      final TransactionBoundary transactionBoundary) {
     this.shoppingCartRepository = shoppingCartRepository;
     this.articleDataPort = articleDataPort;
     this.eventPublisher = eventPublisher;
-    this.unitOfWork = unitOfWork;
+    this.transactionBoundary = transactionBoundary;
   }
 
   @Override
@@ -71,7 +71,7 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
     final Map<ProductId, CartArticle> articleData = articleDataPort.getArticleData(productIds);
 
     // Short transaction: reload, validate, checkout, save, publish
-    return unitOfWork.run(
+    return transactionBoundary.inTransaction(
         () -> {
           final ShoppingCart cart =
               shoppingCartRepository

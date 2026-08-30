@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.cart.application.additemtocart;
 
+import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
-import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ArticleDataPort;
 import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRepository;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
@@ -22,8 +22,8 @@ import org.springframework.stereotype.Service;
  * <ol>
  *   <li>Retrieving the article data and validating business rules (product existence, stock
  *       availability) - outside the transaction, because the port may reach another context
- *   <li>Inside one short {@link UnitOfWork}: loading the cart, adding the item (business logic in
- *       aggregate), persisting the cart and publishing its domain events
+ *   <li>Inside one short {@link TransactionBoundary}: loading the cart, adding the item (business
+ *       logic in aggregate), persisting the cart and publishing its domain events
  * </ol>
  *
  * <p><b>Hexagonal Architecture:</b> This class implements the {@link AddItemToCartInputPort}
@@ -43,17 +43,17 @@ public class AddItemToCartUseCase implements AddItemToCartInputPort {
   private final ShoppingCartRepository shoppingCartRepository;
   private final ArticleDataPort articleDataPort;
   private final DomainEventPublisher eventPublisher;
-  private final UnitOfWork unitOfWork;
+  private final TransactionBoundary transactionBoundary;
 
   public AddItemToCartUseCase(
       final ShoppingCartRepository shoppingCartRepository,
       final ArticleDataPort articleDataPort,
       final DomainEventPublisher eventPublisher,
-      final UnitOfWork unitOfWork) {
+      final TransactionBoundary transactionBoundary) {
     this.shoppingCartRepository = shoppingCartRepository;
     this.articleDataPort = articleDataPort;
     this.eventPublisher = eventPublisher;
-    this.unitOfWork = unitOfWork;
+    this.transactionBoundary = transactionBoundary;
   }
 
   @Override
@@ -74,7 +74,7 @@ public class AddItemToCartUseCase implements AddItemToCartInputPort {
     final Price priceAtAddition = Price.of(cartArticle.currentPrice());
 
     // Short transaction: load, mutate, save, publish
-    return unitOfWork.run(
+    return transactionBoundary.inTransaction(
         () -> {
           final ShoppingCart cart =
               shoppingCartRepository

@@ -1,7 +1,7 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.startcheckout;
 
+import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.DomainEventPublisher;
-import dev.domaincentric.dca.buildingblocks.hexagonal.port.out.UnitOfWork;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CartData;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CartDataPort;
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutArticleDataPort;
@@ -50,19 +50,19 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
   private final CheckoutArticleDataPort checkoutArticleDataPort;
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final DomainEventPublisher domainEventPublisher;
-  private final UnitOfWork unitOfWork;
+  private final TransactionBoundary transactionBoundary;
 
   public StartCheckoutUseCase(
       final CartDataPort cartDataPort,
       final CheckoutArticleDataPort checkoutArticleDataPort,
       final CheckoutSessionRepository checkoutSessionRepository,
       final DomainEventPublisher domainEventPublisher,
-      final UnitOfWork unitOfWork) {
+      final TransactionBoundary transactionBoundary) {
     this.cartDataPort = cartDataPort;
     this.checkoutArticleDataPort = checkoutArticleDataPort;
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.domainEventPublisher = domainEventPublisher;
-    this.unitOfWork = unitOfWork;
+    this.transactionBoundary = transactionBoundary;
   }
 
   @Override
@@ -105,7 +105,7 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
     final Money total = subtotal;
 
     // Short transaction: create, save, publish
-    return unitOfWork.run(
+    return transactionBoundary.inTransaction(
         () -> {
           final CheckoutSession session =
               CheckoutSession.start(cart.cartId(), cart.customerId(), lineItems, total);
