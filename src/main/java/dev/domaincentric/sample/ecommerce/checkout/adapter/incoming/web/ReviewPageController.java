@@ -6,8 +6,11 @@ import dev.domaincentric.sample.ecommerce.checkout.application.getactivecheckout
 import dev.domaincentric.sample.ecommerce.checkout.application.getcheckoutsession.GetCheckoutSessionInputPort;
 import dev.domaincentric.sample.ecommerce.checkout.application.getcheckoutsession.GetCheckoutSessionQuery;
 import dev.domaincentric.sample.ecommerce.checkout.application.getcheckoutsession.GetCheckoutSessionResult;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutStep;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CustomerId;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.CheckoutStepValidator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
+import java.util.Optional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,14 +39,17 @@ public class ReviewPageController {
   private final GetCheckoutSessionInputPort getCheckoutSessionInputPort;
   private final GetActiveCheckoutSessionInputPort getActiveCheckoutSessionInputPort;
   private final IdentityProvider identityProvider;
+  private final CheckoutStepValidator checkoutStepValidator;
 
   public ReviewPageController(
       final GetCheckoutSessionInputPort getCheckoutSessionInputPort,
       final GetActiveCheckoutSessionInputPort getActiveCheckoutSessionInputPort,
-      final IdentityProvider identityProvider) {
+      final IdentityProvider identityProvider,
+      final CheckoutStepValidator checkoutStepValidator) {
     this.getCheckoutSessionInputPort = getCheckoutSessionInputPort;
     this.getActiveCheckoutSessionInputPort = getActiveCheckoutSessionInputPort;
     this.identityProvider = identityProvider;
+    this.checkoutStepValidator = checkoutStepValidator;
   }
 
   /**
@@ -81,6 +87,13 @@ public class ReviewPageController {
     if (!result.found()) {
       redirectAttributes.addFlashAttribute("error", "Checkout session not found");
       return "redirect:/cart";
+    }
+
+    // The domain decides whether this step may be opened at all
+    final Optional<String> redirect =
+        checkoutStepValidator.validateStepAccess(result.session(), CheckoutStep.REVIEW);
+    if (redirect.isPresent()) {
+      return "redirect:" + redirect.get();
     }
 
     // Convert to page-specific ViewModel

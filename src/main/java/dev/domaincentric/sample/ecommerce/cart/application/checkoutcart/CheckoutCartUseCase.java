@@ -10,6 +10,7 @@ import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartValidationResult;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCartFactory;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
@@ -42,16 +43,19 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
   private final ArticleDataPort articleDataPort;
+  private final EnrichedCartFactory enrichedCartFactory;
   private final DomainEventPublisher eventPublisher;
   private final TransactionBoundary transactionBoundary;
 
   public CheckoutCartUseCase(
       final ShoppingCartRepository shoppingCartRepository,
       final ArticleDataPort articleDataPort,
+      final EnrichedCartFactory enrichedCartFactory,
       final DomainEventPublisher eventPublisher,
       final TransactionBoundary transactionBoundary) {
     this.shoppingCartRepository = shoppingCartRepository;
     this.articleDataPort = articleDataPort;
+    this.enrichedCartFactory = enrichedCartFactory;
     this.eventPublisher = eventPublisher;
     this.transactionBoundary = transactionBoundary;
   }
@@ -78,7 +82,7 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
                   .findById(cartId)
                   .orElseThrow(
                       () -> new IllegalArgumentException("Cart not found: " + input.cartId()));
-          final EnrichedCart enrichedCart = EnrichedCart.from(cart, articleData);
+          final EnrichedCart enrichedCart = enrichedCartFactory.create(cart, articleData);
           if (!enrichedCart.isValidForCheckout()) {
             final ArticlePriceResolver priceResolver = buildResolver(articleData);
             final CartValidationResult validationResult = cart.validateForCheckout(priceResolver);

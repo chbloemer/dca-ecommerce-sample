@@ -5,6 +5,7 @@ import dev.domaincentric.sample.ecommerce.cart.application.shared.ShoppingCartRe
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartArticle;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCart;
+import dev.domaincentric.sample.ecommerce.cart.domain.model.EnrichedCartFactory;
 import dev.domaincentric.sample.ecommerce.cart.domain.model.ShoppingCart;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.util.Map;
@@ -28,11 +29,15 @@ public class GetCartByIdUseCase implements GetCartByIdInputPort {
 
   private final ShoppingCartRepository shoppingCartRepository;
   private final ArticleDataPort articleDataPort;
+  private final EnrichedCartFactory enrichedCartFactory;
 
   public GetCartByIdUseCase(
-      final ShoppingCartRepository shoppingCartRepository, final ArticleDataPort articleDataPort) {
+      final ShoppingCartRepository shoppingCartRepository,
+      final ArticleDataPort articleDataPort,
+      final EnrichedCartFactory enrichedCartFactory) {
     this.shoppingCartRepository = shoppingCartRepository;
     this.articleDataPort = articleDataPort;
+    this.enrichedCartFactory = enrichedCartFactory;
   }
 
   @Override
@@ -53,8 +58,8 @@ public class GetCartByIdUseCase implements GetCartByIdInputPort {
 
     final Map<ProductId, CartArticle> articleData = articleDataPort.getArticleData(productIds);
 
-    // Create enriched cart using factory method
-    final EnrichedCart enrichedCart = EnrichedCart.from(cart, articleData);
+    // The factory assembles the enriched read model from cart state and current article data
+    final EnrichedCart enrichedCart = enrichedCartFactory.create(cart, articleData);
 
     return GetCartByIdResult.found(enrichedCart);
   }

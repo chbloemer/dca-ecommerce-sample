@@ -11,8 +11,11 @@ import dev.domaincentric.sample.ecommerce.checkout.application.getcheckoutsessio
 import dev.domaincentric.sample.ecommerce.checkout.application.getconfirmedcheckoutsession.GetConfirmedCheckoutSessionInputPort;
 import dev.domaincentric.sample.ecommerce.checkout.application.getconfirmedcheckoutsession.GetConfirmedCheckoutSessionQuery;
 import dev.domaincentric.sample.ecommerce.checkout.application.getconfirmedcheckoutsession.GetConfirmedCheckoutSessionResult;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutStep;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CustomerId;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.CheckoutStepValidator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
+import java.util.Optional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,18 +47,21 @@ public class ConfirmationPageController {
   private final GetActiveCheckoutSessionInputPort getActiveCheckoutSessionInputPort;
   private final GetConfirmedCheckoutSessionInputPort getConfirmedCheckoutSessionInputPort;
   private final IdentityProvider identityProvider;
+  private final CheckoutStepValidator checkoutStepValidator;
 
   public ConfirmationPageController(
       final ConfirmCheckoutInputPort confirmCheckoutInputPort,
       final GetCheckoutSessionInputPort getCheckoutSessionInputPort,
       final GetActiveCheckoutSessionInputPort getActiveCheckoutSessionInputPort,
       final GetConfirmedCheckoutSessionInputPort getConfirmedCheckoutSessionInputPort,
-      final IdentityProvider identityProvider) {
+      final IdentityProvider identityProvider,
+      final CheckoutStepValidator checkoutStepValidator) {
     this.confirmCheckoutInputPort = confirmCheckoutInputPort;
     this.getCheckoutSessionInputPort = getCheckoutSessionInputPort;
     this.getActiveCheckoutSessionInputPort = getActiveCheckoutSessionInputPort;
     this.getConfirmedCheckoutSessionInputPort = getConfirmedCheckoutSessionInputPort;
     this.identityProvider = identityProvider;
+    this.checkoutStepValidator = checkoutStepValidator;
   }
 
   /**
@@ -135,11 +141,13 @@ public class ConfirmationPageController {
       return "redirect:/cart";
     }
 
-    // Only allow access to confirmation page if the session is confirmed or completed
+    // The domain decides whether the confirmation may be shown
     final var snapshot = result.session();
-    if (!snapshot.isConfirmed() && !snapshot.isCompleted()) {
+    final Optional<String> redirect =
+        checkoutStepValidator.validateStepAccess(snapshot, CheckoutStep.CONFIRMATION);
+    if (redirect.isPresent()) {
       redirectAttributes.addFlashAttribute("error", "Order has not been confirmed yet");
-      return "redirect:/checkout/review";
+      return "redirect:" + redirect.get();
     }
 
     // Convert to page-specific ViewModel

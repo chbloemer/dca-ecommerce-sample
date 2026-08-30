@@ -183,6 +183,22 @@ public record CheckoutCartSnapshot(
   }
 
   /**
+   * Checks whether the data a step contributes is present on the session.
+   *
+   * @param step the step to check
+   * @return true if the step has been fulfilled
+   */
+  public boolean isStepCompleted(final CheckoutStep step) {
+    return switch (step) {
+      case BUYER_INFO -> hasBuyerInfo();
+      case DELIVERY -> hasDeliveryAddress() && hasShippingOption();
+      case PAYMENT -> hasPaymentSelection();
+      case REVIEW -> isConfirmed() || isCompleted();
+      case CONFIRMATION -> isCompleted();
+    };
+  }
+
+  /**
    * Checks if the session is active.
    *
    * @return true if status is ACTIVE

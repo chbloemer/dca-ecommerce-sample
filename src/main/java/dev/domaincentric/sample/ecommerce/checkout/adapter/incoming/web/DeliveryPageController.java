@@ -11,8 +11,11 @@ import dev.domaincentric.sample.ecommerce.checkout.application.getshippingoption
 import dev.domaincentric.sample.ecommerce.checkout.application.getshippingoptions.GetShippingOptionsResult;
 import dev.domaincentric.sample.ecommerce.checkout.application.submitdelivery.SubmitDeliveryCommand;
 import dev.domaincentric.sample.ecommerce.checkout.application.submitdelivery.SubmitDeliveryInputPort;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutStep;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CustomerId;
+import dev.domaincentric.sample.ecommerce.checkout.domain.service.CheckoutStepValidator;
 import dev.domaincentric.sample.ecommerce.sharedkernel.application.shared.IdentityProvider;
+import java.util.Optional;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -46,18 +49,21 @@ public class DeliveryPageController {
   private final GetShippingOptionsInputPort getShippingOptionsInputPort;
   private final SubmitDeliveryInputPort submitDeliveryInputPort;
   private final IdentityProvider identityProvider;
+  private final CheckoutStepValidator checkoutStepValidator;
 
   public DeliveryPageController(
       final GetCheckoutSessionInputPort getCheckoutSessionInputPort,
       final GetActiveCheckoutSessionInputPort getActiveCheckoutSessionInputPort,
       final GetShippingOptionsInputPort getShippingOptionsInputPort,
       final SubmitDeliveryInputPort submitDeliveryInputPort,
-      final IdentityProvider identityProvider) {
+      final IdentityProvider identityProvider,
+      final CheckoutStepValidator checkoutStepValidator) {
     this.getCheckoutSessionInputPort = getCheckoutSessionInputPort;
     this.getActiveCheckoutSessionInputPort = getActiveCheckoutSessionInputPort;
     this.getShippingOptionsInputPort = getShippingOptionsInputPort;
     this.submitDeliveryInputPort = submitDeliveryInputPort;
     this.identityProvider = identityProvider;
+    this.checkoutStepValidator = checkoutStepValidator;
   }
 
   /**
@@ -95,6 +101,13 @@ public class DeliveryPageController {
     if (!result.found()) {
       redirectAttributes.addFlashAttribute("error", "Checkout session not found");
       return "redirect:/cart";
+    }
+
+    // The domain decides whether this step may be opened at all
+    final Optional<String> redirect =
+        checkoutStepValidator.validateStepAccess(result.session(), CheckoutStep.DELIVERY);
+    if (redirect.isPresent()) {
+      return "redirect:" + redirect.get();
     }
 
     // Convert to page-specific ViewModel

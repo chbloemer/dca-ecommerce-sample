@@ -8,6 +8,8 @@ import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutAr
 import dev.domaincentric.sample.ecommerce.checkout.application.shared.CheckoutSessionRepository;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CartId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutArticle;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCart;
+import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutCartFactory;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItem;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutLineItemId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
@@ -27,6 +29,8 @@ import org.springframework.stereotype.Service;
  *   <li>Loading the cart data through the Anti-Corruption Layer
  *   <li>Fetching article data (name, price, availability) via CheckoutArticleDataPort
  *   <li>Creating checkout line items with current product details
+ *   <li>Assembling a {@link CheckoutCart} through the {@link CheckoutCartFactory} and refusing to
+ *       start when an article is unavailable or out of stock
  *   <li>Creating and persisting the checkout session
  * </ul>
  *
@@ -47,6 +51,7 @@ import org.springframework.stereotype.Service;
 public class StartCheckoutUseCase implements StartCheckoutInputPort {
 
   private final CartDataPort cartDataPort;
+  private final CheckoutCartFactory checkoutCartFactory;
   private final CheckoutArticleDataPort checkoutArticleDataPort;
   private final CheckoutSessionRepository checkoutSessionRepository;
   private final DomainEventPublisher domainEventPublisher;
@@ -54,11 +59,13 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
 
   public StartCheckoutUseCase(
       final CartDataPort cartDataPort,
+      final CheckoutCartFactory checkoutCartFactory,
       final CheckoutArticleDataPort checkoutArticleDataPort,
       final CheckoutSessionRepository checkoutSessionRepository,
       final DomainEventPublisher domainEventPublisher,
       final TransactionBoundary transactionBoundary) {
     this.cartDataPort = cartDataPort;
+    this.checkoutCartFactory = checkoutCartFactory;
     this.checkoutArticleDataPort = checkoutArticleDataPort;
     this.checkoutSessionRepository = checkoutSessionRepository;
     this.domainEventPublisher = domainEventPublisher;
@@ -85,24 +92,32 @@ public class StartCheckoutUseCase implements StartCheckoutInputPort {
     final Map<ProductId, CheckoutArticle> articleDataMap =
         checkoutArticleDataPort.getArticleData(productIds);
     final List<CheckoutLineItem> lineItems = new ArrayList<>();
-    Money subtotal = Money.euro(0.0);
     for (final CartData.CartItemData cartItem : cart.items()) {
       final CheckoutArticle article = articleDataMap.get(cartItem.productId());
       if (article == null) {
         throw new IllegalArgumentException("Product not found: " + cartItem.productId().value());
       }
-      final CheckoutLineItem lineItem =
+      lineItems.add(
           CheckoutLineItem.of(
               CheckoutLineItemId.generate(),
               cartItem.productId(),
               article.name(),
               article.currentPrice(),
               cartItem.quantity(),
-              article.imageUrl());
-      lineItems.add(lineItem);
-      subtotal = subtotal.add(lineItem.lineTotal());
+              article.imageUrl()));
     }
-    final Money total = subtotal;
+
+    // The enriched read model pairs each line item with its current article data, so the domain can
+    // answer availability, stock and pricing questions before a session exists
+    final CheckoutCart checkoutCart =
+        checkoutCartFactory.create(cart.cartId(), cart.customerId(), lineItems, articleDataMap);
+    if (!checkoutCart.isValidForCheckout()) {
+      throw new IllegalStateException(
+          "Cannot start checkout, "
+              + checkoutCart.invalidItems().size()
+              + " item(s) unavailable or out of stock");
+    }
+    final Money total = checkoutCart.calculateCurrentSubtotal();
 
     // Short transaction: create, save, publish
     return transactionBoundary.inTransaction(
