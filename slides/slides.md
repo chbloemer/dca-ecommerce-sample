@@ -849,7 +849,7 @@ Fragen?
 
 📖 Mehr Details: `docs/architecture/architecture-principles.md`
 
-🔗 Referenz: https://github.com/chbloemer/implementing-domain-centric-architecture
+🔗 Referenz: https://github.com/domain-centric-development/dca-guide
 
 🧪 Tests: `./gradlew test-architecture`
 
