@@ -35,10 +35,6 @@ block content
                 if !provider.available()
                   span.option-card__unavailable (Unavailable)
 
-      .form__group
-        label.form__label(for="providerReference") Payment Reference (Optional)
-        input.form__input#providerReference(type="text" name="providerReference" placeholder="e.g., Payment Intent ID" value='')
-
       .form__actions
         a.btn.btn--secondary(href="/checkout/delivery" data-test="payment-back-link") Back
         button.btn.btn--primary(type="submit" data-test="payment-continue-button") Continue to Review

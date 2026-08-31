@@ -9,6 +9,7 @@ import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSession;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.CheckoutSessionId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.PaymentProviderId;
 import dev.domaincentric.sample.ecommerce.checkout.domain.model.PaymentSelection;
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>Loading and validating the checkout session
  *   <li>Validating the payment provider exists and is available
- *   <li>Creating PaymentSelection value object from command data
+ *   <li>Initiating the payment with the provider and taking its reference
  *   <li>Calling the domain method to submit payment info
  *   <li>Persisting the updated session
  * </ul>
@@ -51,7 +52,8 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
     final CheckoutSessionId sessionId = CheckoutSessionId.of(command.sessionId());
     final PaymentProviderId providerId = PaymentProviderId.of(command.providerId());
 
-    // Provider lookup is remote-capable (payment service provider) - outside the transaction
+    // Provider lookup and payment initiation are remote-capable (payment service provider) -
+    // both stay outside the transaction
     final PaymentProvider provider =
         paymentProviderRegistry
             .findById(providerId)
@@ -59,8 +61,27 @@ public class SubmitPaymentUseCase implements SubmitPaymentInputPort {
                 () ->
                     new IllegalArgumentException(
                         "Payment provider not found: " + command.providerId()));
+    if (!provider.isAvailable()) {
+      throw new IllegalStateException(
+          "Payment provider is currently unavailable: " + command.providerId());
+    }
+
+    // The amount to charge is the session total as it stands when payment is submitted
+    final Money amount =
+        checkoutSessionRepository
+            .findById(sessionId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("Session not found: " + command.sessionId()))
+            .totals()
+            .total();
+
+    final PaymentProvider.PaymentResult initiation = provider.initiatePayment(sessionId, amount);
+    if (!initiation.success()) {
+      throw new IllegalStateException(initiation.errorMessage());
+    }
+
     final PaymentSelection paymentSelection =
-        PaymentSelection.of(providerId, command.providerReference());
+        PaymentSelection.of(providerId, initiation.providerReference());
 
     // Short transaction: load, submit, save, publish
     return transactionBoundary.inTransaction(

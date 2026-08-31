@@ -642,6 +642,6 @@ class ArticleDataFlowIntegrationTest {
             "EUR"));
 
     // Submit payment
-    submitPaymentInputPort.execute(new SubmitPaymentCommand(sessionId, "mock", null));
+    submitPaymentInputPort.execute(new SubmitPaymentCommand(sessionId, "mock"));
   }
 }

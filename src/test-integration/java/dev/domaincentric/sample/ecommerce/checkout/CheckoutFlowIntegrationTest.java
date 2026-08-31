@@ -154,9 +154,7 @@ class CheckoutFlowIntegrationTest {
 
     // Step 5: Submit payment information (using "mock" payment provider)
     submitPaymentInputPort.execute(
-        new SubmitPaymentCommand(
-            sessionId, "mock", null // providerReference - not needed for mock provider
-            ));
+        new SubmitPaymentCommand(sessionId, "mock"));
 
     GetCheckoutSessionResult afterPayment =
         getCheckoutSessionInputPort.execute(GetCheckoutSessionQuery.of(sessionId));

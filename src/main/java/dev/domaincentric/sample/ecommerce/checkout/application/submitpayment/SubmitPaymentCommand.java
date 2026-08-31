@@ -1,16 +1,15 @@
 package dev.domaincentric.sample.ecommerce.checkout.application.submitpayment;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Input model for submitting payment information during checkout.
  *
+ * <p>The provider reference is not part of the input: it is what the payment provider returns when
+ * the payment is initiated.
+ *
  * @param sessionId the checkout session ID
  * @param providerId the selected payment provider ID
- * @param providerReference optional provider-specific reference (e.g., payment intent ID)
  */
-public record SubmitPaymentCommand(
-    String sessionId, String providerId, @Nullable String providerReference) {
+public record SubmitPaymentCommand(String sessionId, String providerId) {
 
   /** Compact constructor with validation. */
   public SubmitPaymentCommand {

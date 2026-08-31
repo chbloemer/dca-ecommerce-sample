@@ -129,15 +129,12 @@ public class PaymentPageController {
    * success.
    *
    * @param providerId the selected payment provider ID
-   * @param providerReference optional provider-specific reference
    * @param redirectAttributes for passing flash messages
    * @return redirect to review step or back to payment on error
    */
   @PostMapping("/payment")
   public String submitPayment(
-      @RequestParam final String providerId,
-      @RequestParam(required = false) final String providerReference,
-      final RedirectAttributes redirectAttributes) {
+      @RequestParam final String providerId, final RedirectAttributes redirectAttributes) {
 
     // Get customer ID from JWT identity
     final IdentityProvider.Identity identity = identityProvider.getCurrentIdentity();
@@ -155,7 +152,7 @@ public class PaymentPageController {
 
     try {
       submitPaymentInputPort.execute(
-          new SubmitPaymentCommand(activeSession.sessionId(), providerId, providerReference));
+          new SubmitPaymentCommand(activeSession.sessionId(), providerId));
 
       return "redirect:/checkout/review";
 
