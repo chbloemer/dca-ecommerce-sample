@@ -982,3 +982,6 @@ These tests verify:
 
 MIT — see [LICENSE](LICENSE). A sample project: read it as a reference for structure, not as a hardened
 product.
+
+Contributions are accepted under the MIT licence, and the copyright holder may additionally publish
+them under other licences (for example a documentation licence for prose).
