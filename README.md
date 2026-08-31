@@ -542,7 +542,8 @@ src/main/java/dev/domaincentric/sample/ecommerce/
 │   ├── api/                              # Spring Modulith @NamedInterface API
 │   │   └── InventoryService.java         # Open Host Service
 │   ├── events/                           # Spring Modulith integration events
-│   │   └── StockReductionTrigger.java
+│   │   ├── StockReductionTrigger.java
+│   │   └── StockInitializationTrigger.java
 │   ├── domain/
 │   │   ├── model/                        # Domain model
 │   │   │   ├── StockLevel.java           # Aggregate Root
@@ -576,7 +577,8 @@ src/main/java/dev/domaincentric/sample/ecommerce/
 │   └── adapter/                          # Adapters
 │       ├── incoming/                     # Incoming adapters
 │       │   └── event/
-│       │       └── StockReductionEventConsumer.java
+│       │       ├── StockReductionEventConsumer.java
+│       │       └── StockInitializationEventConsumer.java
 │       └── outgoing/                     # Outgoing adapters
 │           └── persistence/
 │               └── InMemoryStockLevelRepository.java
@@ -584,6 +586,8 @@ src/main/java/dev/domaincentric/sample/ecommerce/
 ├── pricing/                              # Pricing bounded context
 │   ├── api/                              # Spring Modulith @NamedInterface API
 │   │   └── PricingService.java           # Open Host Service
+│   ├── events/                           # Spring Modulith integration events
+│   │   └── PriceInitializationTrigger.java
 │   ├── domain/
 │   │   ├── model/                        # Domain model
 │   │   │   ├── ProductPrice.java         # Aggregate Root
@@ -605,6 +609,9 @@ src/main/java/dev/domaincentric/sample/ecommerce/
 │   │   └── shared/                       # Shared output ports
 │   │       └── ProductPriceRepository.java
 │   └── adapter/                          # Adapters
+│       ├── incoming/                     # Incoming adapters
+│       │   └── event/
+│       │       └── PriceInitializationEventConsumer.java
 │       └── outgoing/                     # Outgoing adapters
 │           └── persistence/
 │               └── InMemoryProductPriceRepository.java

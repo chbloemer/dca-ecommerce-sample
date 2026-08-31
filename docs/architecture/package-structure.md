@@ -326,8 +326,11 @@ dev.domaincentric.sample.ecommerce
 │               └── AccountBasedRegisteredUserValidator
 │
 ├── inventory/                       # Inventory Bounded Context
+│   ├── api/                         # @NamedInterface("api") — Open Host Service
+│   │   └── InventoryService
 │   ├── events/                      # @NamedInterface("events") — trigger interfaces
-│   │   └── StockReductionTrigger    # Interface Inversion: consumer-defined trigger
+│   │   ├── StockReductionTrigger        # Interface Inversion: consumer-defined trigger
+│   │   └── StockInitializationTrigger   # Interface Inversion: consumer-defined trigger
 │   ├── domain/
 │   │   ├── model/
 │   │   │   ├── StockLevel (Aggregate Root)
@@ -350,15 +353,18 @@ dev.domaincentric.sample.ecommerce
 │   │       └── StockLevelRepository
 │   └── adapter/
 │       ├── incoming/
-│       │   ├── openhost/
-│       │   │   └── InventoryService
 │       │   └── event/
-│       │       └── StockReductionEventConsumer
+│       │       ├── StockReductionEventConsumer
+│       │       └── StockInitializationEventConsumer
 │       └── outgoing/
 │           └── persistence/
 │               └── InMemoryStockLevelRepository
 │
 ├── pricing/                         # Pricing Bounded Context
+│   ├── api/                         # @NamedInterface("api") — Open Host Service
+│   │   └── PricingService
+│   ├── events/                      # @NamedInterface("events") — trigger interfaces
+│   │   └── PriceInitializationTrigger  # Interface Inversion: consumer-defined trigger
 │   ├── domain/
 │   │   ├── model/
 │   │   │   ├── ProductPrice (Aggregate Root)
@@ -377,10 +383,8 @@ dev.domaincentric.sample.ecommerce
 │   │       └── ProductPriceRepository
 │   └── adapter/
 │       ├── incoming/
-│       │   ├── openhost/
-│       │   │   └── PricingService
 │       │   └── event/
-│       │       └── ProductCreatedEventConsumer
+│       │       └── PriceInitializationEventConsumer
 │       └── outgoing/
 │           └── persistence/
 │               └── InMemoryProductPriceRepository

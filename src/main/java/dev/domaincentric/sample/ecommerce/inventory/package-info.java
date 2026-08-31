@@ -10,6 +10,11 @@
     rationale =
         "Inventory owns the consumer-defined StockReductionTrigger contract that checkout events"
             + " implement; both contexts evolve it together")
+@Partnership(
+    context = "product",
+    rationale =
+        "Inventory owns the consumer-defined StockInitializationTrigger contract that the catalog's"
+            + " events implement; both contexts evolve it together")
 @ApplicationModule(allowedDependencies = {"sharedkernel", "infrastructure"})
 package dev.domaincentric.sample.ecommerce.inventory;
 

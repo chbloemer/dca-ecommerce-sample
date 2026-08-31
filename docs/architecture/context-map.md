@@ -22,7 +22,7 @@ modules and the shared kernel are intentionally not part of this map.
 | checkout | Checkout | Checkout process, order placement, and payment orchestration | events |
 | inventory | Inventory | Stock level management and inventory tracking | api, events |
 | portal | Portal | Web portal, user interface composition, and cross-context views | — |
-| pricing | Pricing | Product pricing management and price change tracking | api |
+| pricing | Pricing | Product pricing management and price change tracking | api, events |
 | product | Product Catalog | Product management, catalog browsing, and inventory tracking | api, events |
 
 ## Diagram
@@ -34,7 +34,7 @@ graph LR
   checkout["Checkout<br/><i>events</i>"]
   inventory["Inventory<br/><i>api · events</i>"]
   portal["Portal"]
-  pricing["Pricing<br/><i>api</i>"]
+  pricing["Pricing<br/><i>api · events</i>"]
   product["Product Catalog<br/><i>api · events</i>"]
 
   cart -->|"ACL / api"| product
@@ -48,11 +48,15 @@ graph LR
   checkout -.->|"Conformist / events"| cart
   product -->|"ACL / api"| pricing
   product -->|"ACL / api"| inventory
+  product -.->|"Conformist / events"| pricing
+  product -.->|"Conformist / events"| inventory
   ext_payment_service_provider[["Payment Service Provider"]]
   checkout -->|"ACL / REST"| ext_payment_service_provider
   checkout -.->|"ACL / webhook / planned"| ext_payment_service_provider
   cart ---|"Partnership"| checkout
   checkout ---|"Partnership"| inventory
+  inventory ---|"Partnership"| product
+  pricing ---|"Partnership"| product
 ```
 
 Arrows point from downstream to upstream (dependency direction, never call direction).
@@ -76,6 +80,8 @@ Edges labeled `planned` are declared intent without a code dependency yet.
 | checkout | cart | events | Conformist | implemented | CheckoutConfirmedEvent implements cart's consumer-defined CartCompletionTrigger contract as-is; cart change events are consumed directly |
 | product | pricing | api | ACL | implemented | Prices are translated into the catalog's own product presentation data |
 | product | inventory | api | ACL | implemented | Stock levels are translated into the catalog's own availability data |
+| product | pricing | events | Conformist | implemented | ProductCreatedEvent implements pricing's consumer-defined PriceInitializationTrigger contract as-is |
+| product | inventory | events | Conformist | implemented | ProductCreatedEvent implements inventory's consumer-defined StockInitializationTrigger contract as-is |
 
 ## External systems
 
@@ -90,3 +96,5 @@ Edges labeled `planned` are declared intent without a code dependency yet.
 |---|---|
 | cart ↔ checkout | Cart owns the consumer-defined CartCompletionTrigger contract that checkout events implement; both contexts evolve it together — Checkout implements cart's consumer-defined CartCompletionTrigger contract; both contexts evolve it together |
 | checkout ↔ inventory | Checkout implements inventory's consumer-defined StockReductionTrigger contract; both contexts evolve it together — Inventory owns the consumer-defined StockReductionTrigger contract that checkout events implement; both contexts evolve it together |
+| inventory ↔ product | Inventory owns the consumer-defined StockInitializationTrigger contract that the catalog's events implement; both contexts evolve it together — The catalog implements inventory's consumer-defined StockInitializationTrigger contract; both contexts evolve it together |
+| pricing ↔ product | Pricing owns the consumer-defined PriceInitializationTrigger contract that the catalog's events implement; both contexts evolve it together — The catalog implements pricing's consumer-defined PriceInitializationTrigger contract; both contexts evolve it together |

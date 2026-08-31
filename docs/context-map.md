@@ -43,6 +43,8 @@ and universal value objects (`ProductId`, `Money`, …). Deliberately kept small
 | `cart` | `checkout` | Customer/Supplier (OHS) | `cart.api.CartService` (lookups) |
 | `checkout` | `cart` | Published Language — Interface Inversion | `checkout.events.CheckoutConfirmedEvent` *implements* `cart.events.CartCompletionTrigger`; consumer in `cart/adapter/incoming/event/CartCompletionEventConsumer` |
 | `checkout` | `inventory` | Published Language — Interface Inversion | `checkout.events.CheckoutConfirmedEvent` *implements* `inventory.events.StockReductionTrigger`; consumer in `inventory/adapter/incoming/event/StockReductionEventConsumer` |
+| `product` | `pricing` | Published Language — Interface Inversion | `product.events.ProductCreatedEvent` *implements* `pricing.events.PriceInitializationTrigger`; consumer in `pricing/adapter/incoming/event/PriceInitializationEventConsumer` |
+| `product` | `inventory` | Published Language — Interface Inversion | `product.events.ProductCreatedEvent` *implements* `inventory.events.StockInitializationTrigger`; consumer in `inventory/adapter/incoming/event/StockInitializationEventConsumer` |
 | `account` | (all) | Separate Ways | No direct code dependency; authentication flows via JWT / security filters (`infrastructure.security`) |
 | `portal` | (all) | Separate Ways | Aggregation happens client-side; no Java cross-context imports |
 | `backoffice` | (all) | Separate Ways | Consumes only Spring Modulith infrastructure (`JdbcEventPublicationLogStore`) |
@@ -80,6 +82,8 @@ graph LR
   cart -.->|PL: CartContentsChangedEvent| checkout
   checkout -.->|PL — Interface Inversion<br/>CartCompletionTrigger| cart
   checkout -.->|PL — Interface Inversion<br/>StockReductionTrigger| inventory
+  product -.->|PL — Interface Inversion<br/>PriceInitializationTrigger| pricing
+  product -.->|PL — Interface Inversion<br/>StockInitializationTrigger| inventory
 
   product:::core
   cart:::core

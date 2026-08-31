@@ -1,11 +1,6 @@
 package dev.domaincentric.sample.ecommerce.infrastructure.init;
 
-import dev.domaincentric.sample.ecommerce.inventory.api.InventoryService;
-import dev.domaincentric.sample.ecommerce.pricing.api.PricingService;
 import dev.domaincentric.sample.ecommerce.product.api.ProductCatalogService;
-import dev.domaincentric.sample.ecommerce.product.api.ProductCatalogService.CreatedProduct;
-import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
-import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.math.BigDecimal;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,9 +10,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Initializes sample product data for demonstration purposes.
  *
- * <p>Uses the published APIs of Product, Pricing, and Inventory contexts to create products with
- * initial prices and stock levels. This cross-cutting initializer lives in infrastructure because
- * it orchestrates multiple bounded contexts.
+ * <p>Uses the published API of the Product Catalog to create products with their initial price and
+ * stock level. Pricing and Inventory pick those figures up from the {@code ProductCreatedEvent},
+ * each through its own trigger contract — the seeder never calls them, and this initializer knows
+ * only the one context it writes to.
  *
  * <p>Runs as an {@link ApplicationRunner} within a {@link TransactionTemplate} to ensure all
  * operations complete within a proper transaction.
@@ -26,18 +22,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class SampleDataInitializer implements ApplicationRunner {
 
   private final ProductCatalogService productCatalogService;
-  private final PricingService pricingService;
-  private final InventoryService inventoryService;
   private final TransactionTemplate transactionTemplate;
 
   public SampleDataInitializer(
       final ProductCatalogService productCatalogService,
-      final PricingService pricingService,
-      final InventoryService inventoryService,
       final TransactionTemplate transactionTemplate) {
     this.productCatalogService = productCatalogService;
-    this.pricingService = pricingService;
-    this.inventoryService = inventoryService;
     this.transactionTemplate = transactionTemplate;
   }
 
@@ -151,7 +141,9 @@ public class SampleDataInitializer implements ApplicationRunner {
         "Sports",
         18);
 
-    System.out.println("Sample data initialized: 11 products with prices and stock levels");
+    System.out.println(
+        "Sample data initialized: 11 products; Pricing and Inventory follow via"
+            + " ProductCreatedEvent");
   }
 
   private void createProduct(
@@ -163,23 +155,14 @@ public class SampleDataInitializer implements ApplicationRunner {
       final String category,
       final int initialStock) {
 
-    CreatedProduct created =
-        productCatalogService.createProduct(
-            sku,
-            name,
-            description,
-            imageUrl,
-            BigDecimal.valueOf(price),
-            "EUR",
-            category,
-            initialStock);
-
-    ProductId productId = created.productId();
-
-    // Set initial price via Pricing API
-    pricingService.setInitialPrice(productId, Money.euro(BigDecimal.valueOf(price)));
-
-    // Set initial stock via Inventory API
-    inventoryService.setInitialStock(productId, initialStock);
+    productCatalogService.createProduct(
+        sku,
+        name,
+        description,
+        imageUrl,
+        BigDecimal.valueOf(price),
+        "EUR",
+        category,
+        initialStock);
   }
 }

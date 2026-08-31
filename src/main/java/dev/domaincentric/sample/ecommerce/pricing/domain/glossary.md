@@ -122,6 +122,24 @@ _No separate factories — construction via the static factory method
 
 ---
 
+## Integration Contracts
+
+### PriceInitializationTrigger
+
+**Definition:** The shape Pricing asks of any event that means "this product must have a price now":
+the product and the price it starts with. Pricing owns the contract and listens to it; the publishing
+context (the Product Catalog) implements it on its `ProductCreatedEvent`, so Pricing never depends on
+whoever creates products (Interface Inversion).
+
+**Type:** Consumer-defined trigger contract (Published Language, owned here)
+
+**Related terms:** `ProductPrice`, **Initial Price Determination**
+
+**Notes:** Consumed by `pricing.adapter.incoming.event.PriceInitializationEventConsumer`, which calls
+the `SetProductPrice` use case. Idempotent: a redelivery updates the existing price instead of failing.
+
+---
+
 ## Concepts (not in code, but in conversation)
 
 ### Current price

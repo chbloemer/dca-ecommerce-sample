@@ -180,6 +180,38 @@ _No separate factories — construction via the static factory method
 
 ---
 
+## Integration Contracts
+
+### StockInitializationTrigger
+
+**Definition:** The shape Inventory asks of any event that means "this product must have a stock level
+now": the product and the quantity it starts with. Inventory owns the contract; the Product Catalog
+implements it on its `ProductCreatedEvent` (Interface Inversion), so Inventory never depends on the
+catalog.
+
+**Type:** Consumer-defined trigger contract (Published Language, owned here)
+
+**Related terms:** `StockLevel`, `StockReductionTrigger`
+
+**Notes:** Consumed by `inventory.adapter.incoming.event.StockInitializationEventConsumer`, which calls
+the `SetStockLevel` use case. Idempotent: setting the same figure twice has the same effect.
+
+---
+
+### StockReductionTrigger
+
+**Definition:** The shape Inventory asks of any event that means "stock has been sold": the line items
+whose stock must go down. Owned here and implemented by Checkout's `CheckoutConfirmedEvent`.
+
+**Type:** Consumer-defined trigger contract (Published Language, owned here)
+
+**Related terms:** `StockLevel`, `StockInitializationTrigger`
+
+**Notes:** Consumed by `inventory.adapter.incoming.event.StockReductionEventConsumer`. Its
+`OrderLineItem` wording is an open issue — see below.
+
+---
+
 ## Concepts (not in code, but in conversation)
 
 ### Available quantity
