@@ -31,7 +31,8 @@ import org.springframework.stereotype.Service;
  *   <li>Retrieving the cart
  *   <li>Fetching fresh article data for all cart items
  *   <li>Validating the cart with current availability and stock
- *   <li>Checking out (business logic in aggregate validates rules)
+ *   <li>Checking out (business logic in aggregate validates rules — an empty or inactive cart is
+ *       refused by the aggregate, not reported as a validation error without errors)
  *   <li>Persisting the updated cart
  *   <li>Publishing domain events
  * </ol>
@@ -87,7 +88,11 @@ public class CheckoutCartUseCase implements CheckoutCartInputPort {
           if (!enrichedCart.isValidForCheckout()) {
             final ArticlePriceResolver priceResolver = buildResolver(articleData);
             final CartValidationResult validationResult = cart.validateForCheckout(priceResolver);
-            throw new CartValidationException(validationResult);
+            if (!validationResult.isValid()) {
+              throw new CartValidationException(validationResult);
+            }
+            // Nothing is wrong with the articles: the cart itself is in no state to be checked out
+            // (empty, or no longer active). Let the aggregate say so in its own words.
           }
           cart.checkout();
           shoppingCartRepository.save(cart);
