@@ -2,12 +2,13 @@
 
 ## Theme Architecture
 
-Themes are implemented entirely in CSS via `data-theme` attributes on `<html>`. The default (Organic) theme lives in `:root`. Each additional theme is a `[data-theme="<name>"]` block that overrides design tokens and adds component-specific rules.
+Themes are implemented entirely in CSS via `data-theme` attributes on `<html>`. The default (Blueprint) theme lives in `:root`; its component rules are scoped with `html:not([data-theme])` so the other themes are not affected by them. Each additional theme is a `[data-theme="<name>"]` block that overrides design tokens and adds component-specific rules.
 
 **Current themes:**
 
 | Value | Name | Character |
 |-------|------|-----------|
+| _(none)_ | **Blueprint** — default | domaincentric.dev identity: paper, ink and one teal; Space Grotesk for the interface, Newsreader for running prose, JetBrains Mono for prices; dark header with the Hex Graph mark, honeycomb hero, hairlines instead of shadows |
 | `organic` | Organic | Earthy luxury — warm tones, Cormorant Garamond + Nunito Sans |
 | `sharp` | Sharp & Minimal | Monochrome + blue — Inter + Instrument Sans, sharp corners |
 | `classic` | Classic | Blue/purple gradient hero — Inter only, original design |
@@ -22,7 +23,7 @@ layout.pug
 └── <body> bottom script    → syncs <select> value, listens for changes, writes localStorage
 ```
 
-The Organic theme is the default — it uses no `data-theme` attribute (`:root` values apply). All other themes set `data-theme` on `<html>`, which activates their CSS overrides.
+The Blueprint theme is the default — it uses no `data-theme` attribute (`:root` values apply, and its component rules are written as `html:not([data-theme]) …`). All other themes, Organic included, set `data-theme` on `<html>`, which activates their CSS overrides and switches the Blueprint rules off.
 
 ### File Locations
 

@@ -10,6 +10,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Initializes sample product data for demonstration purposes.
  *
+ * <p>The catalog sells what this architecture is made of: the books the guide grew out of,
+ * modelling supplies for a design workshop, and hexagon merchandise.
+ *
  * <p>Uses the published API of the Product Catalog to create products with their initial price and
  * stock level. Pricing and Inventory pick those figures up from the {@code ProductCreatedEvent},
  * each through its own trigger contract — the seeder never calls them, and this initializer knows
@@ -37,59 +40,12 @@ public class SampleDataInitializer implements ApplicationRunner {
   }
 
   private void loadSampleProducts() {
-    // Electronics
-    createProduct(
-        "LAPTOP-001",
-        "Professional Laptop",
-        "Unleash your productivity with this high-performance laptop featuring 16GB RAM, a blazing-fast 512GB SSD, and a stunning 15.6-inch Retina display. Built for professionals who demand power and portability, it delivers all-day battery life and whisper-quiet operation.",
-        "/images/products/laptop.svg",
-        1299.99,
-        "Electronics",
-        15);
-
-    createProduct(
-        "PHONE-001",
-        "Smartphone Pro",
-        "Capture every moment in breathtaking detail with our flagship smartphone. The triple-lens 108MP camera system, edge-to-edge AMOLED display, and 5G connectivity make this the ultimate mobile companion for work and play.",
-        "/images/products/smartphone.svg",
-        899.99,
-        "Electronics",
-        25);
-
-    createProduct(
-        "TABLET-001",
-        "Tablet Air",
-        "The perfect blend of power and portability. This ultra-lightweight tablet features a vibrant 11-inch display, Apple M2 chip, and supports stylus input for creative professionals. Ideal for sketching, note-taking, and streaming on the go.",
-        "/images/products/tablet.svg",
-        599.99,
-        "Electronics",
-        30);
-
-    // Clothing
-    createProduct(
-        "SHIRT-001",
-        "Cotton T-Shirt",
-        "Made from 100% organic combed cotton, this premium t-shirt offers unmatched softness and breathability. Available in 12 vibrant colors with a modern relaxed fit that looks great whether you dress it up or keep it casual.",
-        "/images/products/tshirt.svg",
-        29.99,
-        "Clothing",
-        100);
-
-    createProduct(
-        "JEANS-001",
-        "Classic Jeans",
-        "Crafted from premium selvedge denim with a classic straight-leg fit that never goes out of style. Features reinforced stitching, copper rivets, and a comfortable mid-rise waist. These jeans only get better with age.",
-        "/images/products/jeans.svg",
-        79.99,
-        "Clothing",
-        50);
-
-    // Books
+    // Books — the sources this architecture was synthesized from
     createProduct(
         "BOOK-001",
         "Domain-Driven Design",
         "The seminal work by Eric Evans that introduced the software industry to Domain-Driven Design. This essential guide teaches you how to tackle complexity in the heart of software by connecting implementation to an evolving model of the business domain.",
-        "/images/products/ddd-book.svg",
+        "/images/products/ddd-book.webp",
         54.99,
         "Books",
         20);
@@ -98,51 +54,188 @@ public class SampleDataInitializer implements ApplicationRunner {
         "BOOK-002",
         "Clean Architecture",
         "Robert C. Martin's definitive guide to software structure and design. Learn the universal rules of software architecture that dramatically improve developer productivity throughout the life of any software system.",
-        "/images/products/clean-architecture-book.svg",
+        "/images/products/clean-architecture-book.webp",
         39.99,
         "Books",
         35);
 
-    // Home & Garden
     createProduct(
-        "CHAIR-001",
-        "Ergonomic Office Chair",
-        "Designed in collaboration with orthopedic specialists, this premium office chair features adjustable lumbar support, breathable mesh back, and a 4D armrest system. Work in comfort for hours with proper spinal alignment and pressure distribution.",
-        "/images/products/office-chair.svg",
-        299.99,
-        "Home & Garden",
-        12);
-
-    createProduct(
-        "DESK-001",
-        "Standing Desk",
-        "Transform your workspace with this electric height-adjustable standing desk. Smooth dual-motor system transitions between sitting and standing in seconds, with programmable memory presets. The spacious 60x30 inch bamboo surface provides plenty of room for dual monitors.",
-        "/images/products/standing-desk.svg",
-        499.99,
-        "Home & Garden",
-        8);
-
-    // Sports
-    createProduct(
-        "YOGA-001",
-        "Yoga Mat Premium",
-        "Elevate your practice with this professional-grade yoga mat. The dual-layer design provides superior cushioning and a non-slip surface that grips better the more you sweat. Includes a cotton carrying strap and is made from eco-friendly, biodegradable natural rubber.",
-        "/images/products/yoga-mat.svg",
+        "BOOK-003",
+        "Implementing Domain-Driven Design",
+        "Vaughn Vernon's hands-on companion to Evans: how aggregates, domain events and bounded contexts actually get built. The chapters on aggregate design rules and event-driven integration are the backbone of every context in this shop.",
+        "/images/products/iddd-book.webp",
         49.99,
-        "Sports",
+        "Books",
+        18);
+
+    createProduct(
+        "BOOK-004",
+        "Domain-Driven Design Distilled",
+        "The short version of Vernon's work — strategic design, context mapping and event storming in under 200 pages. The book to hand a colleague who has two hours rather than two months.",
+        "/images/products/ddd-distilled-book.webp",
+        24.99,
+        "Books",
+        42);
+
+    createProduct(
+        "BOOK-005",
+        "Hexagonal Architecture Explained",
+        "Alistair Cockburn, with Juan Manuel Garrido de Paz, finally wrote the book on the pattern he named in 2005. Ports, adapters and the configurable dependency straight from the source, with two decades of misreadings corrected.",
+        "/images/products/hexagonal-architecture-book.webp",
+        34.99,
+        "Books",
+        26);
+
+    createProduct(
+        "BOOK-006",
+        "Learning Domain-Driven Design",
+        "Vlad Khononov connects strategic design to architectural style: which subdomain deserves a rich domain model, and which one is perfectly well served by a transaction script. The reasoning behind pattern selection per subdomain.",
+        "/images/products/learning-ddd-book.webp",
+        44.99,
+        "Books",
+        22);
+
+    createProduct(
+        "BOOK-007",
+        "Patterns of Enterprise Application Architecture",
+        "Martin Fowler's catalogue of the patterns every layered system rediscovers sooner or later — Repository, Unit of Work, Data Mapper, Service Layer. Twenty years on, still the reference for what a name in your adapter layer actually promises.",
+        "/images/products/poeaa-book.webp",
+        59.99,
+        "Books",
+        14);
+
+    createProduct(
+        "BOOK-008",
+        "Team Topologies",
+        "Matthew Skelton and Manuel Pais on the other half of the boundary problem: a bounded context that no single team owns will not stay bounded. Stream-aligned teams, platform teams, and the inverse Conway manoeuvre.",
+        "/images/products/team-topologies-book.webp",
+        29.99,
+        "Books",
+        30);
+
+    // Modeling — everything a design workshop runs on
+    createProduct(
+        "STICKY-001",
+        "Event Storming Sticky Note Kit",
+        "Everything a modelling workshop needs, in the canonical colours: orange for domain events, blue for commands, yellow for aggregates, lilac for policies, pink for external systems. 500 sheets with extra-strong adhesive, plus a printed legend so nobody has to ask what the pink ones mean.",
+        "/images/products/event-storming-stickies.webp",
+        34.99,
+        "Modeling",
         40);
 
     createProduct(
-        "DUMBBELL-001",
-        "Adjustable Dumbbells Set",
-        "Replace an entire rack of weights with one smart set. These space-saving adjustable dumbbells let you switch between 5kg and 25kg in seconds with a simple twist-lock mechanism. Perfect for home workouts with professional-grade cast iron construction.",
-        "/images/products/dumbbells.svg",
-        199.99,
-        "Sports",
-        18);
+        "MAGNET-001",
+        "Hexagon Whiteboard Magnets, Set of 24",
+        "Twenty-four laser-cut hexagon magnets in six colours, dry-erase on the face. Rearrange your bounded contexts until the context map stops looking like a plate of spaghetti — then wipe them clean and do it again tomorrow.",
+        "/images/products/hexagon-magnets.webp",
+        24.99,
+        "Modeling",
+        35);
+
+    createProduct(
+        "POSTER-001",
+        "Context Map Poster, A1",
+        "All the strategic relationship patterns on one wall: Shared Kernel, Customer/Supplier, Conformist, Anti-Corruption Layer, Open Host Service, Published Language, Separate Ways, Partnership — and the Big Ball of Mud, so everyone can see where they are. Matte 200 g/m², ships rolled in a tube.",
+        "/images/products/context-map-poster.webp",
+        19.99,
+        "Modeling",
+        60);
+
+    createProduct(
+        "CARDS-001",
+        "DDD Pattern Card Deck",
+        "Fifty-four cards, one pattern each: intent on the front, forces and traps on the back. Deal them out at the start of a design session so the team argues with the card instead of with each other.",
+        "/images/products/pattern-card-deck.webp",
+        22.99,
+        "Modeling",
+        45);
+
+    // Apparel
+    createProduct(
+        "SHIRT-001",
+        "\"Ports & Adapters\" T-Shirt",
+        "Heavyweight organic cotton with a screen-printed hexagon: incoming port on one edge, outgoing port on the other, domain in the middle. Explains your architecture before you have opened your laptop.",
+        "/images/products/ports-adapters-tshirt.webp",
+        29.99,
+        "Apparel",
+        80);
+
+    createProduct(
+        "HOODIE-001",
+        "\"Domain over Framework\" Hoodie",
+        "Brushed-fleece hoodie in midnight navy, the slogan across the chest and the dependency arrow pointing inward on the sleeve. Warm enough for a data centre, quiet enough for a customer workshop.",
+        "/images/products/domain-hoodie.webp",
+        59.99,
+        "Apparel",
+        40);
+
+    createProduct(
+        "CAP-001",
+        "Hexagon Embroidered Cap",
+        "Six-panel cotton twill with a golden hexagon embroidered on the front. Structured crown, curved brim, adjustable strap — the pattern on your head instead of on your slides.",
+        "/images/products/hexagon-cap.webp",
+        24.99,
+        "Apparel",
+        50);
+
+    // Desk & Office
+    createProduct(
+        "MUG-001",
+        "\"Ubiquitous Language\" Mug",
+        "350 ml of stoneware making a single point: one term, one meaning, everyone at the table. Dishwasher-safe and insulated well enough to survive a two-hour glossary discussion.",
+        "/images/products/ubiquitous-language-mug.webp",
+        16.99,
+        "Desk & Office",
+        90);
+
+    createProduct(
+        "COASTER-001",
+        "Hexagon Wooden Coasters, Set of 6",
+        "Six oiled-oak hexagons, laser-engraved with concentric boundaries. The aggregates keep their invariants and your desk keeps its finish.",
+        "/images/products/hexagon-coasters.webp",
+        27.99,
+        "Desk & Office",
+        30);
+
+    createProduct(
+        "NOTEBOOK-001",
+        "Hex-Grid Modeling Notebook",
+        "A5 hardcover with 192 pages of hexagonal grid instead of squares, so contexts, aggregates and their neighbours almost sketch themselves. Lay-flat binding, ribbon marker, elastic band.",
+        "/images/products/hex-notebook.webp",
+        18.99,
+        "Desk & Office",
+        65);
+
+    createProduct(
+        "HEXAGON-001",
+        "Wooden Hexagon Desk Model",
+        "A solid beech hexagon on a walnut base, 12 cm across, with the domain engraved at the centre and three port notches cut into the edges. The hexagon you can actually buy — hand-finished in small batches, which is why there are never many in stock.",
+        "/images/products/wooden-hexagon.webp",
+        39.99,
+        "Desk & Office",
+        8);
+
+    // Stickers & Pins
+    createProduct(
+        "STICKER-001",
+        "Hexagon Sticker Sheet",
+        "Six die-cut vinyl hexagons, weatherproof and residue-free: ports, adapters, aggregate, domain event, context boundary, and one left blank for the purists. Laptop lid, water bottle, or the frame of the whiteboard.",
+        "/images/products/hexagon-stickers.webp",
+        9.99,
+        "Stickers & Pins",
+        150);
+
+    createProduct(
+        "PIN-001",
+        "\"Bounded Context\" Enamel Pin",
+        "Hard-enamel pin, 25 mm, a gold-plated boundary around a deep magenta context with three ports on its edge. Butterfly clutch, backing card with a one-paragraph definition for the colleague who asks.",
+        "/images/products/bounded-context-pin.webp",
+        12.99,
+        "Stickers & Pins",
+        75);
 
     System.out.println(
-        "Sample data initialized: 11 products; Pricing and Inventory follow via"
+        "Sample data initialized: 21 products; Pricing and Inventory follow via"
             + " ProductCreatedEvent");
   }
 
@@ -156,13 +249,6 @@ public class SampleDataInitializer implements ApplicationRunner {
       final int initialStock) {
 
     productCatalogService.createProduct(
-        sku,
-        name,
-        description,
-        imageUrl,
-        BigDecimal.valueOf(price),
-        "EUR",
-        category,
-        initialStock);
+        sku, name, description, imageUrl, BigDecimal.valueOf(price), "EUR", category, initialStock);
   }
 }

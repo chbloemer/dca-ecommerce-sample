@@ -1,8 +1,8 @@
 package dev.domaincentric.sample.ecommerce.cart.application.checkoutcart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import dev.domaincentric.dca.buildingblocks.application.TransactionBoundary;
 import dev.domaincentric.dca.buildingblocks.ddd.tactical.AggregateRoot;
@@ -85,8 +85,7 @@ class CheckoutCartUseCaseTest {
     articleDataPort.unavailable(productId);
 
     final CheckoutCartUseCase.CartValidationException failure =
-        assertThrows(
-            CheckoutCartUseCase.CartValidationException.class, () -> execute(cart));
+        assertThrows(CheckoutCartUseCase.CartValidationException.class, () -> execute(cart));
 
     final CartValidationResult validationResult = failure.getValidationResult();
     assertEquals(1, validationResult.errors().size());
@@ -105,8 +104,7 @@ class CheckoutCartUseCaseTest {
     articleDataPort.available(productId, 3);
 
     final CheckoutCartUseCase.CartValidationException failure =
-        assertThrows(
-            CheckoutCartUseCase.CartValidationException.class, () -> execute(cart));
+        assertThrows(CheckoutCartUseCase.CartValidationException.class, () -> execute(cart));
 
     assertEquals(
         CartValidationResult.ErrorType.INSUFFICIENT_STOCK,

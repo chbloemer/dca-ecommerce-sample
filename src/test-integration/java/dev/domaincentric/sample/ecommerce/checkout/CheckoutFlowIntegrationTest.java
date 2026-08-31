@@ -153,8 +153,7 @@ class CheckoutFlowIntegrationTest {
     assertEquals("PAYMENT", afterDelivery.currentStep(), "Should advance to PAYMENT step");
 
     // Step 5: Submit payment information (using "mock" payment provider)
-    submitPaymentInputPort.execute(
-        new SubmitPaymentCommand(sessionId, "mock"));
+    submitPaymentInputPort.execute(new SubmitPaymentCommand(sessionId, "mock"));
 
     GetCheckoutSessionResult afterPayment =
         getCheckoutSessionInputPort.execute(GetCheckoutSessionQuery.of(sessionId));

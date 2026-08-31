@@ -277,11 +277,11 @@ This file tells MCP clients (like Claude Code) how to connect to the server.
 - **Description:** Get all products in the catalog
 - **Parameters:** None
 - **Returns:** `List<ProductDto>`
-- **Example:** Returns 11 products with full details
+- **Example:** Returns 21 products with full details
 
 ### product-by-sku
 - **Description:** Find product by SKU
-- **Parameters:** `sku` (String) - e.g., "LAPTOP-001"
+- **Parameters:** `sku` (String) - e.g., "BOOK-001"
 - **Returns:** `ProductDto` or `null`
 - **Format:** Uppercase letters, numbers, hyphens only
 
@@ -289,7 +289,7 @@ This file tells MCP clients (like Claude Code) how to connect to the server.
 - **Description:** Find products in category
 - **Parameters:** `categoryName` (String)
 - **Returns:** `List<ProductDto>`
-- **Categories:** Electronics, Clothing, Books, Home & Garden, Sports & Outdoors
+- **Categories:** Books, Modeling, Apparel, Desk & Office, Stickers & Pins
 
 ### product-by-id
 - **Description:** Get product by internal ID

@@ -22,13 +22,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PriceInitializationEventConsumer {
 
-  private static final Logger log =
-      LoggerFactory.getLogger(PriceInitializationEventConsumer.class);
+  private static final Logger log = LoggerFactory.getLogger(PriceInitializationEventConsumer.class);
 
   private final SetProductPriceInputPort setProductPriceInputPort;
 
-  public PriceInitializationEventConsumer(
-      final SetProductPriceInputPort setProductPriceInputPort) {
+  public PriceInitializationEventConsumer(final SetProductPriceInputPort setProductPriceInputPort) {
     this.setProductPriceInputPort = setProductPriceInputPort;
   }
 

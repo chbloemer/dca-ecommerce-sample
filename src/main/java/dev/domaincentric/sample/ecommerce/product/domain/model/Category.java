@@ -15,24 +15,24 @@ public record Category(String name) implements Value {
     return new Category(name);
   }
 
-  // Predefined categories for e-commerce
-  public static Category electronics() {
-    return new Category("Electronics");
-  }
-
-  public static Category clothing() {
-    return new Category("Clothing");
-  }
-
+  // Predefined categories of the assortment
   public static Category books() {
     return new Category("Books");
   }
 
-  public static Category homeAndGarden() {
-    return new Category("Home & Garden");
+  public static Category modeling() {
+    return new Category("Modeling");
   }
 
-  public static Category sports() {
-    return new Category("Sports & Outdoors");
+  public static Category apparel() {
+    return new Category("Apparel");
+  }
+
+  public static Category deskAndOffice() {
+    return new Category("Desk & Office");
+  }
+
+  public static Category stickersAndPins() {
+    return new Category("Stickers & Pins");
   }
 }

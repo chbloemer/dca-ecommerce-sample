@@ -2,9 +2,11 @@ extends ../layout
 
 block content
   section.hero(data-test="hero")
-    h1.hero__title Welcome to DCA Commerce
-    p.hero__subtitle Discover our curated collection of premium products
-    p.hero__description Shop with confidence. We bring you quality products with fast delivery, secure payments, and hassle-free returns.
+    h1.hero__title
+      | Welcome to domaincentric
+      span.brand-tld .commerce
+    p.hero__subtitle Books, modelling supplies and hexagon merchandise for people who draw boundaries
+    p.hero__description Everything this architecture is made of: the books it grew out of, the supplies a design workshop runs on, and hexagons for your desk.
     .hero__actions
       a.hero__cta.hero__cta--primary(href="/products" data-test="browse-products-link") Browse Products
       a.hero__cta.hero__cta--secondary(href="/cart" data-test="view-cart-link") View Cart
@@ -15,45 +17,49 @@ block content
       .feature-card
         span.feature-card__icon &#10140;
         h3.feature-card__title Free Shipping
-        p.feature-card__description Enjoy free shipping on all orders over $50. Fast and reliable delivery straight to your door.
+        p.feature-card__description Books ship cushioned, posters rolled in a tube, hexagons in a fitted box. Free over &#8364;50.
 
       .feature-card
         span.feature-card__icon &#9670;
         h3.feature-card__title Secure Payments
-        p.feature-card__description Your transactions are protected with industry-leading encryption and fraud prevention.
+        p.feature-card__description Card or invoice, encrypted end to end. Your payment details never touch our order history.
 
       .feature-card
         span.feature-card__icon &#10022;
-        h3.feature-card__title Quality Products
-        p.feature-card__description Every item in our catalog is carefully selected and quality-tested before listing.
+        h3.feature-card__title Built to Last
+        p.feature-card__description Beech and oiled oak, hard enamel, heavyweight cotton. Objects that survive a decade of workshops.
 
       .feature-card
         span.feature-card__icon &#8635;
         h3.feature-card__title Easy Returns
-        p.feature-card__description Not satisfied? Return any item within 30 days for a full refund, no questions asked.
+        p.feature-card__description Not the hexagon you pictured? Send any item back within 30 days for a full refund.
 
   section.section.section--muted(data-test="categories")
     h2.section__title Popular Categories
     .highlight-grid
       .highlight-card
-        span.highlight-card__title Electronics
-        p.highlight-card__description Latest gadgets, accessories, and tech essentials for everyday life.
+        span.highlight-card__title Books
+        p.highlight-card__description The works this architecture was synthesized from — Evans, Vernon, Cockburn, Fowler, Martin.
 
       .highlight-card
-        span.highlight-card__title Home &amp; Living
-        p.highlight-card__description Furniture, decor, and everything you need to make your house a home.
+        span.highlight-card__title Modeling
+        p.highlight-card__description Sticky notes, hexagon magnets, posters and card decks for your next design workshop.
 
       .highlight-card
-        span.highlight-card__title Fashion
-        p.highlight-card__description Trendy clothing, footwear, and accessories for every occasion.
+        span.highlight-card__title Apparel
+        p.highlight-card__description Shirts, hoodies and caps that explain your architecture before you open your laptop.
 
       .highlight-card
-        span.highlight-card__title Sports &amp; Outdoors
-        p.highlight-card__description Gear up for your next adventure with our outdoor and fitness collection.
+        span.highlight-card__title Desk &amp; Office
+        p.highlight-card__description Mugs, coasters, a hex-grid notebook, and the wooden hexagon for your desk.
+
+      .highlight-card
+        span.highlight-card__title Stickers &amp; Pins
+        p.highlight-card__description Small enough for a laptop lid, loud enough for a conference hallway.
 
   section.section(data-test="cta-section")
     .hero(data-test="cta-banner")
-      h2.hero__title Ready to Start Shopping?
-      p.hero__subtitle Browse our full catalog and find something you love.
+      h2.hero__title Ready to Draw Some Boundaries?
+      p.hero__subtitle Browse the full catalog: the books, the modelling supplies, and the hexagons.
       .hero__actions
         a.hero__cta.hero__cta--primary(href="/products" data-test="shop-now-link") Shop Now

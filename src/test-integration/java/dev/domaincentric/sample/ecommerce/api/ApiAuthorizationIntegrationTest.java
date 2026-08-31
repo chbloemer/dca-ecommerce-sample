@@ -151,7 +151,7 @@ class ApiAuthorizationIntegrationTest {
   private static String newProduct() {
     return """
         {"sku":"API-%s","name":"API Product","description":"d","imageUrl":"",\
-        "price":19.99,"category":"Electronics","stock":5}"""
+        "price":19.99,"category":"Books","stock":5}"""
         .formatted(Long.toHexString(System.nanoTime()).toUpperCase(java.util.Locale.ROOT));
   }
 }

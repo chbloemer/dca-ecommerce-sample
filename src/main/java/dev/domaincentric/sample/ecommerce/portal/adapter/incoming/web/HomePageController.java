@@ -28,7 +28,7 @@ public class HomePageController {
    */
   @GetMapping("/")
   public String showHomePage(final Model model) {
-    model.addAttribute("title", "DCA Ecommerce");
+    model.addAttribute("title", "domaincentric.commerce");
 
     return "home/index";
   }

@@ -21,8 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StockInitializationEventConsumer {
 
-  private static final Logger log =
-      LoggerFactory.getLogger(StockInitializationEventConsumer.class);
+  private static final Logger log = LoggerFactory.getLogger(StockInitializationEventConsumer.class);
 
   private final SetStockLevelInputPort setStockLevelInputPort;
 

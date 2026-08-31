@@ -725,7 +725,7 @@ curl -X POST http://localhost:8080/api/products \
     "name": "Test Product",
     "description": "A test product",
     "price": 99.99,
-    "category": "Electronics",
+    "category": "Books",
     "stock": 10
   }'
 ```
@@ -768,13 +768,13 @@ The product catalog is accessible via MCP server for AI assistants like Claude. 
 - No parameters required
 
 **product-by-sku**
-- Find product by SKU (e.g., "LAPTOP-001")
+- Find product by SKU (e.g., "BOOK-001")
 - Parameters: `sku` (String) - must contain uppercase letters, numbers, hyphens only
 
 **product-by-category**
 - Find all products in a category
 - Parameters: `categoryName` (String)
-- Valid categories: Electronics, Clothing, Books, Home & Garden, Sports & Outdoors
+- Valid categories: Books, Modeling, Apparel, Desk & Office, Stickers & Pins
 
 **product-by-id**
 - Get product by internal UUID
@@ -801,12 +801,16 @@ AI assistants will automatically discover and connect to the MCP server.
 
 ## Sample Data
 
-The application initializes with 11 sample products across different categories:
-- **Electronics**: Laptop, Smartphone, Tablet
-- **Clothing**: T-Shirt, Jeans
-- **Books**: DDD Book, Clean Architecture Book
-- **Home & Garden**: Office Chair, Standing Desk
-- **Sports**: Yoga Mat, Dumbbells
+The shop sells what this architecture is made of. The application initializes with 21 sample
+products across five categories:
+- **Books** (8): the sources the architecture was synthesized from — Evans, Martin, Vernon (twice),
+  Cockburn/Garrido de Paz, Khononov, Fowler, Skelton/Pais
+- **Modeling** (4): Event Storming sticky-note kit, hexagon whiteboard magnets, context map poster,
+  DDD pattern card deck
+- **Apparel** (3): "Ports & Adapters" T-shirt, "Domain over Framework" hoodie, hexagon cap
+- **Desk & Office** (4): "Ubiquitous Language" mug, hexagon coasters, hex-grid notebook, wooden
+  hexagon desk model
+- **Stickers & Pins** (2): hexagon sticker sheet, "Bounded Context" enamel pin
 
 ## Architecture Documentation
 

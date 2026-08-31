@@ -168,7 +168,9 @@ class CheckoutLoginE2ETest extends BaseE2ETest {
         buyer.loggedInBannerText().contains(uniqueEmail),
         "The buyer step should name the account the visitor is logged in as");
     assertEquals(
-        uniqueEmail, buyer.emailValue(), "The email should be prefilled from the logged-in account");
+        uniqueEmail,
+        buyer.emailValue(),
+        "The email should be prefilled from the logged-in account");
   }
 
   /** Helper method to register a new user with default credentials. */

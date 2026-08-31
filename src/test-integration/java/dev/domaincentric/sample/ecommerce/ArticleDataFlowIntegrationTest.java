@@ -188,8 +188,10 @@ class ArticleDataFlowIntegrationTest {
     @Test
     @DisplayName("A product Pricing has not seen yet is offered as unavailable")
     void aProductPricingHasNotSeenYetIsOfferedAsUnavailable() {
-      // Written straight into the catalog's repository, so no ProductCreatedEvent is ever published:
-      // this is the state of every new product until Pricing and Inventory have consumed that event.
+      // Written straight into the catalog's repository, so no ProductCreatedEvent is ever
+      // published:
+      // this is the state of every new product until Pricing and Inventory have consumed that
+      // event.
       final Product unpriced =
           new ProductFactory()
               .createProduct(
@@ -197,7 +199,7 @@ class ArticleDataFlowIntegrationTest {
                   ProductName.of("Unpriced Thing"),
                   ProductDescription.of("Nobody has priced this yet"),
                   Category.of("Home"),
-                  ImageUrl.of("/images/products/laptop.svg"),
+                  ImageUrl.of("/images/products/ddd-book.webp"),
                   Money.euro(9.99),
                   5);
       productRepository.save(unpriced);
