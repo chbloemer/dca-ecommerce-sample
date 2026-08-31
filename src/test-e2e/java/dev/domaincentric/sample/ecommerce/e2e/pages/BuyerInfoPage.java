@@ -15,6 +15,9 @@ public class BuyerInfoPage extends BasePage {
   private static final String LOGIN_LINK = "buyer-login-link";
   private static final String REGISTER_LINK = "buyer-register-link";
   private static final String ERROR_MESSAGE = "buyer-error-message";
+  private static final String AUTH_OPTIONS = "buyer-auth-options";
+  private static final String LOGGED_IN_BANNER = "buyer-logged-in";
+  private static final String EMAIL_INPUT = "buyer-email-input";
 
   /**
    * Creates a new BuyerInfoPage and waits for it to load.
@@ -163,6 +166,36 @@ public class BuyerInfoPage extends BasePage {
         page.evaluate(
             "() => { const form = document.querySelector('[data-test=\"buyer-form\"]'); "
                 + "return form != null && !form.checkValidity(); }");
+  }
+
+  /**
+   * Checks if the login/register prompt is offered. It is shown to anonymous visitors only.
+   *
+   * @return true if the guest login/register options are rendered
+   */
+  public boolean showsAuthOptions() {
+    return exists(AUTH_OPTIONS);
+  }
+
+  /**
+   * Reads the "Logged in as ..." banner shown instead of the login/register prompt.
+   *
+   * @return the banner text, or an empty string when the visitor is anonymous
+   */
+  public String loggedInBannerText() {
+    if (!exists(LOGGED_IN_BANNER)) {
+      return "";
+    }
+    return page.locator("[data-test='" + LOGGED_IN_BANNER + "']").textContent().trim();
+  }
+
+  /**
+   * Reads the current value of the email input.
+   *
+   * @return the prefilled email address, empty when the field is blank
+   */
+  public String emailValue() {
+    return page.locator("[data-test='" + EMAIL_INPUT + "']").inputValue();
   }
 
   /**

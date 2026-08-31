@@ -141,6 +141,36 @@ class CheckoutLoginE2ETest extends BaseE2ETest {
         "Should be redirected to checkout or cart after login");
   }
 
+  @Test
+  @DisplayName("Buyer step drops the login prompt and prefills the email once logged in")
+  void buyerStepReflectsLoginState() {
+    // Step 1: as a guest, the buyer step offers login and register and leaves the email blank
+    addProductToCart();
+    CartPage cart = CartPage.navigateTo(page);
+    cart.waitForItems();
+    BuyerInfoPage guestBuyer = cart.proceedToCheckout();
+
+    assertTrue(guestBuyer.showsAuthOptions(), "A guest should be offered login and register");
+    assertEquals("", guestBuyer.emailValue(), "A guest has no email to prefill");
+
+    // Step 2: register from within the checkout
+    String uniqueEmail = "buyerstate-" + System.currentTimeMillis() + "@example.com";
+    RegisterPage register = RegisterPage.navigateTo(page);
+    register.register(uniqueEmail, TEST_PASSWORD);
+
+    // Step 3: back on the buyer step, now as a registered visitor
+    CartPage cartAfterLogin = CartPage.navigateTo(page);
+    cartAfterLogin.waitForItems();
+    BuyerInfoPage buyer = cartAfterLogin.proceedToCheckout();
+
+    assertFalse(buyer.showsAuthOptions(), "A logged-in visitor must not be asked to log in again");
+    assertTrue(
+        buyer.loggedInBannerText().contains(uniqueEmail),
+        "The buyer step should name the account the visitor is logged in as");
+    assertEquals(
+        uniqueEmail, buyer.emailValue(), "The email should be prefilled from the logged-in account");
+  }
+
   /** Helper method to register a new user with default credentials. */
   private void registerNewUser() {
     RegisterPage register = RegisterPage.navigateTo(page);

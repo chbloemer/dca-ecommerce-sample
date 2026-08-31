@@ -26,7 +26,7 @@ block content
           a.btn.btn--secondary(href="/login?returnUrl=/checkout/buyer" data-test="buyer-login-link") Login
           a.btn.btn--secondary(href="/register?returnUrl=/checkout/buyer" data-test="buyer-register-link") Register
     else
-      .checkout__auth.checkout__auth--logged-in
+      .checkout__auth.checkout__auth--logged-in(data-test="buyer-logged-in")
         p Logged in as #{identity.email().orElse('')}
 
     h3.checkout__section-title Buyer Information
