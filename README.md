@@ -2,6 +2,9 @@
 
 The reference implementation of **Domain-Centric Architecture (DCA)** — a synthesis of **Domain-Driven Design**, **Hexagonal Architecture** and **Clean Architecture** — as a working e-commerce application, with **MCP (Model Context Protocol)** server integration for AI assistant interaction.
 
+*Written with AI assistance — drafted mainly by Claude, reviewed and directed by the author since
+2025. The architecture rules in this repository's build are part of how that work is verified.*
+
 ## Overview
 
 This project showcases best practices for structuring a Spring Boot application with clean architecture principles. It implements eight bounded contexts:
@@ -977,4 +980,5 @@ These tests verify:
 
 ## License
 
-This is a sample project for educational purposes.
+MIT — see [LICENSE](LICENSE). A sample project: read it as a reference for structure, not as a hardened
+product.
