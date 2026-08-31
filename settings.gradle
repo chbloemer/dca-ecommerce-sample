@@ -1,8 +1,8 @@
 rootProject.name = 'dca-ecommerce-sample-java'
 
-// Local development against the sibling dca-java build: Gradle substitutes
+// The building blocks and the rule catalog come from Maven Central. To develop against unreleased
+// changes of the sibling dca-java build, run with -PwithDcaJava — Gradle then substitutes
 // dev.domaincentric:dca-building-blocks / dca-archunit with ../dca-java.
-// Remove once the artifacts are published to Maven Central.
-if (file('../dca-java').exists()) {
+if (hasProperty('withDcaJava') && file('../dca-java').exists()) {
   includeBuild('../dca-java')
 }
