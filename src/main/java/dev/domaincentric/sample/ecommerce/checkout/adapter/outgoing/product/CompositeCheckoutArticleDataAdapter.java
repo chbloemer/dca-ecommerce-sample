@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,6 +37,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CompositeCheckoutArticleDataAdapter implements CheckoutArticleDataPort {
+
+  private static final Logger log =
+      LoggerFactory.getLogger(CompositeCheckoutArticleDataAdapter.class);
 
   private final ProductCatalogService productCatalogService;
   private final PricingService pricingService;
@@ -67,17 +72,10 @@ public class CompositeCheckoutArticleDataAdapter implements CheckoutArticleDataP
 
       // Only include if we have product info (name is required)
       if (productInfo.isPresent()) {
-        PriceInfo priceInfo = prices.get(productId);
-        if (priceInfo == null) {
-          throw new IllegalStateException(
-              "Pricing data not available for product: "
-                  + productId.value()
-                  + ". Ensure price is set in Pricing context.");
-        }
-
-        CheckoutArticle article =
-            buildCheckoutArticle(productId, productInfo.get(), priceInfo, stocks.get(productId));
-        result.put(productId, article);
+        result.put(
+            productId,
+            buildCheckoutArticle(
+                productId, productInfo.get(), prices.get(productId), stocks.get(productId)));
       }
     }
 
@@ -89,11 +87,22 @@ public class CompositeCheckoutArticleDataAdapter implements CheckoutArticleDataP
       ProductId productId, ProductInfo productInfo, PriceInfo priceInfo, StockInfo stockInfo) {
 
     String name = productInfo.name();
-    Money currentPrice = priceInfo.currentPrice();
+
+    if (priceInfo == null) {
+      log.warn(
+          "No price for product {} - offering it as unavailable. Pricing may not have consumed"
+              + " ProductCreatedEvent yet, or the price was never set.",
+          productId.value());
+    }
+
+    // A product nobody has priced cannot be sold: it counts as unavailable, and the price shown is
+    // no price at all rather than an invented one
+    Money currentPrice = priceInfo != null ? priceInfo.currentPrice() : Money.euro(0.0);
+    boolean isPriced = priceInfo != null;
 
     // Use Inventory context as the single source of truth for stock
-    int availableStock = stockInfo != null ? stockInfo.availableStock() : 0;
-    boolean isAvailable = stockInfo != null && stockInfo.isAvailable();
+    int availableStock = isPriced && stockInfo != null ? stockInfo.availableStock() : 0;
+    boolean isAvailable = isPriced && stockInfo != null && stockInfo.isAvailable();
 
     String imageUrl = productInfo.imageUrl();
 

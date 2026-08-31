@@ -38,7 +38,14 @@ import dev.domaincentric.sample.ecommerce.pricing.application.setproductprice.Se
 import dev.domaincentric.sample.ecommerce.product.api.ProductCatalogService;
 import dev.domaincentric.sample.ecommerce.product.api.ProductCatalogService.ProductInfo;
 import dev.domaincentric.sample.ecommerce.product.application.shared.ProductRepository;
+import dev.domaincentric.sample.ecommerce.product.domain.model.Category;
+import dev.domaincentric.sample.ecommerce.product.domain.model.ImageUrl;
 import dev.domaincentric.sample.ecommerce.product.domain.model.Product;
+import dev.domaincentric.sample.ecommerce.product.domain.model.ProductDescription;
+import dev.domaincentric.sample.ecommerce.product.domain.model.ProductFactory;
+import dev.domaincentric.sample.ecommerce.product.domain.model.ProductName;
+import dev.domaincentric.sample.ecommerce.product.domain.model.SKU;
+import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.Money;
 import dev.domaincentric.sample.ecommerce.sharedkernel.domain.model.ProductId;
 import java.math.BigDecimal;
 import java.util.List;
@@ -176,6 +183,36 @@ class ArticleDataFlowIntegrationTest {
     void shouldReturnEmptyForEmptyInput() {
       Map<ProductId, CartArticle> result = articleDataPort.getArticleData(Set.of());
       assertTrue(result.isEmpty(), "Should return empty map for empty input");
+    }
+
+    @Test
+    @DisplayName("A product Pricing has not seen yet is offered as unavailable")
+    void aProductPricingHasNotSeenYetIsOfferedAsUnavailable() {
+      // Written straight into the catalog's repository, so no ProductCreatedEvent is ever published:
+      // this is the state of every new product until Pricing and Inventory have consumed that event.
+      final Product unpriced =
+          new ProductFactory()
+              .createProduct(
+                  SKU.of("UNPRICED-1"),
+                  ProductName.of("Unpriced Thing"),
+                  ProductDescription.of("Nobody has priced this yet"),
+                  Category.of("Home"),
+                  ImageUrl.of("/images/products/laptop.svg"),
+                  Money.euro(9.99),
+                  5);
+      productRepository.save(unpriced);
+      try {
+        final Optional<CartArticle> article = articleDataPort.getArticleData(unpriced.id());
+
+        assertTrue(article.isPresent(), "The article is offered, not hidden");
+        assertFalse(article.get().isAvailable(), "Without a price it cannot be sold");
+        assertEquals(0, article.get().availableStock(), "Nothing is sellable either");
+        assertFalse(article.get().hasStockFor(1), "Adding it to a cart is refused");
+      } finally {
+        // The catalog is shared with the other tests in this class, and an unsellable product would
+        // fail whichever of them picks it up
+        productRepository.deleteById(unpriced.id());
+      }
     }
 
     @Test

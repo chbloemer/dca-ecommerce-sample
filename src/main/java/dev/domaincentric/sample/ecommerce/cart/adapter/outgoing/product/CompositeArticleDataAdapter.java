@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,6 +37,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CompositeArticleDataAdapter implements ArticleDataPort {
+
+  private static final Logger log = LoggerFactory.getLogger(CompositeArticleDataAdapter.class);
 
   private final ProductCatalogService productCatalogService;
   private final PricingService pricingService;
@@ -67,17 +71,10 @@ public class CompositeArticleDataAdapter implements ArticleDataPort {
 
       // Only include if we have product info (name is required)
       if (productInfo.isPresent()) {
-        PriceInfo priceInfo = prices.get(productId);
-        if (priceInfo == null) {
-          throw new IllegalStateException(
-              "Pricing data not available for product: "
-                  + productId.value()
-                  + ". Ensure price is set in Pricing context.");
-        }
-
-        CartArticle cartArticle =
-            buildCartArticle(productId, productInfo.get(), priceInfo, stocks.get(productId));
-        result.put(productId, cartArticle);
+        result.put(
+            productId,
+            buildCartArticle(
+                productId, productInfo.get(), prices.get(productId), stocks.get(productId)));
       }
     }
 
@@ -97,26 +94,14 @@ public class CompositeArticleDataAdapter implements ArticleDataPort {
       return Optional.empty();
     }
 
-    // Fetch pricing (required)
+    // Price and stock are owned elsewhere; a product either of them does not know yet is offered as
+    // unavailable rather than breaking the request
     Optional<PriceInfo> priceInfo = pricingService.getPrice(productId);
-    if (priceInfo.isEmpty()) {
-      throw new IllegalStateException(
-          "Pricing data not available for product: "
-              + productId.value()
-              + ". Ensure price is set in Pricing context.");
-    }
-
-    // Fetch inventory (required - Inventory is the owner of stock data)
     Optional<StockInfo> stockInfo = inventoryService.getStock(productId);
-    if (stockInfo.isEmpty()) {
-      throw new IllegalStateException(
-          "Inventory data not available for product: "
-              + productId.value()
-              + ". Ensure stock level is set in Inventory context.");
-    }
 
     return Optional.of(
-        buildCartArticle(productId, productInfo.get(), priceInfo.get(), stockInfo.get()));
+        buildCartArticle(
+            productId, productInfo.get(), priceInfo.orElse(null), stockInfo.orElse(null)));
   }
 
   /** Builds a CartArticle domain object from multiple OHS data sources. */
@@ -124,11 +109,22 @@ public class CompositeArticleDataAdapter implements ArticleDataPort {
       ProductId productId, ProductInfo productInfo, PriceInfo priceInfo, StockInfo stockInfo) {
 
     String name = productInfo.name();
-    Money currentPrice = priceInfo.currentPrice();
+
+    if (priceInfo == null) {
+      log.warn(
+          "No price for product {} - offering it as unavailable. Pricing may not have consumed"
+              + " ProductCreatedEvent yet, or the price was never set.",
+          productId.value());
+    }
+
+    // A product nobody has priced cannot be sold: it counts as unavailable, and the price shown is
+    // no price at all rather than an invented one
+    Money currentPrice = priceInfo != null ? priceInfo.currentPrice() : Money.euro(0.0);
+    boolean isPriced = priceInfo != null;
 
     // Use Inventory context as the single source of truth for stock
-    int availableStock = stockInfo != null ? stockInfo.availableStock() : 0;
-    boolean isAvailable = stockInfo != null && stockInfo.isAvailable();
+    int availableStock = isPriced && stockInfo != null ? stockInfo.availableStock() : 0;
+    boolean isAvailable = isPriced && stockInfo != null && stockInfo.isAvailable();
 
     String imageUrl = productInfo.imageUrl();
 
