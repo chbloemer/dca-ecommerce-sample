@@ -65,7 +65,7 @@ public class CheckoutCartBuilder implements CheckoutStateInterest {
 | `appendix-d-cheat-sheet.md` | Common Patterns | Add Interest Interface Pattern with code example |
 | `glossary.md` (if exists) | - | Add "Interest Interface", "State Mediator" terms |
 
-### 2.2 Update implementing-domain-centric-architecture
+### 2.2 Update dca-guide
 
 | File | Section | Changes |
 |------|---------|---------|

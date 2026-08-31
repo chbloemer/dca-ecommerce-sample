@@ -167,7 +167,7 @@ The codebase already uses `*Result` for output port return types (e.g., `Payment
 
 - `README.md` - Project structure and examples
 - `CLAUDE.md` (root and dca-ecommerce-sample-java) - Naming conventions
-- `implementing-domain-centric-architecture/README.md` - Pattern documentation
+- `dca-guide/README.md` - Pattern documentation
 - `dca-book/06-application-layer.md` - Chapter content
 - `dca-book/appendix-d-cheat-sheet.md` - Quick reference
 

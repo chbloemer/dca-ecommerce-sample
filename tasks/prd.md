@@ -1965,14 +1965,14 @@ Before starting, check tasks/logs/ folder for US-94 and US-99 results to see the
 - Add 'Enriched Read Model Pattern' section to architecture-principles.md
 - Add 'Factory for Cross-Context Assembly' section to architecture-principles.md
 - Include code examples from actual implementations
-- Update implementing-domain-centric-architecture/README.md if applicable
+- Update dca-guide/README.md if applicable
 - Documentation follows concise style (no bloat)
 
 **Architectural Guidance:**
 - **Affected Layers:** documentation
 - **Locations:**
   - `docs/architecture/architecture-principles.md`
-  - `implementing-domain-centric-architecture/README.md`
+  - `dca-guide/README.md`
 - **Patterns:** Documentation
 - **Constraints:**
   - Keep documentation concise and to the point
@@ -3199,7 +3199,7 @@ the consumer may already be the translation boundary.
   - `{context}.adapter.incoming.event.acl/*EventTranslator`
   - `src/test-architecture/groovy/.../DddStrategicPatternsArchUnitTest.groovy`
   - `docs/architecture/adr/`
-  - `implementing-domain-centric-architecture/README.md`
+  - `dca-guide/README.md`
 - **Patterns:** Anti-Corruption Layer, Event Consumer, Interface Inversion, Published Language
 - **Constraints:**
   - No direct imports from other bounded context domains — a foreign event's payload must not carry the producer's domain types

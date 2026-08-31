@@ -321,7 +321,7 @@ Document `CheckoutArticlePriceResolver` - functional interface for domain-level 
 | Action | File | Purpose |
 |--------|------|---------|
 | **Update** | `docs/architecture/architecture-principles.md` | Document new patterns |
-| **Update** | `implementing-domain-centric-architecture/README.md` | Add patterns if applicable |
+| **Update** | `dca-guide/README.md` | Add patterns if applicable |
 
 ---
 

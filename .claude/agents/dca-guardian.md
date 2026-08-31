@@ -24,13 +24,13 @@ This is a multi-project repository:
 domain-centric-architecture/
 ├── dca-ecommerce-sample-java/                    # Reference implementation (Java/Spring Boot)
 │   └── docs/architecture/                     # Implementation-specific docs
-├── implementing-domain-centric-architecture/  # Compact architectural guide
+├── dca-guide/  # Compact architectural guide
 └── dca-book/                                  # Comprehensive book-style guide
 ```
 
 **Source of truth hierarchy:**
 1. `dca-ecommerce-sample-java/` — source of truth for code and implementation
-2. `implementing-domain-centric-architecture/` — source of truth for patterns and rules
+2. `dca-guide/` — source of truth for patterns and rules
 3. `dca-book/` — educational interpretation of (1) and (2)
 
 ## Key Documentation Files
@@ -42,7 +42,7 @@ domain-centric-architecture/
 - `docs/architecture/README.md` — Architecture quick reference
 - `docs/architecture/design-decisions.md` — ADRs
 
-### implementing-domain-centric-architecture/
+### dca-guide/
 - `README.md` — Complete architectural reference (patterns, package structure, naming)
 - `archunit-governance.md` — ArchUnit testing guide
 - `spring-modulith.md` — Spring Boot patterns
@@ -65,7 +65,7 @@ domain-centric-architecture/
 5. Bounded context list is complete and current
 
 ### Cross-Project Consistency
-1. No contradictions between `dca-ecommerce-sample-java/`, `implementing-domain-centric-architecture/`, and `dca-book/`
+1. No contradictions between `dca-ecommerce-sample-java/`, `dca-guide/`, and `dca-book/`
 2. Naming conventions are consistent across all docs and CLAUDE.md files
 3. Pattern definitions don't diverge between projects
 4. Package structure templates match reference implementation
